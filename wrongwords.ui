@@ -23,33 +23,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="btndelsingle">
-   <property name="geometry">
-    <rect>
-     <x>89</x>
-     <y>290</y>
-     <width>101</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>删除单个单词</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btnclear">
-   <property name="geometry">
-    <rect>
-     <x>279</x>
-     <y>290</y>
-     <width>111</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>清空</string>
-   </property>
-  </widget>
-  <widget class="QTableWidget" name="tableWidget">
+  <widget class="QTableWidget" name="wrongtable">
    <property name="geometry">
     <rect>
      <x>15</x>
@@ -62,7 +36,7 @@
     <number>999</number>
    </property>
    <property name="columnCount">
-    <number>3</number>
+    <number>2</number>
    </property>
    <row/>
    <row/>
@@ -1063,7 +1037,6 @@
    <row/>
    <row/>
    <row/>
-   <column/>
    <column/>
    <column/>
   </widget>

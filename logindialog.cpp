@@ -16,7 +16,7 @@ logindialog::logindialog(QWidget *parent)
     this->setWindowIcon(icon);
 
     ui->userline->setPlaceholderText("请输入用户名");
-   ui->passwordline->setPlaceholderText("请输入密码");
+    ui->passwordline->setPlaceholderText("请输入密码");
 
 }
 

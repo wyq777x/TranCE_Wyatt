@@ -10,6 +10,11 @@ wrongwords::wrongwords(QWidget *parent)
     QString iconpath=":/image/learneng.ico";
     QIcon icon(iconpath);
     this->setWindowIcon(icon);
+
+    QStringList horizontalheader;
+    horizontalheader << "英文";
+    horizontalheader << "中文";
+    ui->wrongtable->setHorizontalHeaderLabels(horizontalheader);
 }
 
 wrongwords::~wrongwords()
