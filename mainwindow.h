@@ -19,6 +19,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    //下面三个都是为了后面在不同窗口之间数据拷贝用的,因为我的各个窗口的ui都是private成员
     recitewords recitewords;
     wordslib wordslib;
     wrongwords wrongwords;
