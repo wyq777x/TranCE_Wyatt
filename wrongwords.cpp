@@ -33,7 +33,6 @@ void wrongwords::addRow(QTableWidgetItem *item, int column)//添加列
 void wrongwords::addRow(QTableWidgetItem *itemEnglish, QTableWidgetItem *itemChinese)
 {
     int row = ui->wrongtable->rowCount();
-    ui->wrongtable->insertRow(row);
     ui->wrongtable->setItem(row, 0, itemEnglish);
     ui->wrongtable->setItem(row, 1, itemChinese);
 }

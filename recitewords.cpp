@@ -3,7 +3,7 @@
 #include "ui_recitewords.h"
 #include <QTableWidget>
 extern int mark;//外部引用分数
-int row=0,column=0;//单词表格行和列
+int row=1,column=0;//单词表格行和列
 recitewords::recitewords(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::recitewords)
@@ -69,9 +69,9 @@ void recitewords::on_btncommit_clicked()//提交按钮
     }
     QTableWidgetItem *wrongItemEnglish = new QTableWidgetItem(itemEnglish->text());
     QTableWidgetItem *wrongItemChinese = new QTableWidgetItem(itemChinese->text());
-    wrongWords->addRow(wrongItemEnglish, wrongItemChinese);  // 在同一行添加英文和中文的QTableWidgetItem
-    wrongWords->setItem(0, 0, wrongItemEnglish);
-    wrongWords->setItem(0, 1, wrongItemChinese);
+    wrongWords->setItem(row, 0, wrongItemEnglish);
+    wrongWords->setItem(row, 1, wrongItemChinese);
+    row++;
     wrongWords->show();  // 显示wrongwords窗口
     }
 
