@@ -3,3 +3,4 @@ banana 香蕉
 orange 橙子
 hello 你好
 go 去;走;
+good 好的
