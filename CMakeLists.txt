@@ -7,7 +7,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-project(learnENG LANGUAGES CXX)
+project(TranCE_Wyatt LANGUAGES CXX)
 
 find_package(Qt6 COMPONENTS Core Widgets Quick QuickControls2 REQUIRED)
 
@@ -20,7 +20,7 @@ file(GLOB_RECURSE PROJECT_SOURCES
     src/*.qrc
 )
 
-qt_add_executable(learnENG
+qt_add_executable(TranCE_Wyatt
     ${PROJECT_SOURCES}
 )
 
@@ -28,4 +28,4 @@ add_subdirectory(src)
 
 add_subdirectory(3rdpart/Ela)
 
-target_link_libraries(learnENG PRIVATE Qt6::Core Qt6::Widgets Qt6::Quick Qt6::QuickControls2)
+target_link_libraries(TranCE_Wyatt PRIVATE Qt6::Core Qt6::Widgets Qt6::Quick Qt6::QuickControls2)
