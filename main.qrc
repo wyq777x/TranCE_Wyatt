@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>image/learneng.ico</file>
-        <file>words.txt</file>
-    </qresource>
-</RCC>
