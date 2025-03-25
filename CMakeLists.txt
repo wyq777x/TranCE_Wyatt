@@ -25,5 +25,10 @@ qt_add_executable(learnENG
 )
 
 add_subdirectory(src)
+add_subdirectory(src/Controller)
+add_subdirectory(src/Model)
+add_subdirectory(src/View)
+
+add_subdirectory(3rdpart)
 
 target_link_libraries(learnENG PRIVATE Qt6::Core Qt6::Widgets Qt6::Quick Qt6::QuickControls2)
