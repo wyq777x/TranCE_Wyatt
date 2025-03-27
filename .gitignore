@@ -1,1 +1,19 @@
+
+# Ignore build files
 build/
+
+# Ignore .vscode files
+.vscode/
+
+# Ignore .out files
+*.out
+
+out/
+
+# Ignore Visual Studio files
+*.suo
+*.user
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user

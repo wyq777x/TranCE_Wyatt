@@ -15,9 +15,6 @@ file(GLOB_RECURSE PROJECT_SOURCES
 
     src/*.cpp
     src/*.h
-    src/*.ui
-    src/*.qml
-    src/*.qrc
 )
 
 qt_add_executable(TranCE_Wyatt
@@ -28,4 +25,13 @@ add_subdirectory(src)
 
 add_subdirectory(3rdpart/Ela)
 
-target_link_libraries(TranCE_Wyatt PRIVATE Qt6::Core Qt6::Widgets Qt6::Quick Qt6::QuickControls2)
+target_include_directories(TranCE_Wyatt PRIVATE
+    src
+    3rdpart/Ela/ElaWidgetTools/include)
+
+target_link_libraries(TranCE_Wyatt PRIVATE
+    Qt6::Core
+    Qt6::Widgets
+    Qt6::Quick
+    Qt6::QuickControls2
+    ElaWidgetTools)
