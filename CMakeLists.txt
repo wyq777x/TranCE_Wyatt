@@ -7,6 +7,11 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/src/Controller)
+include_directories(${CMAKE_SOURCE_DIR}/src/Model)
+include_directories(${CMAKE_SOURCE_DIR}/src/View)
+
 project(TranCE_Wyatt LANGUAGES CXX)
 
 find_package(Qt6 COMPONENTS Core Widgets Quick QuickControls2 REQUIRED)
@@ -20,8 +25,6 @@ file(GLOB_RECURSE PROJECT_SOURCES
 qt_add_executable(TranCE_Wyatt
     ${PROJECT_SOURCES}
 )
-
-add_subdirectory(src)
 
 add_subdirectory(3rdpart/Ela)
 

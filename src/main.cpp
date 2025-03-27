@@ -1,7 +1,14 @@
-
+#include <ElaApplication.h>
+#include "ElaWindow.h"
+#include "MainWindow.h"
+#include <QApplication>
+#include <QMainWindow>
 
 int main(int argc, char *argv[])
 {
-
-    return 0;
+    QApplication a(argc, argv);
+    ElaApplication::getInstance()->init();
+    MainWindow w;
+    w.show();
+    return a.exec();
 }
