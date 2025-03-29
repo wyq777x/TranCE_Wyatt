@@ -9,6 +9,8 @@
 #include "View/LoginPage.h"
 #include "View/HomePage.h"
 #include "View/SettingPage.h"
+#include "Model/UserModel.h"
+
 class MainWindow : public ElaWindow
 {
     Q_OBJECT

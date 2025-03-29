@@ -4,4 +4,6 @@
 class HistoryPage : public TempPage
 {
     Q_OBJECT
+public:
+    explicit HistoryPage(QWidget *parent = nullptr);
 };

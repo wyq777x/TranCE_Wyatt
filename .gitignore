@@ -17,3 +17,7 @@ out/
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+
+# Ignore .cache files
+*.cache
+.cache/

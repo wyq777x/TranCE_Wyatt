@@ -12,6 +12,14 @@ MainWindow::MainWindow(QWidget *parent)
     setUserInfoCardTitle("User");
     setUserInfoCardSubTitle("Click to login");
     setUserInfoCardPixmap(QPixmap(":/res/image/DefaultUser.png"));
+
+    connect(this, &ElaWindow::userInfoCardClicked, this, [this]()
+            {
+        if (loginPage->isHidden()) {
+            loginPage->show();
+        } else {
+            loginPage->hide();
+        } });
 }
 
 void MainWindow::initPages()
