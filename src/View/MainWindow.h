@@ -8,6 +8,7 @@
 #include "View/HistoryPage.h"
 #include "View/LoginPage.h"
 #include "View/HomePage.h"
+#include "View/SettingPage.h"
 class MainWindow : public ElaWindow
 {
     Q_OBJECT
@@ -25,5 +26,6 @@ private:
     LoginPage *loginPage;
     MyPage *myPage;
     RecitePage *recitePage;
+    SettingPage *settingPage;
     StatisticsPage *statisticsPage;
 };

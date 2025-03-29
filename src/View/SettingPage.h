@@ -1,7 +1,7 @@
 #pragma once
 #include "TempPage.h"
 
-class RecitePage : public TempPage
+class SettingPage : public TempPage
 {
     Q_OBJECT
 };

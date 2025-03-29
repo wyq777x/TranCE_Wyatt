@@ -16,14 +16,25 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::initPages()
 {
+    // PageNodes
     homePage = new HomePage();
     addPageNode("Home", homePage, ElaIconType::House);
+
     recitePage = new RecitePage();
     addPageNode("Recite", recitePage, ElaIconType::Book);
+
     historyPage = new HistoryPage();
     addPageNode("History", historyPage, ElaIconType::ClockRotateLeft);
+
     statisticsPage = new StatisticsPage();
     addPageNode("Statistics", statisticsPage, ElaIconType::ChartBar);
+
+    // FooterNodes
+
+    settingPage = new SettingPage();
+    QString settingPageKey;
+    addFooterNode("Settings", settingPage, settingPageKey, 0, ElaIconType::Gear);
+
     aboutPage = new AboutPage();
     QString aboutPageKey;
     addFooterNode("About", aboutPage, aboutPageKey, 0, ElaIconType::CircleInfo);
