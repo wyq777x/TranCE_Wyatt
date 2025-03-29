@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/res">
+        <file>image/learnENG.ico</file>
+        <file>image/DefaultUser.png</file>
+    </qresource>
+</RCC>

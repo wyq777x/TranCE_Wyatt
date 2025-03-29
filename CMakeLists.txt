@@ -11,6 +11,8 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/src/Controller)
 include_directories(${CMAKE_SOURCE_DIR}/src/Model)
 include_directories(${CMAKE_SOURCE_DIR}/src/View)
+include_directories(${CMAKE_SOURCE_DIR}/3rdpart/Ela/ElaWidgetTools/include)
+
 
 project(TranCE_Wyatt LANGUAGES CXX)
 
@@ -22,8 +24,11 @@ file(GLOB_RECURSE PROJECT_SOURCES
     src/*.h
 )
 
+
+
 qt_add_executable(TranCE_Wyatt
     ${PROJECT_SOURCES}
+    res/res.qrc
 )
 
 add_subdirectory(3rdpart/Ela)
