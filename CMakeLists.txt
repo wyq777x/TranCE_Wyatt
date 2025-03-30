@@ -13,7 +13,6 @@ include_directories(${CMAKE_SOURCE_DIR}/src/Model)
 include_directories(${CMAKE_SOURCE_DIR}/src/View)
 include_directories(${CMAKE_SOURCE_DIR}/3rdpart/Ela/ElaWidgetTools/include)
 
-
 project(TranCE_Wyatt LANGUAGES CXX)
 
 find_package(Qt6 COMPONENTS Core Widgets Quick QuickControls2 REQUIRED)
@@ -24,14 +23,14 @@ file(GLOB_RECURSE PROJECT_SOURCES
     src/*.h
 )
 
-
-
 qt_add_executable(TranCE_Wyatt
     ${PROJECT_SOURCES}
     res/res.qrc
 )
 
 add_subdirectory(3rdpart/Ela)
+
+add_subdirectory(3rdpart/SQLiteCpp)
 
 target_include_directories(TranCE_Wyatt PRIVATE
     src
@@ -42,4 +41,9 @@ target_link_libraries(TranCE_Wyatt PRIVATE
     Qt6::Widgets
     Qt6::Quick
     Qt6::QuickControls2
-    ElaWidgetTools)
+    ElaWidgetTools
+    SQLiteCpp
+    sqlite3
+    pthread
+    dl
+)

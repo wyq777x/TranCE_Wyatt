@@ -1,3 +1,6 @@
 [submodule "3rdpart/Ela"]
 	path = 3rdpart/Ela
 	url = https://github.com/wyq777x/ElaWidgetTools.git
+[submodule "3rdpart/SQLiteCpp"]
+	path = 3rdpart/SQLiteCpp
+	url = https://github.com/SRombauts/SQLiteCpp.git
