@@ -1,4 +1,9 @@
 #pragma once
-class CacheModel {
-  
+#include <unordered_map>
+
+class CacheModel
+{
+public:
+    CacheModel () = default;
+    ~CacheModel () = default;
 };

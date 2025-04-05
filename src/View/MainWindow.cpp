@@ -1,58 +1,64 @@
 #include "MainWindow.h"
-MainWindow::MainWindow(QWidget *parent)
-    : ElaWindow(parent)
+MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
 {
-    setWindowTitle("TranCE_Wyatt");
-    setWindowIcon(QIcon(":res/image/learnENG.ico"));
+    setWindowTitle ("TranCE_Wyatt");
+    setWindowIcon (QIcon (":res/image/learnENG.ico"));
 
-    initPages();
-    initModels();
-    moveToCenter();
+    initPages ();
+    initModels ();
+    moveToCenter ();
 
-    setUserInfoCardTitle("User");
-    setUserInfoCardSubTitle("Click to login");
-    setUserInfoCardPixmap(QPixmap(":/res/image/DefaultUser.png"));
+    setUserInfoCardTitle ("User");
+    setUserInfoCardSubTitle ("Click to login");
+    setUserInfoCardPixmap (QPixmap (":/res/image/DefaultUser.png"));
 
-    connect(this, &ElaWindow::userInfoCardClicked, this, [this]()
-            {
-        if (loginPage->isHidden()) {
-            loginPage->show();
-        } else {
-            loginPage->hide();
-        } });
+    connect (this, &ElaWindow::userInfoCardClicked, this,
+             [this] ()
+             {
+                 if (loginPage->isHidden ())
+                 {
+                     loginPage->show ();
+                 }
+                 else
+                 {
+                     loginPage->hide ();
+                 }
+             });
 }
 
-void MainWindow::initPages()
+void MainWindow::initPages ()
 {
     // PageNodes
-    homePage = new HomePage();
-    addPageNode("Home", homePage, ElaIconType::House);
+    homePage = new HomePage ();
+    addPageNode ("Home", homePage, ElaIconType::House);
 
-    recitePage = new RecitePage();
-    addPageNode("Recite", recitePage, ElaIconType::Book);
+    recitePage = new RecitePage ();
+    addPageNode ("Recite", recitePage, ElaIconType::Book);
 
-    historyPage = new HistoryPage();
-    addPageNode("History", historyPage, ElaIconType::ClockRotateLeft);
+    historyPage = new HistoryPage ();
+    addPageNode ("History", historyPage, ElaIconType::ClockRotateLeft);
 
-    statisticsPage = new StatisticsPage();
-    addPageNode("Statistics", statisticsPage, ElaIconType::ChartBar);
+    statisticsPage = new StatisticsPage ();
+    addPageNode ("Statistics", statisticsPage, ElaIconType::ChartBar);
 
     // FooterNodes
 
-    settingPage = new SettingPage();
+    settingPage = new SettingPage ();
     QString settingPageKey;
-    addFooterNode("Settings", settingPage, settingPageKey, 0, ElaIconType::Gear);
+    addFooterNode ("Settings", settingPage, settingPageKey, 0,
+                   ElaIconType::Gear);
 
-    aboutPage = new AboutPage();
+    aboutPage = new AboutPage ();
     QString aboutPageKey;
-    addFooterNode("About", aboutPage, aboutPageKey, 0, ElaIconType::CircleInfo);
+    addFooterNode ("About", aboutPage, aboutPageKey, 0,
+                   ElaIconType::CircleInfo);
 
     // to be used
-    myPage = new MyPage();
-    loginPage = new LoginPage();
+    myPage = new MyPage ();
+    loginPage = new LoginPage ();
 }
 
-void MainWindow::initModels()
+void MainWindow::initModels ()
 {
-    // Initialize models here
+    // Models will be initialized here
 }

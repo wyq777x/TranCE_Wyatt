@@ -1,0 +1,5 @@
+BasedOnStyle: LLVM
+BreakBeforeBraces: Allman
+IndentWidth: 4              # 缩进 4 空格
+AccessModifierOffset: -4    # 访问修饰符（public:）缩进
+SpaceBeforeParens: Always   # if/for 后加空格
