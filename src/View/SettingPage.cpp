@@ -1,12 +1,11 @@
 #include "SettingPage.h"
 
-SettingPage::SettingPage(QWidget *parent)
-    : TempPage(parent)
+SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle("Setting Page");
+    setWindowTitle ("Setting Page");
 
-    auto *centralWidget = new QWidget(this);
-    centralWidget->setWindowTitle("Setting Page");
+    auto *centralWidget = new QWidget (this);
+    centralWidget->setWindowTitle ("Setting Page");
 
-    addCentralWidget(centralWidget, true, true, 0);
+    addCentralWidget (centralWidget, true, true, 0);
 }

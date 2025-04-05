@@ -1,12 +1,11 @@
 #include "RecitePage.h"
 
-RecitePage::RecitePage(QWidget *parent)
-    : TempPage(parent)
+RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle("Recite Page");
+    setWindowTitle ("Recite Page");
 
-    auto *centralWidget = new QWidget(this);
-    centralWidget->setWindowTitle("Recite Page");
+    auto *centralWidget = new QWidget (this);
+    centralWidget->setWindowTitle ("Recite Page");
 
-    addCentralWidget(centralWidget, true, true, 0);
+    addCentralWidget (centralWidget, true, true, 0);
 }

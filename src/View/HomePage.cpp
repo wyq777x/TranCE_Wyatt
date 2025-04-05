@@ -1,12 +1,16 @@
 #include "HomePage.h"
+#include "ElaFlowLayout.h"
+#include "ElaLineEdit.h"
 
-HomePage::HomePage(QWidget *parent)
-    : TempPage(parent)
+HomePage::HomePage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle("Home");
+    setWindowTitle ("Home");
 
-    auto *centralWidget = new QWidget(this);
-    centralWidget->setWindowTitle("Home");
+    auto *centralWidget = new QWidget (this);
+    centralWidget->setWindowTitle ("Home");
 
-    addCentralWidget(centralWidget, true, true, 0);
+    ElaFlowLayout *layout = new ElaFlowLayout (centralWidget);
+    ElaLineEdit *lineEdit = new ElaLineEdit (centralWidget);
+    lineEdit->setPlaceholderText ("Search...");
+    addCentralWidget (centralWidget, true, true, 0);
 }

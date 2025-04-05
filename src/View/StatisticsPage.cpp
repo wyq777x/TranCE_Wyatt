@@ -1,12 +1,11 @@
 #include "StatisticsPage.h"
 
-StatisticsPage::StatisticsPage(QWidget *parent)
-    : TempPage(parent)
+StatisticsPage::StatisticsPage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle("Statistics");
+    setWindowTitle ("Statistics");
 
-    auto *centralWidget = new QWidget(this);
-    centralWidget->setWindowTitle("Statistics");
+    auto *centralWidget = new QWidget (this);
+    centralWidget->setWindowTitle ("Statistics");
 
-    addCentralWidget(centralWidget, true, true, 0);
+    addCentralWidget (centralWidget, true, true, 0);
 }
