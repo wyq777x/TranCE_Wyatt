@@ -2,5 +2,6 @@
     <qresource prefix="/res">
         <file>image/learnENG.ico</file>
         <file>image/DefaultUser.png</file>
+        <file>image/engICO.png</file>
     </qresource>
 </RCC>

@@ -1,5 +1,6 @@
 #pragma once
 #include <ElaFlowLayout.h>
+#include <ElaIconButton.h>
 #include <ElaLineEdit.h>
 #include <ElaPushButton.h>
 #include <ElaScrollPage.h>

@@ -56,6 +56,9 @@ void MainWindow::initPages ()
     // to be used
     myPage = new MyPage ();
     loginPage = new LoginPage ();
+
+    loginPage->setStyleSheet ("background-color:rgb(227, 255, 251);"
+                              "QWidget { background-color: transparent; }");
 }
 
 void MainWindow::initModels ()
