@@ -10,21 +10,29 @@ AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
 
     auto *centralWidget = new QWidget (this);
     centralWidget->setWindowTitle ("About");
+    QVBoxLayout *aboutPageLayout = new QVBoxLayout (centralWidget);
+    aboutPageLayout->setAlignment (Qt::AlignHCenter | Qt::AlignTop);
+    aboutPageLayout->setSpacing (20);
 
-    QGridLayout *layout = new QGridLayout (centralWidget);
+    QHBoxLayout *titleLayout = new QHBoxLayout (centralWidget);
+    titleLayout->setAlignment (Qt::AlignHCenter);
+    titleLayout->setSpacing (5);
+
+    QLabel *logoLabel = new QLabel (centralWidget);
+    logoLabel->setPixmap (QPixmap (":/res/image/learnENG.ico"));
+    logoLabel->setFixedSize (50, 50);
+    logoLabel->setScaledContents (true);
+
+    titleLayout->addWidget (logoLabel);
 
     QLabel *titleLabel = new QLabel ("TranCE_Wyatt", centralWidget);
     titleLabel->setStyleSheet (
         "font-size: 24px; font-weight: bold; color: #333;");
     titleLabel->setFont (QFont ("Noto Sans", 24, QFont::Bold));
-    titleLabel->setAlignment (Qt::AlignCenter);
-
     titleLabel->setFixedHeight (50);
 
-    layout->addWidget (titleLabel, 0, 1, Qt::AlignCenter);
+    titleLayout->addWidget (titleLabel);
 
-    layout->setRowStretch (1, 1);
-    layout->setColumnStretch (0, 1);
-    layout->setColumnStretch (2, 1);
+    aboutPageLayout->addLayout (titleLayout);
     addCentralWidget (centralWidget, true, true, 0);
 }
