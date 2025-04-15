@@ -5,7 +5,6 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
     setWindowIcon (QIcon (":res/image/learnENG.ico"));
 
     initPages ();
-    initModels ();
     moveToCenter ();
 
     setUserInfoCardTitle ("User");
@@ -53,15 +52,10 @@ void MainWindow::initPages ()
     addFooterNode ("About", aboutPage, aboutPageKey, 0,
                    ElaIconType::CircleInfo);
 
-    // to be used
-    myPage = new MyPage ();
     loginPage = new LoginPage ();
-
     loginPage->setStyleSheet ("background-color:rgb(227, 255, 251);"
                               "QWidget { background-color: transparent; }");
-}
 
-void MainWindow::initModels ()
-{
-    // Models will be initialized here
+    // to be used
+    myPage = new MyPage ();
 }

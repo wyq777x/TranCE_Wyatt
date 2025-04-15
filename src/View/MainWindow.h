@@ -1,5 +1,6 @@
 #pragma once
 #include "Model/UserModel.h"
+#include "Model/UserStorage.h"
 #include "View/AboutPage.h"
 #include "View/HistoryPage.h"
 #include "View/HomePage.h"
@@ -19,7 +20,6 @@ class MainWindow : public ElaWindow
 public:
     explicit MainWindow (QWidget *parent = nullptr);
     void initPages ();
-    void initModels ();
     ~MainWindow () {};
 
 private:
