@@ -1,43 +1,12 @@
+```cpp
 #pragma once
 
-#include "UserStorage.h"
-#include "Utility/UserAuthResult.h"
 #include <QCryptographicHash>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
-class UserModel
-{
-
-public:
-    static UserModel &getInstance ()
-    {
-        static UserModel instance;
-        return instance;
-    }
-
-    UserModel (const UserModel &) = delete;
-    UserModel &operator= (const UserModel &) = delete;
-    UserModel (UserModel &&) = delete;
-    UserModel &operator= (UserModel &&) = delete;
-
-    bool isLoggedIn () const { return loggedIn; };
-    bool isLoginExpired () const { return loginExpired; };
-
-private:
-    UserModel () = default;
-    bool loggedIn = false;
-    bool loginExpired = false;
-};
-
-/*
-#pragma once
-
 #include <QString>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QFile>
-#include <QCryptographicHash>
+#include <QDebug>
 
 class UserStorage {
 public:
@@ -52,15 +21,53 @@ private:
     static const QString storageFile;
 };
 
+class UserModel
+{
+public:
+    static UserModel &getInstance()
+    {
+        static UserModel instance;
+        return instance;
+    }
 
+    UserModel(const UserModel &) = delete;
+    UserModel &operator=(const UserModel &) = delete;
+    UserModel(UserModel &&) = delete;
+    UserModel &operator=(UserModel &&) = delete;
 
+    bool isLoggedIn() const { return loggedIn; }
+    bool isLoginExpired() const { return loginExpired; }
 
-#include "UserStorage.h"
+    bool login(const QString &username, const QString &password)
+    {
+        if (UserStorage::loginUser(username, password)) {
+            loggedIn = true;
+            loginExpired = false; /
+            return true;
+        }
+        return false;
+    }
+
+    bool registerUser(const QString &username, const QString &password)
+    {
+        return UserStorage::registerUser(username, password);
+    }
+
+private:
+    UserModel() = default;
+
+    bool loggedIn = false;
+    bool loginExpired = false;
+};
+
+// filepath: /home/wyq777/Desktop/Code/TranCE_Wyatt/src/Model/UserModel.cpp
+#include "UserModel.h"
 
 const QString UserStorage::storageFile = "users.json";
 
 bool UserStorage::registerUser(const QString &username, const QString &password)
-{ QJsonObject users = loadUserData();
+{
+    QJsonObject users = loadUserData();
 
     if (users.contains(username)) {
         qWarning() << "User already exists!";
@@ -74,7 +81,8 @@ bool UserStorage::registerUser(const QString &username, const QString &password)
     return true;
 }
 
-bool UserStorage::loginUser(const QString &username, const QString &password) {
+bool UserStorage::loginUser(const QString &username, const QString &password)
+{
     QJsonObject users = loadUserData();
 
     if (!users.contains(username)) {
@@ -88,13 +96,15 @@ bool UserStorage::loginUser(const QString &username, const QString &password) {
     return storedHash == inputHash;
 }
 
-QString UserStorage::hashPassword(const QString &password) {
+QString UserStorage::hashPassword(const QString &password)
+{
     QByteArray salt = "your_salt_value"; // 可以使用随机生成的盐值
-    QByteArray hash = QCryptographicHash::hash(password.toUtf8() + salt,
-QCryptographicHash::Sha256); return QString(hash.toHex());
+    QByteArray hash = QCryptographicHash::hash(password.toUtf8() + salt, QCryptographicHash::Sha256);
+    return QString(hash.toHex());
 }
 
-QJsonObject UserStorage::loadUserData() {
+QJsonObject UserStorage::loadUserData()
+{
     QFile file(storageFile);
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "Could not open user storage file!";
@@ -108,7 +118,8 @@ QJsonObject UserStorage::loadUserData() {
     return doc.object();
 }
 
-void UserStorage::saveUserData(const QJsonObject &data) {
+void UserStorage::saveUserData(const QJsonObject &data)
+{
     QFile file(storageFile);
     if (!file.open(QIODevice::WriteOnly)) {
         qWarning() << "Could not open user storage file for writing!";
@@ -119,4 +130,4 @@ void UserStorage::saveUserData(const QJsonObject &data) {
     file.write(doc.toJson());
     file.close();
 }
-*/
+```
