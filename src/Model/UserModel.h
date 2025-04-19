@@ -1,14 +1,14 @@
 #pragma once
 
-#include "UserStorage.h"
 #include "Utility/UserAuthResult.h"
 #include <QCryptographicHash>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QString>
+#include <qtmetamacros.h>
 class UserModel
 {
-
 public:
     static UserModel &getInstance ()
     {
@@ -21,13 +21,25 @@ public:
     UserModel (UserModel &&) = delete;
     UserModel &operator= (UserModel &&) = delete;
 
+    void login (const QString &username, const QString &password);
+    void registerUser (const QString &username, const QString &password);
+    void logout ();
+
+    UserAuthResult Authenticate (const QString &username,
+                                 const QString &password);
+
     bool isLoggedIn () const { return loggedIn; };
     bool isLoginExpired () const { return loginExpired; };
 
 private:
     UserModel () = default;
+    static QString hashPassword (const QString &password);
+    static void loadUserData ();
+    static void saveUserData ();
+
     bool loggedIn = false;
     bool loginExpired = false;
+    inline static const QString storageFile = "users.json";
 };
 
 /*
@@ -39,7 +51,7 @@ private:
 #include <QFile>
 #include <QCryptographicHash>
 
-class UserStorage {
+class UserStorageModel {
 public:
     static bool registerUser(const QString &username, const QString &password);
     static bool loginUser(const QString &username, const QString &password);
@@ -55,12 +67,12 @@ private:
 
 
 
-#include "UserStorage.h"
+#include "UserStorageModel.h"
 
-const QString UserStorage::storageFile = "users.json";
+const QString UserStorageModel::storageFile = "users.json";
 
-bool UserStorage::registerUser(const QString &username, const QString &password)
-{ QJsonObject users = loadUserData();
+bool UserStorageModel::registerUser(const QString &username, const QString
+&password) { QJsonObject users = loadUserData();
 
     if (users.contains(username)) {
         qWarning() << "User already exists!";
@@ -74,8 +86,8 @@ bool UserStorage::registerUser(const QString &username, const QString &password)
     return true;
 }
 
-bool UserStorage::loginUser(const QString &username, const QString &password) {
-    QJsonObject users = loadUserData();
+bool UserStorageModel::loginUser(const QString &username, const QString
+&password) { QJsonObject users = loadUserData();
 
     if (!users.contains(username)) {
         qWarning() << "User does not exist!";
@@ -88,13 +100,13 @@ bool UserStorage::loginUser(const QString &username, const QString &password) {
     return storedHash == inputHash;
 }
 
-QString UserStorage::hashPassword(const QString &password) {
+QString UserStorageModel::hashPassword(const QString &password) {
     QByteArray salt = "your_salt_value"; // 可以使用随机生成的盐值
     QByteArray hash = QCryptographicHash::hash(password.toUtf8() + salt,
 QCryptographicHash::Sha256); return QString(hash.toHex());
 }
 
-QJsonObject UserStorage::loadUserData() {
+QJsonObject UserStorageModel::loadUserData() {
     QFile file(storageFile);
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "Could not open user storage file!";
@@ -108,7 +120,7 @@ QJsonObject UserStorage::loadUserData() {
     return doc.object();
 }
 
-void UserStorage::saveUserData(const QJsonObject &data) {
+void UserStorageModel::saveUserData(const QJsonObject &data) {
     QFile file(storageFile);
     if (!file.open(QIODevice::WriteOnly)) {
         qWarning() << "Could not open user storage file for writing!";

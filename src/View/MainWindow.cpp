@@ -53,7 +53,7 @@ void MainWindow::initPages ()
                    ElaIconType::CircleInfo);
 
     loginPage = new LoginPage ();
-    loginPage->setStyleSheet ("background-color:rgb(227, 255, 251);"
+    loginPage->setStyleSheet ("background-color:rgb(231, 252, 249);"
                               "QWidget { background-color: transparent; }");
 
     // to be used

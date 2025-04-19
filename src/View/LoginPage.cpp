@@ -13,8 +13,8 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
     auto *centralWidget = new QWidget (this);
     centralWidget->setWindowTitle ("Login");
     resize (858, 600);
-    setMinimumSize (858, 600);
-    setMaximumSize (858, 600);
+    setMinimumSize (644, 450);
+    setMaximumSize (644, 450);
 
     QVBoxLayout *loginPageLayout = new QVBoxLayout (centralWidget);
     loginPageLayout->setAlignment (Qt::AlignHCenter | Qt::AlignTop);
