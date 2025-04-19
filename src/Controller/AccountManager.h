@@ -1,8 +1,11 @@
 #pragma once
+#include "Model/UserModel.h"
+#include "Utility/UserAuthResult.h"
 #include <QString>
 #include <stdexcept>
 class AccountManager
 {
+
 public:
     static AccountManager &getInstance ()
     {
