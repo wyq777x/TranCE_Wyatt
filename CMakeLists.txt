@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -36,14 +36,33 @@ target_include_directories(TranCE_Wyatt PRIVATE
     src
     3rdpart/Ela/ElaWidgetTools/include)
 
-target_link_libraries(TranCE_Wyatt PRIVATE
-    Qt6::Core
-    Qt6::Widgets
-    Qt6::Quick
-    Qt6::QuickControls2
-    ElaWidgetTools
-    SQLiteCpp
-    sqlite3
-    pthread
-    dl
-)
+if(WIN32)
+    target_link_libraries(TranCE_Wyatt PRIVATE
+        Qt6::Core
+        Qt6::Widgets
+        Qt6::Quick
+        Qt6::QuickControls2
+        ElaWidgetTools
+        SQLiteCpp
+        sqlite3
+    )
+    add_custom_command(TARGET TranCE_Wyatt POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_SOURCE_DIR}/build/3rdpart/Ela/ElaWidgetTools/ElaWidgetTools.dll"
+        $<TARGET_FILE_DIR:TranCE_Wyatt>
+    )
+endif()
+
+if(NOT WIN32)
+    target_link_libraries(TranCE_Wyatt PRIVATE
+        Qt6::Core
+        Qt6::Widgets
+        Qt6::Quick
+        Qt6::QuickControls2
+        ElaWidgetTools
+        SQLiteCpp
+        sqlite3
+        pthread
+        dl
+    )
+endif()
