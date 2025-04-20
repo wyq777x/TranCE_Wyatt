@@ -5,10 +5,15 @@
 #include <qcontainerfwd.h>
 #include <qcryptographichash.h>
 
-void UserModel::login (const QString &username, const QString &password) {}
+void UserModel::login (const QString &username, const QString &password)
+{
+    // Building...
+    UserAuthResult result = Authenticate (username, password);
+}
 
 void UserModel::registerUser (const QString &username, const QString &password)
 {
+    // Building...
 }
 
 void UserModel::logout () {}
@@ -29,6 +34,12 @@ QString UserModel::hashPassword (const QString &password)
     return QString (hashed.toHex ());
 }
 
-void UserModel::loadUserData () {}
+void UserModel::loadUserData ()
+{
+    // Building...
+}
 
-void UserModel::saveUserData () {}
+void UserModel::saveUserData ()
+{
+    // Building...
+}

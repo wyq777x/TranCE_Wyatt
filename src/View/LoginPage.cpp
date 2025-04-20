@@ -21,8 +21,8 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
     loginPageLayout->setSpacing (20);
     loginPageLayout->setContentsMargins (15, 40, 15, 40);
 
-    QLabel *titleLabel =
-        new QLabel ("           Welcome to TranCE_Wyatt", centralWidget);
+    QLabel *titleLabel = new QLabel ("Welcome to TranCE_Wyatt", centralWidget);
+    titleLabel->setAlignment (Qt::AlignHCenter);
     titleLabel->setStyleSheet (
         "font-size: 24px; font-weight: bold; color: #333;");
     titleLabel->setFont (QFont ("Noto Sans", 24, QFont::Bold));

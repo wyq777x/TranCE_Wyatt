@@ -40,8 +40,8 @@ AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
     aboutPageLayout->addLayout (titleLayout);
 
     QLabel *descriptionLabel = new QLabel (
-        "TranCE_Wyatt is a tool for learning English vocabulary. It provides "
-        "a simple and efficient way to learn and memorize English words.",
+        R"(TranCE_Wyatt is a tool for learning English vocabulary.
+It provides a simple and efficient way to learn and memorize English words.)",
         centralWidget);
     descriptionLabel->setStyleSheet ("font-size: 16px; color: #333;");
     descriptionLabel->setFont (QFont ("Noto Sans", 16, QFont::Normal));
