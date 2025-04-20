@@ -48,7 +48,7 @@ if(WIN32)
     )
     add_custom_command(TARGET TranCE_Wyatt POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/build/3rdpart/Ela/ElaWidgetTools/ElaWidgetTools.dll"
+        $<TARGET_FILE:ElaWidgetTools>
         $<TARGET_FILE_DIR:TranCE_Wyatt>
     )
 endif()
