@@ -2,6 +2,7 @@
 #include "Def.h"
 #include "ElaComboBox.h"
 #include "ElaFlowLayout.h"
+#include "ElaIcon.h"
 #include "ElaLineEdit.h"
 #include "ElaPushButton.h"
 #include "ElaToggleButton.h"
@@ -72,6 +73,15 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     lineEdit->setMaximumHeight (70);
     lineEdit->setMinimumWidth (550);
     lineEdit->setBorderRadius (20);
+
+    QAction *searchAction = lineEdit->addAction (
+        ElaIcon::getInstance ()->getElaIcon (ElaIconType::MagnifyingGlass, 512),
+        QLineEdit::LeadingPosition);
+    QAction *clearAction = lineEdit->addAction (
+        ElaIcon::getInstance ()->getElaIcon (ElaIconType::Xmark, 512),
+        QLineEdit::TrailingPosition);
+    searchAction->setToolTip ("Search");
+    clearAction->setToolTip ("Clear");
 
     QHBoxLayout *searchLayout = new QHBoxLayout (centralWidget);
     searchLayout->setAlignment (Qt::AlignHCenter);

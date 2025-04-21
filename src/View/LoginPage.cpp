@@ -70,7 +70,7 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
                  QString password = passwordLineEdit->text ();
                  if (username.isEmpty () || password.isEmpty ())
                  {
-                     // Handle empty fields
+
                      return;
                  }
                  try

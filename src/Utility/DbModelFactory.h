@@ -1,3 +1,4 @@
+#pragma once
 #include "Model/DictDbModel.h"
 #include <QDir>
 #include <memory>

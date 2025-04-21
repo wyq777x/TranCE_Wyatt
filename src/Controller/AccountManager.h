@@ -22,7 +22,7 @@ public:
     void logout ();
     void registerUser (const QString &username, const QString &password);
 
-    bool isLoggedIn () const;
+    bool isLoggedIn () const { return UserModel::getInstance ().isLoggedIn (); }
     QString getUsername () const;
     void setUsername (const QString &username);
 

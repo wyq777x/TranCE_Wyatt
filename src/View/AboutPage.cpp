@@ -77,6 +77,7 @@ It provides a simple and efficient way to learn and memorize English words.)",
         [] ()
         {
             ElaWidget *licensePage = new ElaWidget ();
+
             licensePage->setWindowTitle ("MIT License");
             licensePage->setMinimumSize (800, 600);
             licensePage->setMaximumSize (800, 600);
@@ -95,6 +96,7 @@ It provides a simple and efficient way to learn and memorize English words.)",
                 "font-size: 16px; font-weight: bold; color: #333;");
             licenseLabel->setFont (QFont ("Noto Sans", 16, QFont::Bold));
             licenseLabel->setWordWrap (true);
+
             licenseLayout->addWidget (licenseLabel);
             QLabel *licenseTextLabel = new QLabel (licensePage);
             licenseTextLabel->setText (
@@ -130,7 +132,13 @@ It provides a simple and efficient way to learn and memorize English words.)",
             licenseTextLabel->setStyleSheet ("font-size: 16px; color: #333;");
             licenseTextLabel->setFont (QFont ("Noto Sans", 16, QFont::Normal));
             licenseTextLabel->setWordWrap (true);
-            licenseLayout->addWidget (licenseTextLabel);
+
+            ElaScrollArea *licenseTextScrollArea =
+                new ElaScrollArea (licensePage);
+            licenseTextScrollArea->setWidget (licenseTextLabel);
+            licenseTextScrollArea->setWidgetResizable (true);
+
+            licenseLayout->addWidget (licenseTextScrollArea);
             licensePage->setLayout (licenseLayout);
             licensePage->show ();
         });

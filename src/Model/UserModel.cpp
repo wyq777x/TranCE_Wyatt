@@ -13,7 +13,7 @@ UserAuthResult UserModel::login (const QString &username,
     // Building...
 
     auto &instance = UserModel::getInstance ();
-    if (instance.loggedIn)
+    if (instance.isLoggedIn ())
     {
         return UserAuthResult::UserAlreadyLoggedIn;
     }
@@ -22,8 +22,8 @@ UserAuthResult UserModel::login (const QString &username,
 
     if (result == UserAuthResult::Success)
     {
-        instance.loggedIn = true;
-        instance.loginExpired = false;
+        instance.setLoggedIn (true);
+        instance.setLoginExpired (false);
     }
     return result;
 }
@@ -31,6 +31,7 @@ UserAuthResult UserModel::login (const QString &username,
 void UserModel::registerUser (const QString &username, const QString &password)
 {
     // Building...
+    auto &instance = UserModel::getInstance ();
 }
 
 void UserModel::logout () {}

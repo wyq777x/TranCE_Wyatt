@@ -33,6 +33,14 @@ public:
     bool isLoggedIn () const { return loggedIn; };
     bool isLoginExpired () const { return loginExpired; };
 
+    void setLoggedIn (bool loggedIn)
+    {
+        this->loggedIn = loggedIn;
+        if (loggedIn)
+            loginExpired = false;
+    }
+    void setLoginExpired (bool expired) { loginExpired = expired; }
+
 private:
     UserModel () = default;
     static QString hashPassword (const QString &password);
