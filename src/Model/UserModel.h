@@ -2,10 +2,12 @@
 
 #include "Utility/UserAuthResult.h"
 #include <QCryptographicHash>
+#include <QDebug>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QString>
+#include <qjsonobject.h>
 #include <qtmetamacros.h>
 class UserModel
 {
@@ -21,7 +23,7 @@ public:
     UserModel (UserModel &&) = delete;
     UserModel &operator= (UserModel &&) = delete;
 
-    void login (const QString &username, const QString &password);
+    UserAuthResult login (const QString &username, const QString &password);
     void registerUser (const QString &username, const QString &password);
     void logout ();
 
@@ -34,11 +36,11 @@ public:
 private:
     UserModel () = default;
     static QString hashPassword (const QString &password);
-    static void loadUserData ();
+    static void loadUserData (const QJsonObject &userData);
     static void saveUserData ();
 
     bool loggedIn = false;
-    bool loginExpired = false;
+    bool loginExpired = true;
     inline static const QString storageFile = "users.json";
 };
 #

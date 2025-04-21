@@ -63,7 +63,7 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     searchOnline->setText ("Search\nOnline");
     searchOnline->setMinimumHeight (60);
     searchOnline->setMaximumHeight (60);
-    searchOnline->setBorderRadius (12);
+    searchOnline->setBorderRadius (6);
     searchOnline->setIsToggled (false); // default is false
 
     ElaLineEdit *lineEdit = new ElaLineEdit (centralWidget);

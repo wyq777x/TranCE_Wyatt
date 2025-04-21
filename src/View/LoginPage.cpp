@@ -1,7 +1,4 @@
 #include "LoginPage.h"
-#include "ElaFlowLayout.h"
-#include "ElaLineEdit.h"
-#include "ElaPushButton.h"
 #include <qboxlayout.h>
 #include <qnamespace.h>
 LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
@@ -65,6 +62,49 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 
     loginPageLayout->addLayout (loginButtonLayout);
     addCentralWidget (centralWidget, true, true, 0);
+
+    connect (loginButton, &ElaPushButton::clicked,
+             [=] ()
+             {
+                 QString username = usernameLineEdit->text ();
+                 QString password = passwordLineEdit->text ();
+                 if (username.isEmpty () || password.isEmpty ())
+                 {
+                     // Handle empty fields
+                     return;
+                 }
+                 try
+                 {
+                     AccountManager::getInstance ().login (username, password);
+                     // Handle successful login
+                 }
+                 catch (const std::runtime_error &e)
+                 {
+                     // Handle login error
+                 }
+             });
+
+    connect (registerButton, &ElaPushButton::clicked,
+             [=] ()
+             {
+                 QString username = usernameLineEdit->text ();
+                 QString password = passwordLineEdit->text ();
+                 if (username.isEmpty () || password.isEmpty ())
+                 {
+                     // Handle empty fields
+                     return;
+                 }
+                 try
+                 {
+                     AccountManager::getInstance ().registerUser (username,
+                                                                  password);
+                     // Handle successful registration
+                 }
+                 catch (const std::runtime_error &e)
+                 {
+                     // Handle registration error
+                 }
+             });
 }
 
 void LoginPage::LoginPage::paintEvent (QPaintEvent *event)

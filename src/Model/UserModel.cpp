@@ -4,11 +4,28 @@
 #include "Utility/UserAuthResult.h"
 #include <qcontainerfwd.h>
 #include <qcryptographichash.h>
+#include <qdebug.h>
+#include <qlogging.h>
 
-void UserModel::login (const QString &username, const QString &password)
+UserAuthResult UserModel::login (const QString &username,
+                                 const QString &password)
 {
     // Building...
+
+    auto &instance = UserModel::getInstance ();
+    if (instance.loggedIn)
+    {
+        return UserAuthResult::UserAlreadyLoggedIn;
+    }
+
     UserAuthResult result = Authenticate (username, password);
+
+    if (result == UserAuthResult::Success)
+    {
+        instance.loggedIn = true;
+        instance.loginExpired = false;
+    }
+    return result;
 }
 
 void UserModel::registerUser (const QString &username, const QString &password)
@@ -34,7 +51,7 @@ QString UserModel::hashPassword (const QString &password)
     return QString (hashed.toHex ());
 }
 
-void UserModel::loadUserData ()
+void UserModel::loadUserData (const QJsonObject &userData)
 {
     // Building...
 }

@@ -4,6 +4,7 @@
 enum class UserAuthResult
 {
     Success,
+    UserAlreadyLoggedIn,
     UserNotFound,
     IncorrectPassword,
     UserAlreadyExists,
@@ -14,6 +15,7 @@ enum class UserAuthResult
 static const std::unordered_map<UserAuthResult, std::string>
     UserAuthResultMessage = {
         {UserAuthResult::Success, "Login successful."},
+        {UserAuthResult::UserAlreadyLoggedIn, "User already logged in."},
         {UserAuthResult::UserNotFound, "User not found."},
         {UserAuthResult::IncorrectPassword, "Incorrect password."},
         {UserAuthResult::UserAlreadyExists, "User already exists."},
