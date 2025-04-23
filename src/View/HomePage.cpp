@@ -61,7 +61,8 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     LangComboBox_right->addItem ("English");
 
     ElaToggleButton *searchOnline = new ElaToggleButton (centralWidget);
-    searchOnline->setText ("Search\nOnline");
+    searchOnline->setText (R"(Search
+Online)");
     searchOnline->setMinimumHeight (60);
     searchOnline->setMaximumHeight (60);
     searchOnline->setBorderRadius (6);
@@ -77,10 +78,11 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     QAction *searchAction = lineEdit->addAction (
         ElaIcon::getInstance ()->getElaIcon (ElaIconType::MagnifyingGlass, 512),
         QLineEdit::LeadingPosition);
+    searchAction->setToolTip ("Search");
+
     QAction *clearAction = lineEdit->addAction (
         ElaIcon::getInstance ()->getElaIcon (ElaIconType::Xmark, 512),
         QLineEdit::TrailingPosition);
-    searchAction->setToolTip ("Search");
     clearAction->setToolTip ("Clear");
 
     QHBoxLayout *searchLayout = new QHBoxLayout (centralWidget);
@@ -90,5 +92,29 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     searchLayout->addWidget (searchOnline);
     homePageLayout->addLayout (searchLayout);
 
+    QLabel *randomRecommendationLabel =
+        new QLabel ("Random Recommendation:", centralWidget);
+    randomRecommendationLabel->setStyleSheet (
+        "font-size: 20px; font-weight: normal; color: #333;");
+    randomRecommendationLabel->setFont (QFont ("Noto Sans", 24));
+
+    homePageLayout->addWidget (randomRecommendationLabel);
+
+    connect (searchAction, &QAction::triggered, [=] () {});
+
+    connect (clearAction, &QAction::triggered, [=] () { lineEdit->clear (); });
+
+    connect (lineEdit, &ElaLineEdit::textChanged,
+             [=] (const QString &text)
+             {
+                 if (text.isEmpty ())
+                 {
+                     clearAction->setVisible (false);
+                 }
+                 else
+                 {
+                     clearAction->setVisible (true);
+                 }
+             });
     addCentralWidget (centralWidget, true, true, 0);
 }

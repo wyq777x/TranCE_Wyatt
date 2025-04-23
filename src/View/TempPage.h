@@ -3,6 +3,7 @@
 #include <ElaIcon.h>
 #include <ElaIconButton.h>
 #include <ElaLineEdit.h>
+#include <ElaListView.h>
 #include <ElaPushButton.h>
 #include <ElaScrollArea.h>
 #include <ElaScrollPage.h>
@@ -10,6 +11,7 @@
 #include <ElaToggleSwitch.h>
 #include <ElaWidget.h>
 #include <QAction>
+#include <QFrame>
 #include <QGraphicsBlurEffect>
 #include <QLabel>
 #include <QVBoxLayout>

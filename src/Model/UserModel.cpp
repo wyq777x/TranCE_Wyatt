@@ -34,7 +34,17 @@ void UserModel::registerUser (const QString &username, const QString &password)
     auto &instance = UserModel::getInstance ();
 }
 
-void UserModel::logout () {}
+void UserModel::logout ()
+{
+
+    auto &instance = UserModel::getInstance ();
+
+    if (instance.isLoggedIn ())
+    {
+        instance.setLoggedIn (false);
+        instance.setLoginExpired (true);
+    }
+}
 
 UserAuthResult UserModel::Authenticate (const QString &username,
                                         const QString &password)

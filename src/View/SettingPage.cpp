@@ -12,6 +12,9 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     centralWidget->setWindowTitle ("Setting Page");
 
     QVBoxLayout *settingPageLayout = new QVBoxLayout (centralWidget);
+    settingPageLayout->setSpacing (20);
+    settingPageLayout->setContentsMargins (0, 50, 0, 10);
+    settingPageLayout->setAlignment (Qt::AlignTop);
 
     QHBoxLayout *enableHistorySearchLayout = new QHBoxLayout (centralWidget);
     QLabel *enableHistorySearchLabel =
@@ -28,6 +31,11 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     enableHistorySearchLayout->addWidget (enableHistorySearchSwitch);
 
     settingPageLayout->addLayout (enableHistorySearchLayout);
+
+    auto *splitLine1 = new QFrame (centralWidget);
+    splitLine1->setFrameShape (QFrame::HLine);
+    splitLine1->setFrameShadow (QFrame::Sunken);
+    settingPageLayout->addWidget (splitLine1);
 
     QHBoxLayout *clearCacheLayout = new QHBoxLayout (centralWidget);
 
