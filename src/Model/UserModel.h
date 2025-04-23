@@ -45,7 +45,7 @@ private:
     UserModel () = default;
     static QString hashPassword (const QString &password);
     static void loadUserData (const QJsonObject &userData);
-    static void saveUserData ();
+    static void saveUserData (const QString &filename);
 
     bool loggedIn = false;
     bool loginExpired = true;

@@ -1,4 +1,6 @@
 #pragma once
+#include "Model/AppSettingModel.h"
+#include "Model/DictDbModel.h"
 #include "Model/UserModel.h"
 #include "Utility/UserAuthResult.h"
 #include <QString>
@@ -23,14 +25,21 @@ public:
     void registerUser (const QString &username, const QString &password);
 
     bool isLoggedIn () const { return UserModel::getInstance ().isLoggedIn (); }
-    QString getUsername () const;
+    bool isLoginExpired () const
+    {
+        return UserModel::getInstance ().isLoginExpired ();
+    }
+
     void setUsername (const QString &username);
+
+    QString getUsername () const;
+    QString getHashedPassword () const;
+    QString getLanguage () const;
 
 private:
     AccountManager () = default;
 
     void setPassword (const QString &password);
-    QString getPassword () const;
 
     QString username;
     QString password_Hash;

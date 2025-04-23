@@ -5,7 +5,9 @@
 #include <qcontainerfwd.h>
 #include <qcryptographichash.h>
 #include <qdebug.h>
+#include <qjsonobject.h>
 #include <qlogging.h>
+#include <qnamespace.h>
 
 UserAuthResult UserModel::login (const QString &username,
                                  const QString &password)
@@ -67,7 +69,49 @@ void UserModel::loadUserData (const QJsonObject &userData)
     // Building...
 }
 
-void UserModel::saveUserData ()
+void UserModel::saveUserData (const QString &filename)
 {
     // Building...
+    try
+    {
+        QJsonObject userData;
+
+        QJsonObject userAccount;
+        userAccount["username"] = AccountManager::getInstance ().getUsername ();
+        userAccount["password"] =
+            AccountManager::getInstance ().getHashedPassword ();
+
+        userData["userAccount"] = userAccount;
+
+        QJsonObject userProfile;
+        userProfile["avatar"] = "default_avatar.png";
+        userProfile["email"] = "*@example.com";
+
+        userData["userProfile"] = userProfile;
+
+        QJsonObject appConfig;
+        appConfig["language"] = AccountManager::getInstance ().getLanguage ();
+
+        userData["appConfig"] = appConfig;
+
+        QJsonObject userStatus;
+        userStatus["lastLogin"] =
+            QDateTime::currentDateTime ().toString (Qt::ISODateWithMs);
+        userStatus["isLoggedIn"] = AccountManager::getInstance ().isLoggedIn ();
+        userStatus["isLoginExpired"] =
+            AccountManager::getInstance ().isLoginExpired ();
+
+        userData["userStatus"] = userStatus;
+
+        QJsonObject userStatistics;
+
+        userStatistics["masteredCount"] = 0;
+        userStatistics["learningCount"] = 0;
+
+        userData["userStatistics"] = userStatistics;
+    }
+    catch (const std::exception &e)
+    {
+        qDebug () << "Error loading user data:" << e.what ();
+    }
 }

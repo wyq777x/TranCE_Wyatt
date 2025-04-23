@@ -1,6 +1,7 @@
 #include "AccountManager.h"
 #include "UserModel.h"
 #include "Utility/UserAuthResult.h"
+#include <qcontainerfwd.h>
 
 void AccountManager::logout ()
 {
@@ -28,4 +29,13 @@ void AccountManager::registerUser (const QString &username,
     auto &instance = UserModel::getInstance ();
 
     return;
+}
+
+QString AccountManager::getUsername () const { return username; }
+
+QString AccountManager::getHashedPassword () const { return password_Hash; }
+
+QString AccountManager::getLanguage () const
+{
+    return AppSettingModel::getInstance ().getLanguage ();
 }
