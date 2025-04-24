@@ -66,58 +66,62 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
     loginPageLayout->addLayout (loginButtonLayout);
     addCentralWidget (centralWidget, true, true, 0);
 
-    connect (loginButton, &ElaPushButton::clicked,
-             [=, this] ()
-             {
-                 QString username = usernameLineEdit->text ();
-                 QString password = passwordLineEdit->text ();
-                 if (username.isEmpty () || password.isEmpty ())
-                 {
-                     QDialog *loginErrorDialog = new QDialog (this);
-                     QLabel *errorLabel =
-                         new QLabel ("Username or password cannot be empty.\n\n"
-                                     "Please enter your username/password.",
-                                     this);
-                     errorLabel->setStyleSheet (
-                         "font-size: 16px; font-weight: bold; color: #333;");
+    connect (
+        loginButton, &ElaPushButton::clicked,
+        [=, this] ()
+        {
+            QString username = usernameLineEdit->text ();
+            QString password = passwordLineEdit->text ();
+            if (username.isEmpty () || password.isEmpty ())
+            {
+                QDialog *loginErrorDialog = new QDialog (this);
+                QLabel *errorLabel =
+                    new QLabel ("Username or password cannot be empty.\n\n"
+                                "Please enter your username/password.",
+                                this);
+                errorLabel->setStyleSheet (
+                    "font-size: 16px; font-weight: bold; color: #333;");
 
-                     loginErrorDialog->setWindowTitle ("Login Error");
-                     loginErrorDialog->setWindowModality (Qt::ApplicationModal);
-                     loginErrorDialog->setModal (true);
-                     loginErrorDialog->setMinimumSize (400, 250);
-                     loginErrorDialog->setMaximumSize (400, 250);
+                loginErrorDialog->setWindowTitle ("Login Error");
+                loginErrorDialog->setWindowModality (Qt::ApplicationModal);
+                loginErrorDialog->setModal (true);
+                loginErrorDialog->setMinimumSize (400, 250);
+                loginErrorDialog->setMaximumSize (400, 250);
 
-                     QVBoxLayout *errorLayout =
-                         new QVBoxLayout (loginErrorDialog);
-                     errorLayout->addWidget (errorLabel);
-                     errorLayout->setAlignment (Qt::AlignHCenter);
+                QVBoxLayout *errorLayout = new QVBoxLayout (loginErrorDialog);
+                errorLayout->addWidget (errorLabel);
+                errorLayout->setAlignment (Qt::AlignHCenter);
 
-                     QDialogButtonBox *okButtonBox = new QDialogButtonBox (
-                         QDialogButtonBox::Ok, loginErrorDialog);
+                QDialogButtonBox *okButtonBox = new QDialogButtonBox (
+                    QDialogButtonBox::Ok, loginErrorDialog);
 
-                     errorLayout->addWidget (okButtonBox);
-                     errorLayout->setAlignment (okButtonBox, Qt::AlignHCenter);
-                     connect (okButtonBox, &QDialogButtonBox::accepted,
-                              [=] ()
-                              {
-                                  loginErrorDialog->accept ();
-                                  loginErrorDialog->deleteLater ();
-                              });
+                okButtonBox->setStyleSheet (
+                    "QDialogButtonBox QPushButton { color: black; }"
+                    "QDialogButtonBox QPushButton:hover { color: #0078d7; }");
 
-                     loginErrorDialog->show ();
-                     return;
-                 }
-                 try
-                 {
-                     AccountManager::getInstance ().login (username, password);
-                     // Handle successful login
-                 }
-                 catch (const std::runtime_error &e)
-                 {
-                     // Handle login error
-                     qDebug () << "Login error:" << e.what ();
-                 }
-             });
+                errorLayout->addWidget (okButtonBox);
+                errorLayout->setAlignment (okButtonBox, Qt::AlignHCenter);
+                connect (okButtonBox, &QDialogButtonBox::accepted,
+                         [=] ()
+                         {
+                             loginErrorDialog->accept ();
+                             loginErrorDialog->deleteLater ();
+                         });
+
+                loginErrorDialog->show ();
+                return;
+            }
+            try
+            {
+                AccountManager::getInstance ().login (username, password);
+                // Handle successful login
+            }
+            catch (const std::runtime_error &e)
+            {
+                // Handle login error
+                qDebug () << "Login error:" << e.what ();
+            }
+        });
 
     connect (registerButton, &ElaPushButton::clicked,
              [=] ()
