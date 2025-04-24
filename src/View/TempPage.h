@@ -16,6 +16,7 @@
 #include <QFrame>
 #include <QGraphicsBlurEffect>
 #include <QLabel>
+#include <QStackedLayout>
 #include <QVBoxLayout>
 
 class TempPage : public ElaScrollPage
