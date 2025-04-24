@@ -1,4 +1,5 @@
 #pragma once
+#include <ElaContentDialog.h>
 #include <ElaFlowLayout.h>
 #include <ElaIcon.h>
 #include <ElaIconButton.h>
@@ -11,10 +12,12 @@
 #include <ElaToggleSwitch.h>
 #include <ElaWidget.h>
 #include <QAction>
+#include <QDialogButtonBox>
 #include <QFrame>
 #include <QGraphicsBlurEffect>
 #include <QLabel>
 #include <QVBoxLayout>
+
 class TempPage : public ElaScrollPage
 {
     Q_OBJECT

@@ -22,6 +22,7 @@ RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
     reciteWidget->setMaximumWidth (600);
     reciteWidget->setMinimumHeight (200);
     reciteWidget->setMaximumHeight (200);
+
     recitePageLayout->addWidget (reciteWidget);
     addCentralWidget (centralWidget, true, true, 0);
 }

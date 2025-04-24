@@ -84,6 +84,7 @@ Online)");
         ElaIcon::getInstance ()->getElaIcon (ElaIconType::Xmark, 512),
         QLineEdit::TrailingPosition);
     clearAction->setToolTip ("Clear");
+    clearAction->setVisible (false);
 
     QHBoxLayout *searchLayout = new QHBoxLayout (centralWidget);
     searchLayout->setAlignment (Qt::AlignHCenter);
