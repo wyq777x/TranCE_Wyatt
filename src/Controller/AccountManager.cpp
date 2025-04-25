@@ -31,6 +31,15 @@ void AccountManager::registerUser (const QString &username,
     return;
 }
 
+QString AccountManager::hashPassword (const QString &password)
+{
+    QByteArray byteArray = password.toUtf8 ();
+    QByteArray hashed =
+        QCryptographicHash::hash (byteArray, QCryptographicHash::Sha256);
+
+    return QString (hashed.toHex ());
+}
+
 QString AccountManager::getUsername () const { return username; }
 
 QString AccountManager::getHashedPassword () const { return password_Hash; }

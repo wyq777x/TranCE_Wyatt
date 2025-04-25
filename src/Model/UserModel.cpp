@@ -51,88 +51,100 @@ void UserModel::logout ()
 UserAuthResult UserModel::Authenticate (const QString &username,
                                         const QString &password)
 {
+    QJsonArray userList = getUserList ("users.json");
 
-    return UserAuthResult::Success;
-}
+    for (const QJsonValue &userVal : userList)
+    {
+        QJsonObject userObj = userVal.toObject ();
+        QString storedUsername = userObj["username"].toString ();
+        QString storedPasswordHash = userObj["password"].toString ();
 
-QString UserModel::hashPassword (const QString &password)
-{
-    QByteArray byteArray = password.toUtf8 ();
-    QByteArray hashed =
-        QCryptographicHash::hash (byteArray, QCryptographicHash::Sha256);
-
-    return QString (hashed.toHex ());
+        if (username == storedUsername)
+        {
+            QString inputPasswordHash = AccountManager::hashPassword (password);
+            if (inputPasswordHash == storedPasswordHash)
+                return UserAuthResult::Success;
+            else
+                return UserAuthResult::IncorrectPassword;
+        }
+    }
+    return UserAuthResult::UserNotFound;
 }
 
 void UserModel::loadUserData (const QJsonObject &userData)
 {
     // Building...
+    if (userData.isEmpty ())
+        throw std::runtime_error ("User data is empty");
+
+    if (!userData.contains ("userAccount") ||
+        !userData["userAccount"].isObject ())
+        throw std::runtime_error ("User account is invalid");
+    if (!userData.contains ("userProfile") ||
+        !userData["userProfile"].isObject ())
+        throw std::runtime_error ("User profile is invalid");
+
+    if (!userData.contains ("appConfig") || !userData["appConfig"].isObject ())
+        throw std::runtime_error ("App config is invalid");
+
+    if (!userData.contains ("userStatus") ||
+        !userData["userStatus"].isObject ())
+        throw std::runtime_error ("User status is invalid");
+
+    if (!userData.contains ("userStatistics") ||
+        !userData["userStatistics"].isObject ())
+        throw std::runtime_error ("User statistics is invalid");
+
+    if (!userData["userAccount"].toObject ().contains ("username") ||
+        !userData["userAccount"].toObject ()["username"].isString ())
+        throw std::runtime_error ("Username is invalid");
+
+    if (!userData["userAccount"].toObject ().contains ("password") ||
+        !userData["userAccount"].toObject ()["password"].isString ())
+        throw std::runtime_error ("Password is invalid");
+
+    if (!userData["userProfile"].toObject ().contains ("avatar") ||
+        !userData["userProfile"].toObject ()["avatar"].isString ())
+        throw std::runtime_error ("Avatar is invalid");
+
+    if (!userData["userProfile"].toObject ().contains ("email") ||
+        !userData["userProfile"].toObject ()["email"].isString ())
+        throw std::runtime_error ("Email is invalid");
+
+    if (!userData["appConfig"].toObject ().contains ("language") ||
+        !userData["appConfig"].toObject ()["language"].isString ())
+        throw std::runtime_error ("Language is invalid");
+
+    if (!userData["userStatus"].toObject ().contains ("lastLogin") ||
+        !userData["userStatus"].toObject ()["lastLogin"].isString ())
+        throw std::runtime_error ("Last login is invalid");
+
+    if (!userData["userStatus"].toObject ().contains ("isLoggedIn") ||
+        !userData["userStatus"].toObject ()["isLoggedIn"].isBool ())
+        throw std::runtime_error ("Is logged in is invalid");
+
+    if (!userData["userStatus"].toObject ().contains ("isLoginExpired") ||
+        !userData["userStatus"].toObject ()["isLoginExpired"].isBool ())
+        throw std::runtime_error ("Is login expired is invalid");
+
+    if (!userData["userStatistics"].toObject ().contains ("masteredCount"))
+        throw std::runtime_error ("Mastered count is invalid");
+
+    if (!userData["userStatistics"].toObject ().contains ("learningCount"))
+        throw std::runtime_error ("Learning count is invalid");
+
     try
     {
-        if (userData.isEmpty ())
-            throw std::runtime_error ("User data is empty");
-
-        if (!userData.contains ("userAccount") ||
-            !userData["userAccount"].isObject ())
-            throw std::runtime_error ("User account is invalid");
-
-        if (!userData.contains ("userProfile") ||
-            !userData["userProfile"].isObject ())
-            throw std::runtime_error ("User profile is invalid");
-
-        if (!userData.contains ("appConfig") ||
-            !userData["appConfig"].isObject ())
-            throw std::runtime_error ("App config is invalid");
-
-        if (!userData.contains ("userStatus") ||
-            !userData["userStatus"].isObject ())
-            throw std::runtime_error ("User status is invalid");
-
-        if (!userData.contains ("userStatistics") ||
-            !userData["userStatistics"].isObject ())
-            throw std::runtime_error ("User statistics is invalid");
-
-        if (!userData["userAccount"].toObject ().contains ("username") ||
-            !userData["userAccount"].toObject ()["username"].isString ())
-            throw std::runtime_error ("Username is invalid");
-
-        if (!userData["userAccount"].toObject ().contains ("password") ||
-            !userData["userAccount"].toObject ()["password"].isString ())
-            throw std::runtime_error ("Password is invalid");
-
-        if (!userData["userProfile"].toObject ().contains ("avatar") ||
-            !userData["userProfile"].toObject ()["avatar"].isString ())
-            throw std::runtime_error ("Avatar is invalid");
-
-        if (!userData["userProfile"].toObject ().contains ("email") ||
-            !userData["userProfile"].toObject ()["email"].isString ())
-            throw std::runtime_error ("Email is invalid");
-
-        if (!userData["appConfig"].toObject ().contains ("language") ||
-            !userData["appConfig"].toObject ()["language"].isString ())
-            throw std::runtime_error ("Language is invalid");
-
-        if (!userData["userStatus"].toObject ().contains ("lastLogin") ||
-            !userData["userStatus"].toObject ()["lastLogin"].isString ())
-            throw std::runtime_error ("Last login is invalid");
-
-        if (!userData["userStatus"].toObject ().contains ("isLoggedIn") ||
-            !userData["userStatus"].toObject ()["isLoggedIn"].isBool ())
-            throw std::runtime_error ("Is logged in is invalid");
-
-        if (!userData["userStatus"].toObject ().contains ("isLoginExpired") ||
-            !userData["userStatus"].toObject ()["isLoginExpired"].isBool ())
-            throw std::runtime_error ("Is login expired is invalid");
-
-        if (!userData["userStatistics"].toObject ().contains ("masteredCount"))
-            throw std::runtime_error ("Mastered count is invalid");
-
-        if (!userData["userStatistics"].toObject ().contains ("learningCount"))
-            throw std::runtime_error ("Learning count is invalid");
+        QJsonObject userAccount = userData["userAccount"].toObject ();
+        QJsonObject userProfile = userData["userProfile"].toObject ();
+        QJsonObject appConfig = userData["appConfig"].toObject ();
+        QJsonObject userStatus = userData["userStatus"].toObject ();
+        QJsonObject userStatistics = userData["userStatistics"].toObject ();
     }
     catch (const std::exception &e)
     {
         qDebug () << "Error loading user data:" << e.what ();
+        throw;
     }
 }
 

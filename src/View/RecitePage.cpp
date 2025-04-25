@@ -1,5 +1,8 @@
 #include "RecitePage.h"
+#include "ElaFlowLayout.h"
 #include "ElaPushButton.h"
+#include <qboxlayout.h>
+#include <qlabel.h>
 
 RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
 {
@@ -56,5 +59,38 @@ RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
     containerLayout->addWidget (reciteContentWidget, 0, 0);
 
     recitePageLayout->addWidget (containerWidget);
+
+    QWidget *flowContainer = new QWidget (centralWidget);
+    ElaFlowLayout *flowLayout = new ElaFlowLayout (flowContainer);
+    flowLayout->setAlignment (Qt::AlignCenter | Qt::AlignTop);
+
+    QWidget *favoritesWidget = new QWidget (flowContainer);
+    favoritesWidget->setStyleSheet (
+        "background-color: #FFF8DC; border-radius: 8px;");
+    favoritesWidget->setFixedSize (600, 200);
+
+    QLabel *favoritesLabel = new QLabel (favoritesWidget);
+    favoritesLabel->setText ("Favorites");
+    favoritesLabel->setStyleSheet ("font-size: 20px; color: #333;");
+    QVBoxLayout *favoritesLayout = new QVBoxLayout (favoritesWidget);
+    favoritesLayout->addWidget (favoritesLabel);
+    favoritesLayout->addStretch ();
+
+    QWidget *masteredWidget = new QWidget (flowContainer);
+    masteredWidget->setStyleSheet (
+        "background-color: #E0FFE0; border-radius: 8px;");
+    masteredWidget->setFixedSize (600, 200);
+    QLabel *masteredLabel = new QLabel (masteredWidget);
+    masteredLabel->setText ("Mastered");
+    masteredLabel->setStyleSheet ("font-size: 20px; color: #333;");
+
+    QVBoxLayout *masteredLayout = new QVBoxLayout (masteredWidget);
+    masteredLayout->addWidget (masteredLabel);
+    masteredLayout->addStretch ();
+
+    flowLayout->addWidget (favoritesWidget);
+    flowLayout->addWidget (masteredWidget);
+
+    recitePageLayout->addWidget (flowContainer);
     addCentralWidget (centralWidget, true, true, 0);
 }

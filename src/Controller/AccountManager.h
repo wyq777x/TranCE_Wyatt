@@ -31,7 +31,7 @@ public:
     }
 
     void setUsername (const QString &username);
-
+    static QString hashPassword (const QString &password);
     QString getUsername () const;
     QString getHashedPassword () const;
     QString getLanguage () const;

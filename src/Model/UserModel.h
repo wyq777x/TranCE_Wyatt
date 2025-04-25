@@ -4,6 +4,7 @@
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QString>
@@ -41,9 +42,21 @@ public:
     }
     void setLoginExpired (bool expired) { loginExpired = expired; }
 
+    QJsonArray getUserList (const QString &storageFile) const
+    {
+        // Building ...
+        QFile file (storageFile);
+        if (!file.open (QIODevice::ReadOnly))
+            return QJsonArray ();
+
+        QJsonDocument doc = QJsonDocument::fromJson (file.readAll ());
+        file.close ();
+        return doc.array ();
+    }
+
 private:
     UserModel () = default;
-    static QString hashPassword (const QString &password);
+
     static void loadUserData (const QJsonObject &userData);
     static void saveUserData (const QString &filename);
 
