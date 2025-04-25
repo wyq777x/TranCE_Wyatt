@@ -12,6 +12,7 @@
 #include <ElaToggleSwitch.h>
 #include <ElaWidget.h>
 #include <QAction>
+#include <QDesktopServices>
 #include <QDialogButtonBox>
 #include <QFrame>
 #include <QGraphicsBlurEffect>

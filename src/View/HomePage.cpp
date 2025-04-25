@@ -125,7 +125,20 @@ Online)");
                  // emit languageSwapped
              });
 
-    connect (searchAction, &QAction::triggered, [=] () {});
+    connect (searchAction, &QAction::triggered,
+             [=] ()
+             {
+                 if (searchOnline->getIsToggled ())
+                 {
+                     QDesktopServices::openUrl (
+                         QUrl (QString ("https://www.bing.com/search?q=%1")
+                                   .arg (lineEdit->text ())));
+                     return;
+                 }
+
+                 // Query the local database
+                 // emit searchTriggered
+             });
 
     connect (clearAction, &QAction::triggered, [=] () { lineEdit->clear (); });
 
@@ -141,5 +154,6 @@ Online)");
                      clearAction->setVisible (true);
                  }
              });
+
     addCentralWidget (centralWidget, true, true, 0);
 }
