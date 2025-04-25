@@ -6,29 +6,30 @@
 void AccountManager::logout ()
 {
 
-    auto &instance = UserModel::getInstance ();
-    instance.logout ();
-    instance.setLoggedIn (false);
-    instance.setLoginExpired (true);
-    // clear the username and password of View
-    // ...
+    if (userModel)
+        userModel->logout ();
+    username.clear ();
+    password_Hash.clear ();
 }
 
 void AccountManager::login (const QString &username, const QString &password)
 {
-    auto &instance = UserModel::getInstance ();
-
-    auto result = instance.login (username, password);
-
-    return;
+    if (userModel)
+    {
+        auto result = userModel->login (username, password);
+        if (result == UserAuthResult::Success)
+        {
+            this->username = username;
+            this->password_Hash = hashPassword (password);
+        }
+    }
 }
 
 void AccountManager::registerUser (const QString &username,
                                    const QString &password)
 {
-    auto &instance = UserModel::getInstance ();
-
-    return;
+    if (userModel)
+        userModel->registerUser (username, password);
 }
 
 QString AccountManager::hashPassword (const QString &password)

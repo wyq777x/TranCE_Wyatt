@@ -16,6 +16,9 @@ public:
     DictDbModel &operator= (DictDbModel &&) = default;
     ~DictDbModel () = default;
 
+    void openDb ();
+    void closeDb ();
+
 private:
     std::unique_ptr<SQLite::Database> m_db;
 };

@@ -20,9 +20,25 @@ public:
     AccountManager (AccountManager &&) = delete;
     AccountManager &operator= (AccountManager &&) = delete;
 
+    void setUserModel (UserModel *model)
+    {
+        try
+        {
+            if (model == nullptr)
+                throw std::runtime_error ("UserModel is null");
+
+            userModel = model;
+        }
+        catch (const std::exception &e)
+        {
+            qDebug () << "Error setting UserModel:" << e.what ();
+            throw;
+        }
+    }
     void login (const QString &username, const QString &password);
     void logout ();
     void registerUser (const QString &username, const QString &password);
+    static QString hashPassword (const QString &password);
 
     bool isLoggedIn () const { return UserModel::getInstance ().isLoggedIn (); }
     bool isLoginExpired () const
@@ -31,7 +47,6 @@ public:
     }
 
     void setUsername (const QString &username);
-    static QString hashPassword (const QString &password);
     QString getUsername () const;
     QString getHashedPassword () const;
     QString getLanguage () const;
@@ -39,8 +54,7 @@ public:
 private:
     AccountManager () = default;
 
-    void setPassword (const QString &password);
-
+    UserModel *userModel = nullptr;
     QString username;
     QString password_Hash;
 };
