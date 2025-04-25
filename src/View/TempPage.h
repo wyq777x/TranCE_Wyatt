@@ -8,6 +8,7 @@
 #include <ElaPushButton.h>
 #include <ElaScrollArea.h>
 #include <ElaScrollPage.h>
+#include <ElaTableView.h>
 #include <ElaTheme.h>
 #include <ElaToggleSwitch.h>
 #include <ElaWidget.h>
