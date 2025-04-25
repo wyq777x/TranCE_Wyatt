@@ -101,6 +101,30 @@ Online)");
 
     homePageLayout->addWidget (randomRecommendationLabel);
 
+    connect (swapButton, &ElaIconButton::clicked,
+             [=] ()
+             {
+                 QString leftText = LangComboBox_left->currentText ();
+                 QString rightText = LangComboBox_right->currentText ();
+
+                 LangComboBox_left->blockSignals (true);
+                 LangComboBox_right->blockSignals (true);
+
+                 int leftIndex = LangComboBox_right->findText (leftText);
+                 int rightIndex = LangComboBox_left->findText (rightText);
+
+                 if (leftIndex >= 0 && rightIndex >= 0)
+                 {
+                     LangComboBox_left->setCurrentIndex (rightIndex);
+                     LangComboBox_right->setCurrentIndex (leftIndex);
+                 }
+
+                 LangComboBox_left->blockSignals (false);
+                 LangComboBox_right->blockSignals (false);
+
+                 // emit languageSwapped
+             });
+
     connect (searchAction, &QAction::triggered, [=] () {});
 
     connect (clearAction, &QAction::triggered, [=] () { lineEdit->clear (); });
