@@ -154,6 +154,21 @@ Online)");
                      clearAction->setVisible (true);
                  }
              });
+    connect (lineEdit, &ElaLineEdit::returnPressed,
+             [=] ()
+             {
+                 if (searchOnline->getIsToggled ())
+                 {
+                     if (lineEdit->text ().isEmpty ())
+                     {
+                         return;
+                     }
+                     QDesktopServices::openUrl (
+                         QUrl (QString ("https://www.bing.com/search?q=%1")
+                                   .arg (lineEdit->text ())));
+                     return;
+                 }
+             });
 
     addCentralWidget (centralWidget, true, true, 0);
 }

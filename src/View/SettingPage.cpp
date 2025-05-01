@@ -39,7 +39,8 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 
     QHBoxLayout *clearCacheLayout = new QHBoxLayout (centralWidget);
 
-    QLabel *clearCacheLabel = new QLabel ("Clear Cache: ", centralWidget);
+    QLabel *clearCacheLabel =
+        new QLabel (QString ("Clear Cache: %1 MB").arg (0), centralWidget);
     clearCacheLabel->setStyleSheet (
         "font-size: 20px; font-weight: normal; color: #333;");
     clearCacheLabel->setFont (QFont ("Noto Sans", 24));
