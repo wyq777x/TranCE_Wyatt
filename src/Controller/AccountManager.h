@@ -1,6 +1,6 @@
 #pragma once
 #include "Model/AppSettingModel.h"
-#include "Model/DictDbModel.h"
+#include "Model/DbModel.h"
 #include "Model/UserModel.h"
 #include "Utility/UserAuthResult.h"
 #include <QString>

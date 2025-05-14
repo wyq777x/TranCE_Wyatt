@@ -20,20 +20,7 @@ UserAuthResult UserModel::login (const QString &username,
         return UserAuthResult::UserAlreadyLoggedIn;
     }
 
-    UserAuthResult result = Authenticate (username, password);
-
-    if (result == UserAuthResult::Success)
-    {
-        instance.setLoggedIn (true);
-        instance.setLoginExpired (false);
-    }
-    return result;
-}
-
-void UserModel::registerUser (const QString &username, const QString &password)
-{
-    // Building...
-    auto &instance = UserModel::getInstance ();
+    return UserAuthResult::Success;
 }
 
 void UserModel::logout ()
@@ -46,29 +33,6 @@ void UserModel::logout ()
         instance.setLoggedIn (false);
         instance.setLoginExpired (true);
     }
-}
-
-UserAuthResult UserModel::Authenticate (const QString &username,
-                                        const QString &password)
-{
-    QJsonArray userList = getUserList ("users.json");
-
-    for (const QJsonValue &userVal : userList)
-    {
-        QJsonObject userObj = userVal.toObject ();
-        QString storedUsername = userObj["username"].toString ();
-        QString storedPasswordHash = userObj["password"].toString ();
-
-        if (username == storedUsername)
-        {
-            QString inputPasswordHash = AccountManager::hashPassword (password);
-            if (inputPasswordHash == storedPasswordHash)
-                return UserAuthResult::Success;
-            else
-                return UserAuthResult::IncorrectPassword;
-        }
-    }
-    return UserAuthResult::UserNotFound;
 }
 
 void UserModel::loadUserData (const QJsonObject &userData)
@@ -98,10 +62,6 @@ void UserModel::loadUserData (const QJsonObject &userData)
     if (!userData["userAccount"].toObject ().contains ("username") ||
         !userData["userAccount"].toObject ()["username"].isString ())
         throw std::runtime_error ("Username is invalid");
-
-    if (!userData["userAccount"].toObject ().contains ("password") ||
-        !userData["userAccount"].toObject ()["password"].isString ())
-        throw std::runtime_error ("Password is invalid");
 
     if (!userData["userProfile"].toObject ().contains ("avatar") ||
         !userData["userProfile"].toObject ()["avatar"].isString ())
@@ -157,8 +117,7 @@ void UserModel::saveUserData (const QString &filename)
 
         QJsonObject userAccount;
         userAccount["username"] = AccountManager::getInstance ().getUsername ();
-        userAccount["password"] =
-            AccountManager::getInstance ().getHashedPassword ();
+        userAccount["userkey"] = 1;
 
         userData["userAccount"] = userAccount;
 

@@ -28,8 +28,6 @@ void AccountManager::login (const QString &username, const QString &password)
 void AccountManager::registerUser (const QString &username,
                                    const QString &password)
 {
-    if (userModel)
-        userModel->registerUser (username, password);
 }
 
 QString AccountManager::hashPassword (const QString &password)

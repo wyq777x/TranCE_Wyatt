@@ -25,11 +25,7 @@ public:
     UserModel &operator= (UserModel &&) = delete;
 
     UserAuthResult login (const QString &username, const QString &password);
-    void registerUser (const QString &username, const QString &password);
     void logout ();
-
-    UserAuthResult Authenticate (const QString &username,
-                                 const QString &password);
 
     bool isLoggedIn () const { return loggedIn; };
     bool isLoginExpired () const { return loginExpired; };
