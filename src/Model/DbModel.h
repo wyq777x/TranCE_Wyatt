@@ -41,9 +41,9 @@ public:
             user_db = std::make_unique<SQLite::Database> (
                 userDbPath.toStdString (),
                 SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-            initTables (); // initUserTable() to be modified
+            initUserTable ();
         }
-        else if (!isDbOpen ()) // isUserDbOpen() to be modified
+        else if (!isUserDbOpen ())
         {
             user_db = std::make_unique<SQLite::Database> (
                 userDbPath.toStdString (), SQLite::OPEN_READWRITE);
@@ -55,9 +55,9 @@ public:
             dict_db = std::make_unique<SQLite::Database> (
                 dictDbPath.toStdString (),
                 SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-            initTables (); // initDictTable() to be modified
+            initDictTable ();
         }
-        else if (!isDbOpen ())
+        else if (!isDictDbOpen ())
         {
             dict_db = std::make_unique<SQLite::Database> (
                 userDbPath.toStdString (), SQLite::OPEN_READWRITE);
@@ -81,10 +81,47 @@ public:
     std::optional<QString> getUserName (const QString &userId) const;
 
     // Database connection and management
-    void openDb ();
+    void openDb (const QString &dbPath);
     void closeDb ();
-    bool isDbOpen () const;
-    void initTables ();
+    bool isUserDbOpen () const;
+    bool isDictDbOpen () const;
+
+    void initUserTable ()
+    {
+
+        try
+        {
+            if (user_db != nullptr)
+            {
+                user_db->exec ("CREATE TABLE IF NOT EXISTS users("
+                               "user_id TEXT PRIMARY KEY,"
+                               "username TEXT NOT NULL UNIQUE,"
+                               "password_hash TEXT NOT NULL,"
+                               "email TEXT NOT NULL UNIQUE);");
+            }
+        }
+        catch (const SQLite::Exception &e)
+        {
+            logErr ("Error creating user table", e);
+        }
+    }
+
+    void initDictTable ()
+    {
+        try
+        {
+            if (dict_db != nullptr)
+            {
+                dict_db->exec ("CREATE TABLE IF NOT EXISTS words();");
+
+                // to be further designed
+            }
+        }
+        catch (const SQLite::Exception &e)
+        {
+            logErr ("Error creating dictionary table", e);
+        }
+    }
 
     std::optional<WordEntry> lookupWord (const QString &word,
                                          const QString &lang);
