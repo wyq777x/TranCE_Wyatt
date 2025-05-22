@@ -1,7 +1,7 @@
 #include "UserModel.h"
 #include "AccountManager.h"
 #include "AppSettingModel.h"
-#include "Utility/UserAuthResult.h"
+#include "Utility/Result.h"
 #include <qcontainerfwd.h>
 #include <qcryptographichash.h>
 #include <qdebug.h>
@@ -122,7 +122,7 @@ void UserModel::saveUserData (const QString &filename)
         userData["userAccount"] = userAccount;
 
         QJsonObject userProfile;
-        userProfile["avatar"] = "default_avatar.png";
+        userProfile["avatar"] = ":/res/image/DefaultUser.png";
         userProfile["email"] = "*@example.com";
 
         userData["userProfile"] = userProfile;

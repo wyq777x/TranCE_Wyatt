@@ -23,3 +23,20 @@ static const std::unordered_map<UserAuthResult, std::string>
         {UserAuthResult::UnknownError, "Unknown error."}
 
 };
+
+enum class RegisterUserResult
+{
+    Success,
+    UserAlreadyExists,
+    DatabaseError,
+    UnknownError
+};
+
+static const std::unordered_map<RegisterUserResult, std::string>
+    RegisterUserResultMessage = {
+        {RegisterUserResult::Success, "Registration successful."},
+        {RegisterUserResult::UserAlreadyExists, "User already exists."},
+        {RegisterUserResult::DatabaseError, "Database error."},
+        {RegisterUserResult::UnknownError, "Unknown error."}
+
+};

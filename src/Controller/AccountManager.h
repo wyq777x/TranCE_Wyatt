@@ -2,7 +2,7 @@
 #include "Model/AppSettingModel.h"
 #include "Model/DbModel.h"
 #include "Model/UserModel.h"
-#include "Utility/UserAuthResult.h"
+#include "Utility/Result.h"
 #include <QString>
 #include <stdexcept>
 class AccountManager

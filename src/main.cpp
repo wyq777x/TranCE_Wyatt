@@ -9,6 +9,9 @@ int main (int argc, char *argv[])
 {
     QApplication a (argc, argv);
     ElaApplication::getInstance ()->init ();
+
+    DbModel dbModel (QCoreApplication::applicationDirPath () + "/Utility/DBs");
+    dbModel.initDBs ();
     MainWindow w;
     w.show ();
 

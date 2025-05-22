@@ -1,6 +1,6 @@
 #include "AccountManager.h"
 #include "UserModel.h"
-#include "Utility/UserAuthResult.h"
+#include "Utility/Result.h"
 #include <qcontainerfwd.h>
 
 void AccountManager::logout ()

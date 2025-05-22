@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utility/UserAuthResult.h"
+#include "Utility/Result.h"
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QFile>
