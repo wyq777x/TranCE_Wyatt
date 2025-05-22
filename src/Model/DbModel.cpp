@@ -32,32 +32,45 @@ bool DbModel::userExists (const QString &username) const { return false; }
 RegisterUserResult DbModel::registerUser (const QString &username,
                                           const QString &passwordHash)
 {
-    if (!isUserDbOpen ())
+    DbModel &instance = DbModel::getInstance ();
+    if (!instance.isUserDbOpen ())
     {
         return RegisterUserResult::DatabaseError;
     }
-    if (userExists (username))
+    if (instance.userExists (username))
     {
         return RegisterUserResult::UserAlreadyExists;
     }
     try
     {
+        SQLite::Statement query (*(instance.user_db),
+                                 "INSERT INTO users (username, password_hash) "
+                                 "VALUES (?, ?)");
+        query.bind (1, username.toStdString ());
+        query.bind (2, passwordHash.toStdString ());
+        query.exec ();
+        // Check if the user was inserted successfully
+        if (query.getChanges () == 0)
+        {
+            return RegisterUserResult::DatabaseError;
+        }
+
         return RegisterUserResult::Success;
     }
     catch (const SQLite::Exception &e)
     {
-        logErr ("Error inserting user into database", e);
+        instance.logErr ("Error inserting user into database", e);
         return RegisterUserResult::DatabaseError;
     }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error inserting user into database", e);
+        instance.logErr ("Unknown error inserting user into database", e);
         return RegisterUserResult::UnknownError;
     }
     catch (...)
     {
-        logErr ("Unknown error inserting user into database",
-                std::runtime_error ("Unknown exception"));
+        instance.logErr ("Unknown error inserting user into database",
+                         std::runtime_error ("Unknown exception"));
         return RegisterUserResult::UnknownError;
     }
 }
@@ -71,30 +84,7 @@ UserAuthResult DbModel::verifyUser (const QString &username,
     }
     catch (...)
     {
+
+        return UserAuthResult::UnknownError;
     }
 }
-/*
-
-UserAuthResult UserModel::Authenticate (const QString &username,
-                                        const QString &password)
-{
-    QJsonArray userList = getUserList ("users.json");
-
-    for (const QJsonValue &userVal : userList)
-    {
-        QJsonObject userObj = userVal.toObject ();
-        QString storedUsername = userObj["username"].toString ();
-        QString storedPasswordHash = userObj["password"].toString ();
-
-        if (username == storedUsername)
-        {
-            QString inputPasswordHash = AccountManager::hashPassword (password);
-            if (inputPasswordHash == storedPasswordHash)
-                return UserAuthResult::Success;
-            else
-                return UserAuthResult::IncorrectPassword;
-        }
-    }
-    return UserAuthResult::UserNotFound;
-}
-*/

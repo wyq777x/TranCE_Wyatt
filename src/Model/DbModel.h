@@ -16,11 +16,6 @@ class DbModel
 {
 public:
     DbModel () = delete;
-    explicit DbModel (const QString &dbPath)
-        : m_dbDir (dbPath), user_db (nullptr), dict_db (nullptr)
-    {
-        initDBs ();
-    }
 
     DbModel (const DbModel &) = delete;
     DbModel operator= (const DbModel &) = delete;
@@ -29,11 +24,15 @@ public:
     DbModel &operator= (DbModel &&) = default;
     ~DbModel () = default;
 
+    static DbModel &getInstance ()
+    {
+        static DbModel instance (QCoreApplication::applicationDirPath () +
+                                 "/Utility/DBs");
+        return instance;
+    }
+
     void initDBs ()
     {
-        //  QString dbDir =
-        //  QCoreApplication::applicationDirPath () + "/Utility/DBs";
-
         QDir dir (m_dbDir);
         if (!dir.exists ())
         {
@@ -72,8 +71,8 @@ public:
     // User
 
     bool userExists (const QString &username) const;
-    RegisterUserResult registerUser (const QString &username,
-                                     const QString &passwordHash);
+    static RegisterUserResult registerUser (const QString &username,
+                                            const QString &passwordHash);
 
     UserAuthResult verifyUser (const QString &username,
                                const QString &passwordHash) const;
@@ -144,6 +143,12 @@ public:
     std::string getLastError () const { return m_lastError; }
 
 private:
+    explicit DbModel (const QString &dbPath)
+        : m_dbDir (dbPath), user_db (nullptr), dict_db (nullptr)
+    {
+        initDBs ();
+    }
+
     QString m_dbDir;
     std::unique_ptr<SQLite::Database> user_db;
     std::unique_ptr<SQLite::Database> dict_db;

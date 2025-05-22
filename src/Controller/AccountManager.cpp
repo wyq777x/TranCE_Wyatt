@@ -1,4 +1,5 @@
 #include "AccountManager.h"
+#include "DbModel.h"
 #include "UserModel.h"
 #include "Utility/Result.h"
 #include <qcontainerfwd.h>
@@ -28,6 +29,13 @@ void AccountManager::login (const QString &username, const QString &password)
 void AccountManager::registerUser (const QString &username,
                                    const QString &password)
 {
+    password_Hash = hashPassword (password);
+    auto result = DbModel::registerUser (username, password_Hash);
+
+    if (result != RegisterUserResult::Success)
+    {
+        throw std::runtime_error ("Failed to register user");
+    }
 }
 
 QString AccountManager::hashPassword (const QString &password)
