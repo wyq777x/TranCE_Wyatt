@@ -49,6 +49,7 @@ public:
         file.close ();
         return doc.array ();
     }
+    static ValidationResult validateUserData (const QJsonObject &userData);
 
 private:
     UserModel () = default;

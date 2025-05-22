@@ -1,4 +1,6 @@
 #pragma once
+#include <QJsonObject>
+#include <QStringList>
 #include <string>
 #include <unordered_map>
 enum class UserAuthResult
@@ -39,4 +41,10 @@ static const std::unordered_map<RegisterUserResult, std::string>
         {RegisterUserResult::DatabaseError, "Database error."},
         {RegisterUserResult::UnknownError, "Unknown error."}
 
+};
+
+struct ValidationResult
+{
+    bool isValid;
+    QStringList ErrMessages;
 };

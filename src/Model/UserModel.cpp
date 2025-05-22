@@ -35,76 +35,86 @@ void UserModel::logout ()
     }
 }
 
-void UserModel::loadUserData (const QJsonObject &userData)
+ValidationResult UserModel::validateUserData (const QJsonObject &userData)
 {
-    // Building...
+    ValidationResult result{true, {}};
     if (userData.isEmpty ())
-        throw std::runtime_error ("User data is empty");
-
+        result.ErrMessages << "User data is empty";
     if (!userData.contains ("userAccount") ||
         !userData["userAccount"].isObject ())
-        throw std::runtime_error ("User account is invalid");
+        result.ErrMessages << "User account is invalid";
     if (!userData.contains ("userProfile") ||
         !userData["userProfile"].isObject ())
-        throw std::runtime_error ("User profile is invalid");
+        result.ErrMessages << "User profile is invalid";
 
     if (!userData.contains ("appConfig") || !userData["appConfig"].isObject ())
-        throw std::runtime_error ("App config is invalid");
+        result.ErrMessages << "App config is invalid";
 
     if (!userData.contains ("userStatus") ||
         !userData["userStatus"].isObject ())
-        throw std::runtime_error ("User status is invalid");
+        result.ErrMessages << "User status is invalid";
 
     if (!userData.contains ("userStatistics") ||
         !userData["userStatistics"].isObject ())
-        throw std::runtime_error ("User statistics is invalid");
+        result.ErrMessages << "User statistics is invalid";
 
     if (!userData["userAccount"].toObject ().contains ("username") ||
         !userData["userAccount"].toObject ()["username"].isString ())
-        throw std::runtime_error ("Username is invalid");
+        result.ErrMessages << "Username is invalid";
 
     if (!userData["userProfile"].toObject ().contains ("avatar") ||
         !userData["userProfile"].toObject ()["avatar"].isString ())
-        throw std::runtime_error ("Avatar is invalid");
+        result.ErrMessages << "Avatar is invalid";
 
     if (!userData["userProfile"].toObject ().contains ("email") ||
         !userData["userProfile"].toObject ()["email"].isString ())
-        throw std::runtime_error ("Email is invalid");
+        result.ErrMessages << "Email is invalid";
 
     if (!userData["appConfig"].toObject ().contains ("language") ||
         !userData["appConfig"].toObject ()["language"].isString ())
-        throw std::runtime_error ("Language is invalid");
+        result.ErrMessages << "Language is invalid";
 
     if (!userData["userStatus"].toObject ().contains ("lastLogin") ||
         !userData["userStatus"].toObject ()["lastLogin"].isString ())
-        throw std::runtime_error ("Last login is invalid");
+        result.ErrMessages << "Last login is invalid";
 
     if (!userData["userStatus"].toObject ().contains ("isLoggedIn") ||
         !userData["userStatus"].toObject ()["isLoggedIn"].isBool ())
-        throw std::runtime_error ("Is logged in is invalid");
+        result.ErrMessages << "Is logged in is invalid";
 
     if (!userData["userStatus"].toObject ().contains ("isLoginExpired") ||
         !userData["userStatus"].toObject ()["isLoginExpired"].isBool ())
-        throw std::runtime_error ("Is login expired is invalid");
+        result.ErrMessages << "Is login expired is invalid";
 
     if (!userData["userStatistics"].toObject ().contains ("masteredCount"))
-        throw std::runtime_error ("Mastered count is invalid");
+        result.ErrMessages << "Mastered count is invalid";
 
     if (!userData["userStatistics"].toObject ().contains ("learningCount"))
-        throw std::runtime_error ("Learning count is invalid");
+        result.ErrMessages << "Learning count is invalid";
 
-    try
+    QJsonObject userAccount = userData["userAccount"].toObject ();
+    QJsonObject userProfile = userData["userProfile"].toObject ();
+    QJsonObject appConfig = userData["appConfig"].toObject ();
+    QJsonObject userStatus = userData["userStatus"].toObject ();
+    QJsonObject userStatistics = userData["userStatistics"].toObject ();
+
+    result.isValid = result.ErrMessages.isEmpty ();
+    return result;
+}
+void UserModel::loadUserData (const QJsonObject &userData)
+{
+    // Building...
+    auto validation = validateUserData (userData);
+    if (!validation.isValid)
     {
-        QJsonObject userAccount = userData["userAccount"].toObject ();
-        QJsonObject userProfile = userData["userProfile"].toObject ();
-        QJsonObject appConfig = userData["appConfig"].toObject ();
-        QJsonObject userStatus = userData["userStatus"].toObject ();
-        QJsonObject userStatistics = userData["userStatistics"].toObject ();
-    }
-    catch (const std::exception &e)
-    {
-        qDebug () << "Error loading user data:" << e.what ();
-        throw;
+        qCritical () << "User data is invalid";
+        for (const QString &err : validation.ErrMessages)
+        {
+            qCritical () << err;
+        }
+        throw std::runtime_error (
+            "User data is invalid: " +
+            validation.ErrMessages.join (", ").toStdString ());
     }
 }
 
