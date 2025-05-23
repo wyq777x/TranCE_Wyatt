@@ -28,4 +28,6 @@ class TempPage : public ElaScrollPage
 public:
     explicit TempPage (QWidget *parent = nullptr);
     ~TempPage ();
+
+    void showErrorDialog (const QString &title, const QString &message);
 };

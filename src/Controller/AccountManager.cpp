@@ -26,18 +26,53 @@ void AccountManager::login (const QString &username, const QString &password)
     }
 }
 
-void AccountManager::registerUser (const QString &username,
-                                   const QString &password)
+RegisterUserResult AccountManager::registerUser (const QString &username,
+                                                 const QString &password)
 {
-    password_Hash = hashPassword (password);
-    auto result = DbModel::registerUser (username, password_Hash);
-
-    if (result != RegisterUserResult::Success)
+    try
     {
-        throw std::runtime_error ("Failed to register user");
+        password_Hash = hashPassword (password);
+        auto result = DbModel::registerUser (username, password_Hash);
+
+        if (result != RegisterUserResult::Success)
+        {
+
+            auto it = RegisterUserResultMessage.find (result);
+            if (it != RegisterUserResultMessage.end ())
+            {
+                qCritical () << "User registration failed:"
+                             << QString::fromStdString (it->second);
+            }
+            else
+            {
+                qCritical ()
+                    << "User registration failed with unknown result code";
+            }
+        }
+
+        return result;
+    }
+    catch (const std::exception &e)
+    {
+        qCritical () << "Error registering user:" << e.what ();
+        return RegisterUserResult::UnknownError;
     }
 }
 
+/*
+invoke Example:
+
+auto result = AccountManager->getInstance().registerUser(username, password);
+if (result != RegisterUserResult::Success) {
+    auto it = RegisterUserResultMessage.find(result);
+    QString errorMsg = it != RegisterUserResultMessage.end()
+                      ? QString::fromStdString(it->second)
+                      : "Unknown error";
+    // 在 UI 中显示错误信息
+    showErrorDialog(errorMsg);
+
+
+*/
 QString AccountManager::hashPassword (const QString &password)
 {
     QByteArray byteArray = password.toUtf8 ();

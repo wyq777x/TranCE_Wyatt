@@ -1,5 +1,7 @@
 #include "RegisterPage.h"
 #include "ElaLineEdit.h"
+#include <qdialogbuttonbox.h>
+#include <qlabel.h>
 
 RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 {
@@ -86,6 +88,33 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
     registerPageLayout->addLayout (registerButtonLayout);
 
     addCentralWidget (centralWidget, true, true, 0);
+
+    connect (registerButton, &ElaPushButton::clicked,
+             [=, this] ()
+             {
+                 QString username = usernameLineEdit->text ();
+                 QString password = passwordLineEdit->text ();
+                 QString confirmPassword = confirmPasswordLineEdit->text ();
+
+                 if (username.isEmpty () || password.isEmpty ())
+                 {
+                     showErrorDialog (
+                         "Register Error",
+                         "Username or password cannot be empty.\n\n"
+                         "Please enter your username/password.");
+                     return;
+                 }
+
+                 if (password != confirmPassword)
+                 {
+                     showErrorDialog ("Register Error",
+                                      "Passwords do not match.\n\n"
+                                      "Please confirm your password.");
+                     return;
+                 }
+             });
+
+    connect (cancelButton, &ElaPushButton::clicked, [=, this] () { close (); });
 }
 void RegisterPage::paintEvent (QPaintEvent *event)
 {
