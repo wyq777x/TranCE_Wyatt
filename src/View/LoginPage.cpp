@@ -124,30 +124,16 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
         });
 
     connect (registerButton, &ElaPushButton::clicked,
-             [=] ()
+             [=, this] ()
              {
-                 QString username = usernameLineEdit->text ();
-                 QString password = passwordLineEdit->text ();
-                 if (username.isEmpty () || password.isEmpty ())
-                 {
-                     // Handle empty fields
-                     return;
-                 }
-                 try
-                 {
-                     AccountManager::getInstance ().registerUser (username,
-                                                                  password);
-                     // Handle successful registration
-                 }
-                 catch (const std::runtime_error &e)
-                 {
-                     // Handle registration error
-                     qDebug () << "Registration error:" << e.what ();
-                 }
+                 auto *registerPage = new RegisterPage (this);
+
+                 registerPage->show ();
+                 registerPage->setAttribute (Qt::WA_DeleteOnClose);
              });
 }
 
-void LoginPage::LoginPage::paintEvent (QPaintEvent *event)
+void LoginPage::paintEvent (QPaintEvent *event)
 {
     Q_UNUSED (event);
     QPainter painter (this);

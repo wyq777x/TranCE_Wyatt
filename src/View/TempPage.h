@@ -18,6 +18,7 @@
 #include <QFrame>
 #include <QGraphicsBlurEffect>
 #include <QLabel>
+#include <QPainter>
 #include <QStackedLayout>
 #include <QVBoxLayout>
 
