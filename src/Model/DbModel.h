@@ -68,26 +68,29 @@ public:
                 userDbPath.toStdString (), SQLite::OPEN_READWRITE);
         }
     }
+    // Database connection and management
+
+    bool isUserDbOpen () const;
+    bool isDictDbOpen () const;
 
     // User
 
     bool userExists (const QString &username) const;
+
     static RegisterUserResult registerUser (const QString &username,
                                             const QString &passwordHash);
 
     UserAuthResult verifyUser (const QString &username,
                                const QString &passwordHash) const;
-    bool updateUserPassword (const QString &username,
+
+    void deleteUser (const QString &username);
+
+    void updateUserPassword (const QString &username,
                              const QString &oldPasswordHash,
                              const QString &newPasswordHash);
 
     std::optional<QString> getUserId (const QString &username) const;
     std::optional<QString> getUserName (const QString &userId) const;
-
-    // Database connection and management
-
-    bool isUserDbOpen () const;
-    bool isDictDbOpen () const;
 
     void initUserTable ()
     {
@@ -131,11 +134,11 @@ public:
     std::vector<WordEntry> searchWords (const QString &pattern,
                                         const QString &lang, int limit = 10);
 
-    bool addToUserVocabulary (const QString &userId, const QString &word);
-    bool removeFromUserVocabulary (const QString &userId, const QString &word);
+    void addToUserVocabulary (const QString &userId, const QString &word);
+    void removeFromUserVocabulary (const QString &userId, const QString &word);
 
     // status: -1= never learned,0=learning, 1=mastered
-    bool updateWordStatus (const QString &userId, const QString &word,
+    void updateWordStatus (const QString &userId, const QString &word,
                            int status);
 
     std::vector<WordEntry> getUserVocabulary (const QString &userId,

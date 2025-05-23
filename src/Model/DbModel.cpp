@@ -114,3 +114,90 @@ UserAuthResult DbModel::verifyUser (const QString &username,
         return UserAuthResult::UnknownError;
     }
 }
+
+void DbModel::deleteUser (const QString &username)
+{
+    if (!isUserDbOpen ())
+    {
+        return;
+    }
+
+    try
+    {
+        SQLite::Statement query (*user_db,
+                                 "DELETE FROM users WHERE username = ?");
+        query.bind (1, username.toStdString ());
+        query.exec ();
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error deleting user from database", e);
+    }
+}
+
+void DbModel::updateUserPassword (const QString &username,
+                                  const QString &oldPasswordHash,
+                                  const QString &newPasswordHash)
+{
+    if (!isUserDbOpen ())
+    {
+        return;
+    }
+
+    try
+    {
+        SQLite::Statement query (*user_db,
+                                 "UPDATE users SET password_hash = ? "
+                                 "WHERE username = ? AND password_hash = ?");
+        query.bind (1, newPasswordHash.toStdString ());
+        query.bind (2, username.toStdString ());
+        query.bind (3, oldPasswordHash.toStdString ());
+        query.exec ();
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error updating user password in database", e);
+    }
+}
+
+std::optional<WordEntry> DbModel::lookupWord (const QString &word,
+                                              const QString &lang)
+{
+    if (!isDictDbOpen ())
+    {
+        return std::nullopt;
+    }
+
+    return std::nullopt;
+}
+
+std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
+                                             const QString &lang, int limit)
+{
+    return std::vector<WordEntry> ();
+}
+
+void DbModel::addToUserVocabulary (const QString &userId, const QString &word)
+{
+    return;
+}
+
+void DbModel::removeFromUserVocabulary (const QString &userId,
+                                        const QString &word)
+{
+
+    return;
+}
+
+void updateWordStatus (const QString &userId, const QString &word, int status)
+{
+    // status: -1= never learned,0=learning, 1=mastered
+    return;
+}
+
+std::vector<WordEntry> getUserVocabulary (const QString &userId,
+                                          int status = -1) // -1 means all
+{
+
+    return std::vector<WordEntry> ();
+}
