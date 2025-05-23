@@ -55,11 +55,20 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 
     ElaPushButton *loginButton = new ElaPushButton (centralWidget);
     loginButton->setText ("Login");
-
+    loginButton->setMinimumHeight (50);
+    loginButton->setMaximumHeight (50);
+    loginButton->setMinimumWidth (200);
+    loginButton->setMaximumWidth (200);
+    loginButton->setBorderRadius (20);
     loginButtonLayout->addWidget (loginButton);
 
     ElaPushButton *registerButton = new ElaPushButton (centralWidget);
     registerButton->setText ("Register");
+    registerButton->setMinimumHeight (50);
+    registerButton->setMaximumHeight (50);
+    registerButton->setMinimumWidth (200);
+    registerButton->setMaximumWidth (200);
+    registerButton->setBorderRadius (20);
 
     loginButtonLayout->addWidget (registerButton);
 
