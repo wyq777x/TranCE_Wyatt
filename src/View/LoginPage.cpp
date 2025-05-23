@@ -83,10 +83,9 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 
                  if (username.isEmpty () || password.isEmpty ())
                  {
-                     showErrorDialog (
-                         "Login Error",
-                         "Username or password cannot be empty.\n\n"
-                         "Please enter your username/password.");
+                     showDialog ("Login Error",
+                                 "Username or password cannot be empty.\n\n"
+                                 "Please enter your username/password.");
                      return;
                  }
 

@@ -29,5 +29,5 @@ public:
     explicit TempPage (QWidget *parent = nullptr);
     ~TempPage ();
 
-    void showErrorDialog (const QString &title, const QString &message);
+    void showDialog (const QString &title, const QString &message);
 };

@@ -89,33 +89,49 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 
     addCentralWidget (centralWidget, true, true, 0);
 
-    connect (registerButton, &ElaPushButton::clicked,
-             [=, this] ()
-             {
-                 QString username = usernameLineEdit->text ();
-                 QString password = passwordLineEdit->text ();
-                 QString confirmPassword = confirmPasswordLineEdit->text ();
+    connect (
+        registerButton, &ElaPushButton::clicked,
+        [=, this] ()
+        {
+            QString username = usernameLineEdit->text ();
+            QString password = passwordLineEdit->text ();
+            QString confirmPassword = confirmPasswordLineEdit->text ();
 
-                 if (username.isEmpty () || password.isEmpty ())
-                 {
-                     showErrorDialog (
-                         "Register Error",
-                         "Username or password cannot be empty.\n\n"
-                         "Please enter your username/password.");
-                     return;
-                 }
+            if (username.isEmpty () || password.isEmpty ())
+            {
+                showDialog ("Register Error",
+                            "Username or password cannot be empty.\n\n"
+                            "Please enter your username/password.");
+                return;
+            }
 
-                 if (password != confirmPassword)
-                 {
-                     showErrorDialog ("Register Error",
-                                      "Passwords do not match.\n\n"
-                                      "Please confirm your password.");
-                     return;
-                 }
+            if (password != confirmPassword)
+            {
+                showDialog ("Register Error", "Passwords do not match.\n\n"
+                                              "Please confirm your password.");
+                return;
+            }
 
-                 auto result = AccountManager::getInstance ().registerUser (
-                     username, password);
-             });
+            auto result = AccountManager::getInstance ().registerUser (
+                username, password);
+
+            if (result != RegisterUserResult::Success)
+            {
+                auto it = RegisterUserResultMessage.find (result);
+                QString errorMsg = it != RegisterUserResultMessage.end ()
+                                       ? QString::fromStdString (it->second)
+                                       : "Unknown error";
+                showDialog ("Register Error", errorMsg);
+                return;
+            }
+            else
+            {
+                showDialog (
+                    "Register Success",
+                    "User registered successfully.\n\n"
+                    "You can now log in with your username and password.");
+            }
+        });
 
     connect (cancelButton, &ElaPushButton::clicked, [=, this] () { close (); });
 }

@@ -68,7 +68,7 @@ if (result != RegisterUserResult::Success) {
                       ? QString::fromStdString(it->second)
                       : "Unknown error";
     // 在 UI 中显示错误信息
-    showErrorDialog(errorMsg);
+    showDialog(errorMsg);
 
 
 */
