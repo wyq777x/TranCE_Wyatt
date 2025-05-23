@@ -14,9 +14,9 @@ This is a project to help the Chinese users to learn English.In other words, it 
 # TECHNOLOGIES USED
 
 - **Languages**: `C++`,`SQLite`
-- **Dependencies**: `Qt`,`ElaWidgetsTools`
+- **Dependencies**: `Qt`,`ElaWidgetsTools`,`SQLiteCpp`
 - **Build System**: `CMake`
-- **Tools**: `Inno Setup`
+- **Pack-up Tools**: `Inno Setup`
 - **Operating System**: `Linux` & `Windows`
 - **Version Control**: `Git`
 - **Database**: `SQLite`
