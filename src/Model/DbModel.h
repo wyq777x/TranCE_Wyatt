@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QFile>
 #include <QString>
+#include <QUuid>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <Utility/WordEntry.h>
 #include <memory>

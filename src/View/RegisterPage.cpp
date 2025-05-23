@@ -112,6 +112,9 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
                                       "Please confirm your password.");
                      return;
                  }
+
+                 auto result = AccountManager::getInstance ().registerUser (
+                     username, password);
              });
 
     connect (cancelButton, &ElaPushButton::clicked, [=, this] () { close (); });

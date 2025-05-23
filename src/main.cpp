@@ -11,6 +11,7 @@ int main (int argc, char *argv[])
     ElaApplication::getInstance ()->init ();
 
     auto &db = DbModel::getInstance ();
+    db.initDBs ();
     MainWindow w;
     w.show ();
 

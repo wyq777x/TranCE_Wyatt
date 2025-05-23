@@ -45,8 +45,7 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
             }
             else
             {
-                qCritical ()
-                    << "User registration failed with unknown result code";
+                qCritical () << "User registration failed with unknown reason.";
             }
         }
 

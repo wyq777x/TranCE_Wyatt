@@ -1,6 +1,7 @@
 #include "DbModel.h"
 #include "SQLiteCpp/Exception.h"
 #include "Utility/Result.h"
+#include <quuid.h>
 #include <stdexcept>
 
 bool DbModel::isUserDbOpen () const
@@ -27,7 +28,27 @@ bool DbModel::isDictDbOpen () const
     }
 }
 
-bool DbModel::userExists (const QString &username) const { return false; }
+bool DbModel::userExists (const QString &username) const
+{
+    if (!isUserDbOpen ())
+    {
+        return false;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "SELECT COUNT(*) FROM users WHERE username = ?");
+        query.bind (1, username.toStdString ());
+        query.executeStep ();
+        return query.getColumn (0).getInt () > 0;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error checking if user exists", e);
+        return false;
+    }
+}
 
 RegisterUserResult DbModel::registerUser (const QString &username,
                                           const QString &passwordHash)
@@ -43,12 +64,17 @@ RegisterUserResult DbModel::registerUser (const QString &username,
     }
     try
     {
-        SQLite::Statement query (*(instance.user_db),
-                                 "INSERT INTO users (username, password_hash) "
-                                 "VALUES (?, ?)");
-        query.bind (1, username.toStdString ());
-        query.bind (2, passwordHash.toStdString ());
+        QString userId = QUuid::createUuid ().toString (QUuid::WithoutBraces);
+
+        SQLite::Statement query (
+            *(instance.user_db),
+            "INSERT INTO users (user_id, username, password_hash) "
+            "VALUES (?, ?, ?)");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, username.toStdString ());
+        query.bind (3, passwordHash.toStdString ());
         query.exec ();
+
         // Check if the user was inserted successfully
         if (query.getChanges () == 0)
         {

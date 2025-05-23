@@ -1,6 +1,6 @@
 #pragma once
+#include "Controller/AccountManager.h"
 #include "TempPage.h"
-
 class RegisterPage : public TempPage
 {
     Q_OBJECT
