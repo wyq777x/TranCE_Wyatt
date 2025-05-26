@@ -35,7 +35,7 @@ public:
             throw;
         }
     }
-    void login (const QString &username, const QString &password);
+    UserAuthResult login (const QString &username, const QString &password);
     void logout ();
     RegisterUserResult registerUser (const QString &username,
                                      const QString &password);

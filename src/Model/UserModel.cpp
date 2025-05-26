@@ -20,7 +20,20 @@ UserAuthResult UserModel::login (const QString &username,
         return UserAuthResult::UserAlreadyLoggedIn;
     }
 
-    return UserAuthResult::Success;
+    auto result = DbModel::getInstance ().verifyUser (
+        username, AccountManager::hashPassword (password));
+
+    if (result == UserAuthResult::Success)
+    {
+        instance.setLoggedIn (true);
+        instance.setLoginExpired (false);
+
+        // Load user data then
+
+        // loadUserData (DbModel::getInstance ().getUserData (username));
+    }
+
+    return result;
 }
 
 void UserModel::logout ()

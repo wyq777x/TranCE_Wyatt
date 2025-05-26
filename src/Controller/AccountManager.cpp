@@ -13,7 +13,8 @@ void AccountManager::logout ()
     password_Hash.clear ();
 }
 
-void AccountManager::login (const QString &username, const QString &password)
+UserAuthResult AccountManager::login (const QString &username,
+                                      const QString &password)
 {
     if (userModel)
     {
@@ -23,6 +24,13 @@ void AccountManager::login (const QString &username, const QString &password)
             this->username = username;
             this->password_Hash = hashPassword (password);
         }
+
+        return result;
+    }
+    else
+    {
+        qCritical () << "UserModel is not set in AccountManager.";
+        return UserAuthResult::UnknownError;
     }
 }
 
@@ -61,7 +69,7 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
 /*
 invoke Example:
 
-auto result = AccountManager->getInstance().registerUser(username, password);
+auto result = AccountManager::getInstance().registerUser(username, password);
 if (result != RegisterUserResult::Success) {
     auto it = RegisterUserResultMessage.find(result);
     QString errorMsg = it != RegisterUserResultMessage.end()

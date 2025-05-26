@@ -1,5 +1,6 @@
 #include "LoginPage.h"
 #include "ElaContentDialog.h"
+#include "Utility/Result.h"
 #include <qboxlayout.h>
 #include <qlabel.h>
 #include <qlogging.h>
@@ -91,12 +92,28 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 
                  try
                  {
-                     AccountManager::getInstance ().login (username, password);
-                     // Handle successful login
+                     auto result = AccountManager::getInstance ().login (
+                         username, password);
+
+                     if (result != UserAuthResult::Success)
+                     {
+                         auto it = UserAuthResultMessage.find (result);
+                         QString errorMsg =
+                             it != UserAuthResultMessage.end ()
+                                 ? QString::fromStdString (it->second)
+                                 : "Unknown error";
+                         showDialog ("Login Error", errorMsg);
+
+                         return;
+                     }
+                     else
+                     {
+                         showDialog ("Login Success",
+                                     "Welcome back, " + username + "!");
+                     }
                  }
                  catch (const std::runtime_error &e)
                  {
-                     // Handle login error
                      qCritical () << "Login error:" << e.what ();
                  }
              });
