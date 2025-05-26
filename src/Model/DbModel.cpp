@@ -104,13 +104,48 @@ RegisterUserResult DbModel::registerUser (const QString &username,
 UserAuthResult DbModel::verifyUser (const QString &username,
                                     const QString &passwordHash) const
 {
+
     try
     {
-        return UserAuthResult::Success;
+        if (!isUserDbOpen ())
+        {
+            return UserAuthResult::StorageError;
+        }
+        SQLite::Statement query (*user_db, "SELECT password_hash FROM users "
+                                           "WHERE username = ?");
+        query.bind (1, username.toStdString ());
+        if (query.executeStep ())
+        {
+            std::string storedHash = query.getColumn (0).getString ();
+
+            if (storedHash == passwordHash.toStdString ())
+            {
+                return UserAuthResult::Success;
+            }
+            else
+            {
+                return UserAuthResult::IncorrectPassword;
+            }
+        }
+        else
+        {
+            return UserAuthResult::UserNotFound;
+        }
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error verifying user in database", e);
+        return UserAuthResult::StorageError;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error verifying user in database", e);
+        return UserAuthResult::UnknownError;
     }
     catch (...)
     {
-
+        logErr ("Unknown error verifying user in database",
+                std::runtime_error ("Unknown exception"));
         return UserAuthResult::UnknownError;
     }
 }
