@@ -1,6 +1,7 @@
 #include "SettingPage.h"
 #include "ElaPushButton.h"
 #include "ElaToggleSwitch.h"
+#include <QPropertyAnimation>
 #include <qboxlayout.h>
 #include <qnamespace.h>
 
@@ -17,18 +18,29 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     settingPageLayout->setAlignment (Qt::AlignTop);
 
     QHBoxLayout *enableHistorySearchLayout = new QHBoxLayout (centralWidget);
+
     QLabel *enableHistorySearchLabel =
-        new QLabel ("Enable History Search List: ", centralWidget);
+        new QLabel (HISTORY_SEARCH_TEXT, centralWidget);
     enableHistorySearchLabel->setStyleSheet (
         "font-size: 20px; font-weight: normal; color: #333;");
+    enableHistorySearchLabel->setSizePolicy (QSizePolicy::Expanding,
+                                             QSizePolicy::Preferred);
     enableHistorySearchLabel->setFont (QFont ("Noto Sans", 24));
+
     enableHistorySearchLayout->addWidget (enableHistorySearchLabel);
 
-    ElaToggleSwitch *enableHistorySearchSwitch =
-        new ElaToggleSwitch (centralWidget);
-    enableHistorySearchSwitch->setFixedSize (60, 30);
-    enableHistorySearchSwitch->setIsToggled (true);
-    enableHistorySearchLayout->addWidget (enableHistorySearchSwitch);
+    // 添加状态标签
+    m_statusLabel = new QLabel (STATUS_ON, centralWidget);
+    m_statusLabel->setStyleSheet (
+        "font-size: 16px; font-weight: bold; color: #4CAF50;");
+    m_statusLabel->setAlignment (Qt::AlignCenter);
+    m_statusLabel->setMinimumWidth (40);
+    enableHistorySearchLayout->addWidget (m_statusLabel);
+
+    m_historySearchSwitch = new ElaToggleSwitch (centralWidget);
+    m_historySearchSwitch->setFixedSize (60, 30);
+    m_historySearchSwitch->setIsToggled (true);
+    enableHistorySearchLayout->addWidget (m_historySearchSwitch);
 
     settingPageLayout->addLayout (enableHistorySearchLayout);
 
@@ -57,4 +69,35 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     settingPageLayout->addLayout (clearCacheLayout);
 
     addCentralWidget (centralWidget, true, true, 0);
+
+    connect (m_historySearchSwitch, &ElaToggleSwitch::toggled, this,
+             &SettingPage::onHistorySearchToggled);
 }
+
+void SettingPage::onHistorySearchToggled (bool enabled)
+{
+
+    m_statusLabel->setText (enabled ? STATUS_ON : STATUS_OFF);
+    m_statusLabel->setStyleSheet (
+        QString ("font-size: 16px; font-weight: bold; color: %1;")
+            .arg (enabled ? "#4CAF50" : "#F44336"));
+
+    updateStatusWithAnimation (enabled);
+
+    saveHistorySearchSetting (enabled);
+}
+
+void SettingPage::updateStatusWithAnimation (bool enabled)
+{
+
+    QGraphicsOpacityEffect *effect = new QGraphicsOpacityEffect (this);
+    m_statusLabel->setGraphicsEffect (effect);
+
+    QPropertyAnimation *animation = new QPropertyAnimation (effect, "opacity");
+    animation->setDuration (200);
+    animation->setStartValue (0.3);
+    animation->setEndValue (1.0);
+    animation->start (QAbstractAnimation::DeleteWhenStopped);
+}
+
+void SettingPage::saveHistorySearchSetting (bool enabled) {}
