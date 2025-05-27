@@ -112,7 +112,7 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
                                      "Welcome back, " + username + "!");
                      }
                  }
-                 catch (const std::runtime_error &e)
+                 catch (const std::exception &e)
                  {
                      qCritical () << "Login error:" << e.what ();
                  }

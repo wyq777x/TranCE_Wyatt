@@ -110,6 +110,15 @@ public:
         {
             logErr ("Error creating user table", e);
         }
+        catch (const std::exception &e)
+        {
+            logErr ("Unknown error creating user table", e);
+        }
+        catch (...)
+        {
+            logErr ("Unknown error creating user table",
+                    std::runtime_error ("Unknown exception"));
+        }
     }
 
     void initDictTable ()
@@ -126,6 +135,15 @@ public:
         catch (const SQLite::Exception &e)
         {
             logErr ("Error creating dictionary table", e);
+        }
+        catch (const std::exception &e)
+        {
+            logErr ("Unknown error creating dictionary table", e);
+        }
+        catch (...)
+        {
+            logErr ("Unknown error creating dictionary table",
+                    std::runtime_error ("Unknown exception"));
         }
     }
 

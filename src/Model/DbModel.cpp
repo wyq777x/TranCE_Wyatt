@@ -48,6 +48,17 @@ bool DbModel::userExists (const QString &username) const
         logErr ("Error checking if user exists", e);
         return false;
     }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error checking if user exists", e);
+        return false;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error checking if user exists",
+                std::runtime_error ("Unknown exception"));
+        return false;
+    }
 }
 
 RegisterUserResult DbModel::registerUser (const QString &username,
@@ -168,6 +179,15 @@ void DbModel::deleteUser (const QString &username)
     {
         logErr ("Error deleting user from database", e);
     }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error deleting user from database", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error deleting user from database",
+                std::runtime_error ("Unknown exception"));
+    }
 }
 
 void DbModel::updateUserPassword (const QString &username,
@@ -192,6 +212,15 @@ void DbModel::updateUserPassword (const QString &username,
     catch (const SQLite::Exception &e)
     {
         logErr ("Error updating user password in database", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error updating user password in database", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error updating user password in database",
+                std::runtime_error ("Unknown exception"));
     }
 }
 
