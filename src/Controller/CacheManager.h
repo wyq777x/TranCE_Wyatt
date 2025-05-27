@@ -1,5 +1,6 @@
 #pragma once
-#include <string>
+#include "Utility/CacheEntry.h"
+
 class CacheManager
 {
 public:
