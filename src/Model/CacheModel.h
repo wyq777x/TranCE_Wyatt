@@ -43,7 +43,7 @@ public:
                 return std::nullopt;
             }
 
-            // move2Front(key);
+            move2Front (key);
 
             return it->second.value;
         }
@@ -77,7 +77,39 @@ private:
 
     std::function<void (const T &)> cleanupCallback = nullptr;
 
-    void move2Front (const std::string &key) {}
+    mutable std::size_t hitCount = 0;
+    mutable std::size_t missCount = 0;
 
-    void evict (std::size_t size) {}
+    void move2Front (const std::string &key)
+    {
+        auto iter_it = iteratorMap.find (key);
+        if (iter_it != iteratorMap.end ())
+        {
+            lruList.erase (iter_it->second);
+            lruList.push_front (key);
+            iter_it->second = lruList.begin ();
+        }
+        hitCount++;
+    }
+
+    void evict (std::size_t size)
+    {
+        while (currentSize + size > maxSize && !lruList.empty ())
+        {
+            auto lastKey = lruList.back ();
+            auto it = cacheMap.find (lastKey);
+            if (it != cacheMap.end ())
+            {
+                if (cleanupCallback)
+                {
+                    cleanupCallback (it->second.value);
+                }
+                currentSize -= it->second.size;
+                cacheMap.erase (it);
+                iteratorMap.erase (lastKey);
+                lruList.pop_back ();
+            }
+        }
+        missCount++;
+    }
 };
