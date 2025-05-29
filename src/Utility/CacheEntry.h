@@ -14,18 +14,21 @@ template <typename T>
 
 struct CacheEntry
 {
+private:
     std::string key;
     T value;
     std::chrono::system_clock::time_point insertTime;
     std::chrono::system_clock::time_point expirationTime;
     std::size_t size = 0;
 
+public:
+    CacheEntry () = delete;
     CacheEntry (std::string key, T value,
                 std::chrono::system_clock::time_point exp)
         : key (std::move (key)), value (std::move (value)),
           insertTime (std::chrono::system_clock::now ()), expirationTime (exp)
     {
-        size = calculateSize ();
+        size = calculateSize (key, value);
     }
 
     CacheEntry (std::string key, T value,
@@ -34,7 +37,7 @@ struct CacheEntry
           insertTime (std::chrono::system_clock::now ()),
           expirationTime (insertTime + ttl)
     {
-        size = calculateSize ();
+        size = calculateSize (key, value);
     }
 
     bool isExpired () const
@@ -52,8 +55,7 @@ struct CacheEntry
         expirationTime = exp;
     }
 
-private:
-    std::size_t calculateSize () const
+    static std::size_t calculateSize (const std::string &key, const T &value)
     {
         if constexpr (std::is_same_v<T, std::string>)
         {
