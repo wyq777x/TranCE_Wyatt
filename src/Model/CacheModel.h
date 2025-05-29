@@ -1,7 +1,9 @@
 #pragma once
 #include "Utility/CacheEntry.h"
 #include <chrono>
+#include <tuple>
 #include <unordered_map>
+#include <utility>
 
 template <typename T>
 
@@ -54,6 +56,34 @@ public:
     void put (const std::string &key, T value,
               std::chrono::milliseconds ttl = std::chrono::minutes (5))
     {
+        // Check if the key already exists
+        if (cacheMap.find (key) != cacheMap.end ())
+        {
+            // If it exists, update the value and refresh the expiration time
+            auto &entry = cacheMap[key];
+            entry.value = std::move (value);
+            entry.refreshExpiration (ttl);
+            move2Front (key);
+            return;
+        }
+
+        // If the key does not exist, forward the value to emplace into the
+        // cache
+        auto entrySize = CacheEntry<T>::calculateSize (key, value);
+        evict (entrySize);
+
+        auto [iter, inserted] = cacheMap.emplace (
+            std::piecewise_construct, std::forward_as_tuple (key),
+            std::forward_as_tuple (key, std::move (value), ttl));
+
+        if (inserted)
+        {
+            lruList.push_front (key);
+            iteratorMap[key] = lruList.begin ();
+            currentSize += entrySize;
+        }
+
+        return;
     }
 
     void remove (const std::string &key) {}
@@ -61,6 +91,40 @@ public:
     void clear () {}
 
     void cleanupExpired () {}
+
+private:
+    void move2Front (const std::string &key)
+    {
+        auto iter_it = iteratorMap.find (key);
+        if (iter_it != iteratorMap.end ())
+        {
+            lruList.erase (iter_it->second);
+            lruList.push_front (key);
+            iter_it->second = lruList.begin ();
+        }
+        hitCount++;
+    }
+
+    void evict (std::size_t size)
+    {
+        while (currentSize + size >= maxSize && !lruList.empty ())
+        {
+            auto lastKey = lruList.back ();
+            auto it = cacheMap.find (lastKey);
+            if (it != cacheMap.end ())
+            {
+                if (cleanupCallback)
+                {
+                    cleanupCallback (it->second.value);
+                }
+                currentSize -= it->second.size;
+                cacheMap.erase (it);
+                iteratorMap.erase (lastKey);
+                lruList.pop_back ();
+            }
+        }
+        missCount++;
+    }
 
 private:
     using CacheMap = std::unordered_map<std::string, CacheEntry<T>>;
@@ -79,37 +143,4 @@ private:
 
     mutable std::size_t hitCount = 0;
     mutable std::size_t missCount = 0;
-
-    void move2Front (const std::string &key)
-    {
-        auto iter_it = iteratorMap.find (key);
-        if (iter_it != iteratorMap.end ())
-        {
-            lruList.erase (iter_it->second);
-            lruList.push_front (key);
-            iter_it->second = lruList.begin ();
-        }
-        hitCount++;
-    }
-
-    void evict (std::size_t size)
-    {
-        while (currentSize + size > maxSize && !lruList.empty ())
-        {
-            auto lastKey = lruList.back ();
-            auto it = cacheMap.find (lastKey);
-            if (it != cacheMap.end ())
-            {
-                if (cleanupCallback)
-                {
-                    cleanupCallback (it->second.value);
-                }
-                currentSize -= it->second.size;
-                cacheMap.erase (it);
-                iteratorMap.erase (lastKey);
-                lruList.pop_back ();
-            }
-        }
-        missCount++;
-    }
 };
