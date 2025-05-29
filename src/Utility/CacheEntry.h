@@ -14,7 +14,7 @@ template <typename T>
 
 struct CacheEntry
 {
-private:
+public:
     std::string key;
     T value;
     std::chrono::system_clock::time_point insertTime;

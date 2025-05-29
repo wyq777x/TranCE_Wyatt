@@ -86,11 +86,52 @@ public:
         return;
     }
 
-    void remove (const std::string &key) {}
+    void remove (const std::string &key)
+    {
+        auto it = cacheMap.find (key);
+        if (it != cacheMap.end ())
+        {
+            if (cleanupCallback)
+            {
+                cleanupCallback (it->second.value);
+            }
+            currentSize -= it->second.size;
+            cacheMap.erase (it);
+            auto iter_it = iteratorMap.find (key);
+            if (iter_it != iteratorMap.end ())
+            {
+                lruList.erase (iter_it->second);
+                iteratorMap.erase (iter_it);
+            }
+        }
+    }
 
-    void clear () {}
+    void clear ()
+    {
+        cacheMap.clear ();
+        lruList.clear ();
+        iteratorMap.clear ();
+        currentSize = 0;
+        hitCount = 0;
+        missCount = 0;
+    }
 
-    void cleanupExpired () {}
+    void cleanupExpired ()
+    {
+        for (auto it = cacheMap.begin (); it != cacheMap.end ();)
+        {
+            if (it->second.isExpired ())
+            {
+                std::string key = it->first;
+                ++it;
+                remove (key);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
 
 private:
     void move2Front (const std::string &key)
