@@ -127,9 +127,84 @@ public:
         {
             if (dict_db != nullptr)
             {
-                dict_db->exec ("CREATE TABLE IF NOT EXISTS words();");
 
-                // to be further designed
+                // Create "users"
+
+                dict_db->exec ("CREATE TABLE IF NOT EXISTS users("
+                               "user_id TEXT PRIMARY KEY AUTOINCREMENT,"
+                               "username TEXT NOT NULL UNIQUE);");
+
+                // Main dictionary table "words"
+                dict_db->exec (
+                    "CREATE TABLE IF NOT EXISTS words("
+                    "word_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    "word TEXT NOT NULL UNIQUE,"
+                    "part_of_speech TEXT,"
+                    "pronunciation TEXT,"
+                    "frequency INTEGER DEFAULT 0,"
+                    "notes TEXT,"
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                    "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);");
+
+                // Translations relationship table "translations"
+
+                dict_db->exec (
+                    "CREATE TABLE IF NOT EXISTS word_translations("
+                    "translation_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    "source_word TEXT NOT NULL,"     // for example : "apple"
+                    "target_word TEXT NOT NULL,"     // for example : "苹果"
+                    "source_language TEXT NOT NULL," // for example : "en"
+                    "target_language TEXT NOT NULL," // for example : "zh"
+                    "confidence_score REAL DEFAULT 1.0 CHECK (confidence_score "
+                    ">= 0.0 AND confidence_score <= 1.0),"
+                    "UNIQUE(source_word,target_word,source_language,target_"
+                    "language));");
+
+                // Example sentences table "examples"
+
+                dict_db->exec ("CREATE TABLE IF NOT EXISTS examples("
+                               "example_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                               "word TEXT NOT NULL,"
+                               "example_sentence TEXT NOT NULL,"
+                               "translation TEXT,"
+                               "language TEXT NOT NULL,"
+                               "FOREIGN KEY(word) REFERENCES words(word)"
+                               "ON DELETE CASCADE ON UPDATE CASCADE);");
+
+                // User learning progress table "user_progress"
+
+                dict_db->exec (
+                    "CREATE TABLE IF NOT EXISTS user_progress("
+                    "user_id TEXT NOT NULL," // write from user.db every time
+                                             // when user logs in (MUST)
+                    "source_word TEXT NOT NULL,"
+                    "target_word TEXT NOT NULL,"
+                    "source_language TEXT NOT NULL,"
+                    "target_language TEXT NOT NULL,"
+                    "correct_count INTEGER DEFAULT 0,"
+                    "incorrect_count INTEGER DEFAULT 0,"
+                    "last_reviewed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                    "mastery_level INTEGER DEFAULT 0,"
+                    "study_streak INTEGER DEFAULT 0,"
+                    "PRIMARY KEY (user_id, source_word, target_word, "
+                    "source_language, target_language),"
+                    "FOREIGN KEY(source_word) REFERENCES words(word) ON DELETE "
+                    "CASCADE,"
+                    "FOREIGN KEY(target_word) REFERENCES words(word) ON DELETE "
+                    "CASCADE,"
+                    "FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE "
+                    "CASCADE);");
+
+                dict_db->exec ("CREATE INDEX IF NOT EXISTS idx_words_word ON "
+                               "words(word);");
+                dict_db->exec (
+                    "CREATE INDEX IF NOT EXISTS idx_translations_source ON "
+                    "word_translations(source_word, source_language);");
+                dict_db->exec (
+                    "CREATE INDEX IF NOT EXISTS idx_translations_target ON "
+                    "word_translations(target_word, target_language);");
+                dict_db->exec ("CREATE INDEX IF NOT EXISTS idx_examples_word "
+                               "ON examples(word, language);");
             }
         }
         catch (const SQLite::Exception &e)
