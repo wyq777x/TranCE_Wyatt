@@ -1,6 +1,7 @@
 #pragma once
 #include "Utility/CacheEntry.h"
 #include <chrono>
+#include <list>
 #include <tuple>
 #include <unordered_map>
 #include <utility>
@@ -57,12 +58,12 @@ public:
               std::chrono::milliseconds ttl = std::chrono::minutes (5))
     {
         // Check if the key already exists
-        if (cacheMap.find (key) != cacheMap.end ())
+        auto it = cacheMap.find (key);
+        if (it != cacheMap.end ())
         {
             // If it exists, update the value and refresh the expiration time
-            auto &entry = cacheMap[key];
-            entry.value = std::move (value);
-            entry.refreshExpiration (ttl);
+            it->second.value = std::move (value);
+            it->second.refreshExpiration (ttl);
             move2Front (key);
             return;
         }
