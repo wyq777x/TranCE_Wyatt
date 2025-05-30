@@ -160,14 +160,14 @@ public:
                     "UNIQUE(source_word,target_word,source_language,target_"
                     "language));");
 
-                // Example sentences table "examples"
+                // Example sentences table "examples",only for English words to
+                // Chinese sentences
 
                 dict_db->exec ("CREATE TABLE IF NOT EXISTS examples("
                                "example_id INTEGER PRIMARY KEY AUTOINCREMENT,"
                                "word TEXT NOT NULL,"
                                "example_sentence TEXT NOT NULL,"
                                "translation TEXT,"
-                               "language TEXT NOT NULL,"
                                "FOREIGN KEY(word) REFERENCES words(word)"
                                "ON DELETE CASCADE ON UPDATE CASCADE);");
 

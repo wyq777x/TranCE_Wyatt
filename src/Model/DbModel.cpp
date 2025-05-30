@@ -1,5 +1,6 @@
 #include "DbModel.h"
 #include "SQLiteCpp/Exception.h"
+#include "SQLiteCpp/Transaction.h"
 #include "Utility/Result.h"
 #include <quuid.h>
 #include <stdexcept>
@@ -233,7 +234,54 @@ void DbModel::importWordEntry (const WordEntry &wordEntry)
 
     try
     {
-        // to be implemented
+
+        // Insert word entry into the words table
+        SQLite::Transaction transaction (*dict_db);
+
+        SQLite::Statement wordsQuery (
+            *dict_db, "INSERT INTO words "
+                      "(word,part_of_speech,pronunciation,frequency,"
+                      "notes) VALUES (?,?,?,?,?)");
+
+        wordsQuery.bind (1, wordEntry.word.toStdString ());
+        wordsQuery.bind (2, wordEntry.partOfSpeech.toStdString ());
+        wordsQuery.bind (3, wordEntry.pronunciation.toStdString ());
+        wordsQuery.bind (4, wordEntry.frequency);
+        wordsQuery.bind (5, wordEntry.notes.toStdString ());
+        wordsQuery.exec ();
+
+        // Insert translations
+
+        if (!wordEntry.translation.isEmpty ())
+        {
+            SQLite::Statement translationsQuery (
+                *dict_db, "INSERT INTO word_translations"
+                          "(source_word, source_language, "
+                          "target_word, target_language,confidence_score) "
+                          "VALUES (?,?,?,?,?)");
+            translationsQuery.bind (1, wordEntry.word.toStdString ());
+            translationsQuery.bind (2, wordEntry.language.toStdString ());
+            translationsQuery.bind (3, wordEntry.translation.toStdString ());
+            translationsQuery.bind (4, wordEntry.language.toStdString ());
+            translationsQuery.bind (5, 1.0); // Default confidence score
+            translationsQuery.exec ();
+        }
+
+        // Insert examples
+
+        if (!wordEntry.examples.isEmpty ())
+        {
+            SQLite::Statement examplesQuery (*dict_db,
+                                             "INSERT INTO examples (word, "
+                                             "example_sentence,translation) "
+                                             "VALUES (?,?,?,?)");
+            examplesQuery.bind (1, wordEntry.word.toStdString ());
+            examplesQuery.bind (2, wordEntry.examples.toStdString ());
+            examplesQuery.bind (3, wordEntry.exampleTranslation.toStdString ());
+            examplesQuery.exec ();
+        }
+
+        transaction.commit ();
     }
     catch (const SQLite::Exception &e)
     {
