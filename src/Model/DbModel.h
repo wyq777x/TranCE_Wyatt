@@ -7,6 +7,7 @@
 #include <QString>
 #include <QUuid>
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <Utility/AsyncTask.h>
 #include <Utility/WordEntry.h>
 #include <memory>
 #include <optional>
@@ -224,14 +225,15 @@ public:
     }
 
     // import single WordEntry
-    void importWordEntry (const WordEntry &wordEntry);
+    AsyncTask<void> importWordEntry (const WordEntry &wordEntry);
 
     // import multiple WordEntry
-    void importWordEntriesAsync (const std::vector<WordEntry> &wordEntries);
+    AsyncTask<void>
+    importWordEntriesAsync (const std::vector<WordEntry> &wordEntries);
 
     // import multiple WordEntry from file
 
-    void importFromFileAsync (
+    AsyncTask<void> importFromFileAsync (
         const QString &filePath,
         std::function<void (int, int)> progressCallback = nullptr);
 

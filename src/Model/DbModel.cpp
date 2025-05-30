@@ -225,11 +225,11 @@ void DbModel::updateUserPassword (const QString &username,
     }
 }
 
-void DbModel::importWordEntry (const WordEntry &wordEntry)
+AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
 {
     if (!isDictDbOpen ())
     {
-        return;
+        co_return;
     }
 
     try
@@ -282,6 +282,7 @@ void DbModel::importWordEntry (const WordEntry &wordEntry)
         }
 
         transaction.commit ();
+        co_return;
     }
     catch (const SQLite::Exception &e)
     {
@@ -298,11 +299,12 @@ void DbModel::importWordEntry (const WordEntry &wordEntry)
     }
 }
 
-void DbModel::importWordEntriesAsync (const std::vector<WordEntry> &wordEntries)
+AsyncTask<void>
+DbModel::importWordEntriesAsync (const std::vector<WordEntry> &wordEntries)
 {
     if (!isDictDbOpen ())
     {
-        return;
+        co_return;
     }
 
     try
@@ -325,17 +327,19 @@ void DbModel::importWordEntriesAsync (const std::vector<WordEntry> &wordEntries)
     }
 }
 
-void DbModel::importFromFileAsync (
-    const QString &filePath, std::function<void (int, int)> progressCallback)
+AsyncTask<void>
+DbModel::importFromFileAsync (const QString &filePath,
+                              std::function<void (int, int)> progressCallback)
 {
     if (!isDictDbOpen ())
     {
-        return;
+        co_return;
     }
 
     try
     {
         // to be implemented
+        co_return;
     }
     catch (const SQLite::Exception &e)
     {
