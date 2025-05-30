@@ -224,6 +224,112 @@ void DbModel::updateUserPassword (const QString &username,
     }
 }
 
+void DbModel::importWordEntry (const WordEntry &wordEntry)
+{
+    if (!isDictDbOpen ())
+    {
+        return;
+    }
+
+    try
+    {
+        // to be implemented
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error importing word entry", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error importing word entry", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error importing word entry",
+                std::runtime_error ("Unknown exception"));
+    }
+}
+
+void DbModel::importWordEntriesAsync (const std::vector<WordEntry> &wordEntries)
+{
+    if (!isDictDbOpen ())
+    {
+        return;
+    }
+
+    try
+    {
+
+        // to be implemented
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error importing word entries", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error importing word entries", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error importing word entries",
+                std::runtime_error ("Unknown exception"));
+    }
+}
+
+void DbModel::importFromFileAsync (
+    const QString &filePath, std::function<void (int, int)> progressCallback)
+{
+    if (!isDictDbOpen ())
+    {
+        return;
+    }
+
+    try
+    {
+        // to be implemented
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error importing from file", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error importing from file", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error importing from file",
+                std::runtime_error ("Unknown exception"));
+    }
+}
+
+void DbModel::batchInsertWords (const std::vector<WordEntry> &wordEntries,
+                                std::function<void (int, int)> progressCallback)
+{
+    if (!isDictDbOpen ())
+    {
+        return;
+    }
+
+    try
+    {
+        // to be implemented
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error batch inserting words", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error batch inserting words", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error batch inserting words",
+                std::runtime_error ("Unknown exception"));
+    }
+}
 std::optional<WordEntry> DbModel::lookupWord (const QString &word,
                                               const QString &lang)
 {

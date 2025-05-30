@@ -195,6 +195,7 @@ public:
                     "FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE "
                     "CASCADE);");
 
+                // Index for boosting performance
                 dict_db->exec ("CREATE INDEX IF NOT EXISTS idx_words_word ON "
                                "words(word);");
                 dict_db->exec (
@@ -221,6 +222,18 @@ public:
                     std::runtime_error ("Unknown exception"));
         }
     }
+
+    // import single WordEntry
+    void importWordEntry (const WordEntry &wordEntry);
+
+    // import multiple WordEntry
+    void importWordEntriesAsync (const std::vector<WordEntry> &wordEntries);
+
+    // import multiple WordEntry from file
+
+    void importFromFileAsync (
+        const QString &filePath,
+        std::function<void (int, int)> progressCallback = nullptr);
 
     std::optional<WordEntry> lookupWord (const QString &word,
                                          const QString &lang);
@@ -258,4 +271,7 @@ private:
                      << "Exception:" << e.what ();
         m_lastError = errMsg + " Exception:" + std::string (e.what ());
     }
+
+    void batchInsertWords (const std::vector<WordEntry> &wordEntries,
+                           std::function<void (int, int)> progressCallback);
 };

@@ -42,7 +42,20 @@ void TempPage::showDialog (const QString &title, const QString &message)
     Layout->setAlignment (okButtonBox, Qt::AlignHCenter);
 
     connect (okButtonBox, &QDialogButtonBox::accepted, Dialog,
-             &QDialog::accept);
+             [=] ()
+             {
+                 Dialog->close ();
+                 Dialog->deleteLater ();
+
+                 QWidget *parentWidget = Dialog->parentWidget ();
+                 if (parentWidget)
+                 {
+                     if (!title.contains ("Error", Qt::CaseInsensitive))
+                     {
+                         parentWidget->close ();
+                     }
+                 }
+             });
 
     Dialog->exec ();
 }
