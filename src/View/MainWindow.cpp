@@ -14,15 +14,19 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
     connect (this, &ElaWindow::userInfoCardClicked, this,
              [this] ()
              {
-                 if (loginPage->isHidden ())
+                 if (!AccountManager::getInstance ().isLoggedIn ())
                  {
+                     // If not logged in, show login page
+                     loginPage->setAttribute (Qt::WA_DeleteOnClose);
                      loginPage->show ();
                  }
                  else
                  {
-                     loginPage->hide ();
-                 }
+                                  }
              });
+
+    connect (&AccountManager::getInstance (), &AccountManager::loginSuccessful,
+             this, &MainWindow::onLoginSuccessful);
 }
 
 void MainWindow::initPages ()
@@ -58,4 +62,13 @@ void MainWindow::initPages ()
 
     // to be used
     myPage = new MyPage ();
+}
+
+void MainWindow::onLoginSuccessful (const QString &username)
+{
+    setUserInfoCardTitle (username);
+    setUserInfoCardSubTitle ("Click to logout");
+    setUserInfoCardPixmap (QPixmap (":/res/image/DefaultUser.png"));
+
+    // to be further designed
 }

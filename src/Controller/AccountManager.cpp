@@ -23,6 +23,8 @@ UserAuthResult AccountManager::login (const QString &username,
         {
             this->username = username;
             this->password_Hash = hashPassword (password);
+
+            emit loginSuccessful (username);
         }
 
         return result;

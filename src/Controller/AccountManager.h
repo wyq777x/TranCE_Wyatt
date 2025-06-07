@@ -5,8 +5,9 @@
 #include "Utility/Result.h"
 #include <QString>
 #include <stdexcept>
-class AccountManager
+class AccountManager : public QObject
 {
+    Q_OBJECT
 
 public:
     static AccountManager &getInstance ()
@@ -51,6 +52,10 @@ public:
     QString getUsername () const;
     QString getHashedPassword () const;
     QString getLanguage () const;
+
+signals:
+    void loginSuccessful (const QString &username);
+    void logoutSuccessful ();
 
 private:
     AccountManager () = default;
