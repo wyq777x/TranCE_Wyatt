@@ -107,8 +107,71 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     logoutLayout->addWidget (logoutButton);
     userProfileLayout->addLayout (logoutLayout);
 
-    connect (logoutButton, &ElaPushButton::clicked, this,
-             [] () { AccountManager::getInstance ().logout (); });
+    connect (
+        logoutButton, &ElaPushButton::clicked, this,
+        [this] ()
+        {
+            QDialog *confirmDialog = new QDialog (this);
+            confirmDialog->setWindowTitle ("Confirm Logout");
+            confirmDialog->setMinimumSize (300, 150);
+            confirmDialog->setMaximumSize (300, 150);
+            confirmDialog->setStyleSheet (
+                "QDialog { background-color: #f0f0f0; "
+                "border-radius: 10px; }");
+            QVBoxLayout *dialogLayout = new QVBoxLayout (confirmDialog);
+            dialogLayout->setAlignment (Qt::AlignCenter);
+            dialogLayout->setContentsMargins (20, 20, 20, 20);
+            QLabel *confirmLabel =
+                new QLabel ("Are you sure you want to logout?", confirmDialog);
+            confirmLabel->setAlignment (Qt::AlignCenter);
+            confirmLabel->setStyleSheet (
+                "font-size: 16px; color: #333; font-weight: bold;");
+            confirmLabel->setFont (QFont ("Noto Sans", 16, QFont::Bold));
+            dialogLayout->addWidget (confirmLabel);
+            QHBoxLayout *buttonLayout = new QHBoxLayout ();
+            ElaPushButton *yesButton = new ElaPushButton ("Yes", confirmDialog);
+            yesButton->setStyleSheet (
+                "background-color: #4CAF50; color: white; font-size: "
+                "16px; "
+                "border-radius: 5px; padding: 10px;");
+            yesButton->setFont (QFont ("Noto Sans", 16));
+            ElaPushButton *noButton = new ElaPushButton ("No", confirmDialog);
+            noButton->setStyleSheet (
+                "background-color: #F44336; color: white; font-size: "
+                "16px; "
+                "border-radius: 5px; padding: 10px;");
+            noButton->setFont (QFont ("Noto Sans", 16));
+            buttonLayout->addWidget (yesButton);
+            buttonLayout->addWidget (noButton);
+            dialogLayout->addLayout (buttonLayout);
+
+            connect (
+                yesButton, &ElaPushButton::clicked, confirmDialog,
+                [&] ()
+                {
+                    AccountManager::getInstance ().logout ();
+                    emit AccountManager::getInstance ().logoutSuccessful ();
+                    confirmDialog->close ();
+                    auto *parentObj = confirmDialog->parentWidget ();
+                    if (parentObj)
+                    {
+                        parentObj->close ();
+                    }
+
+                    confirmDialog->accept ();
+                });
+            connect (noButton, &ElaPushButton::clicked, confirmDialog,
+                     [&] () { confirmDialog->reject (); });
+            if (confirmDialog->exec () == QDialog::Accepted)
+            {
+
+                qDebug () << "User confirmed logout.";
+            }
+            else
+            {
+                qDebug () << "User canceled logout.";
+            }
+        });
 
     addCentralWidget (centralWidget, true, true, 0);
 }
