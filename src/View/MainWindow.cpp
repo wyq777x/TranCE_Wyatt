@@ -17,12 +17,12 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
                  if (!AccountManager::getInstance ().isLoggedIn ())
                  {
                      // If not logged in, show login page
-                     loginPage->setAttribute (Qt::WA_DeleteOnClose);
                      loginPage->show ();
                  }
                  else
                  {
-                                  }
+                     myPage->show ();
+                 }
              });
 
     connect (&AccountManager::getInstance (), &AccountManager::loginSuccessful,
@@ -60,15 +60,15 @@ void MainWindow::initPages ()
     loginPage->setStyleSheet ("background-color:rgb(231, 252, 249);"
                               "QWidget { background-color: transparent; }");
 
-    // to be used
-    myPage = new MyPage ();
+        myPage = new MyPage ();
 }
 
 void MainWindow::onLoginSuccessful (const QString &username)
 {
     setUserInfoCardTitle (username);
-    setUserInfoCardSubTitle ("Click to logout");
-    setUserInfoCardPixmap (QPixmap (":/res/image/DefaultUser.png"));
+    setUserInfoCardSubTitle ("Click to open MyPage");
+
+    // setUserInfoCardPixmap (QPixmap (const QString &avatarPath));
 
     // to be further designed
 }

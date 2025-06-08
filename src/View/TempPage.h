@@ -1,4 +1,5 @@
 #pragma once
+#include "Controller/AccountManager.h"
 #include <ElaContentDialog.h>
 #include <ElaFlowLayout.h>
 #include <ElaIcon.h>

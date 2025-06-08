@@ -29,7 +29,6 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 
     enableHistorySearchLayout->addWidget (enableHistorySearchLabel);
 
-    // 添加状态标签
     m_statusLabel = new QLabel (STATUS_ON, centralWidget);
     m_statusLabel->setStyleSheet (
         "font-size: 16px; font-weight: bold; color: #4CAF50;");

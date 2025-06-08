@@ -37,9 +37,12 @@ public:
         }
     }
     UserAuthResult login (const QString &username, const QString &password);
+
     void logout ();
+
     RegisterUserResult registerUser (const QString &username,
                                      const QString &password);
+
     static QString hashPassword (const QString &password);
 
     bool isLoggedIn () const { return UserModel::getInstance ().isLoggedIn (); }
