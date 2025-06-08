@@ -6,9 +6,8 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     setWindowTitle ("My Page");
     setMinimumSize (800, 600);
     setMaximumSize (800, 600);
-    setStyleSheet ("QWidget { background-color: "
-                   "white; border-radius: 10px;}");
-
+    setStyleSheet (
+        "background-color: #f0f0f0; font-family: 'Noto Sans', sans-serif;");
     auto *centralWidget = new QWidget (this);
     centralWidget->setWindowTitle ("My Page");
 
@@ -43,8 +42,14 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
 
     userProfileLayout->addLayout (avatarLayout);
 
+    auto *splitLine1 = new QFrame (centralWidget);
+    splitLine1->setFrameShape (QFrame::HLine);
+    splitLine1->setFrameShadow (QFrame::Sunken);
+    splitLine1->setStyleSheet ("background-color: #ccc; margin: 10px 0;");
+    userProfileLayout->addWidget (splitLine1);
+
     QHBoxLayout *usernameLayout = new QHBoxLayout (centralWidget);
-    QLabel *usernameTextLabel = new QLabel (centralWidget);
+
     usernameTextLabel->setText (
         QString ("Username: %1")
             .arg (AccountManager::getInstance ().getUsername ()));
@@ -85,6 +90,13 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
         new ElaPushButton ("Change Email", centralWidget);
     emailLayout->addWidget (changeEmailButton);
     userProfileLayout->addLayout (emailLayout);
+
+    auto *splitLine2 = new QFrame (centralWidget);
+    splitLine2->setFrameShape (QFrame::HLine);
+    splitLine2->setFrameShadow (QFrame::Sunken);
+    splitLine2->setStyleSheet ("background-color: #ccc; margin: 10px 0;");
+
+    userProfileLayout->addWidget (splitLine2);
 
     QHBoxLayout *logoutLayout = new QHBoxLayout (centralWidget);
     ElaPushButton *logoutButton = new ElaPushButton ("Logout", centralWidget);

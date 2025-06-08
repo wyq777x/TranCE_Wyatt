@@ -60,13 +60,16 @@ void MainWindow::initPages ()
     loginPage->setStyleSheet ("background-color:rgb(231, 252, 249);"
                               "QWidget { background-color: transparent; }");
 
-        myPage = new MyPage ();
+    myPage = new MyPage ();
 }
 
 void MainWindow::onLoginSuccessful (const QString &username)
 {
     setUserInfoCardTitle (username);
     setUserInfoCardSubTitle ("Click to open MyPage");
+
+    myPage->usernameTextLabel->setText (
+        QString ("Username: %1").arg (username));
 
     // setUserInfoCardPixmap (QPixmap (const QString &avatarPath));
 
