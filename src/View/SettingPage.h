@@ -3,11 +3,10 @@
 #include <QLabel>
 #include <QPropertyAnimation>
 
-class ElaToggleSwitch;
-
 namespace
 {
 const QString HISTORY_SEARCH_TEXT = "Enable History Search List";
+const QString LANGUAGE_SETTING_TEXT = "Software Language";
 const QString STATUS_ON = "ON";
 const QString STATUS_OFF = "OFF";
 } // namespace
@@ -26,6 +25,7 @@ public:
 
 private slots:
     void onHistorySearchToggled (bool enabled);
+    void onLanguageChanged (int index);
 
 private:
     void updateStatusWithAnimation (bool enabled);
@@ -33,4 +33,5 @@ private:
 
     QLabel *m_statusLabel;
     ElaToggleSwitch *m_historySearchSwitch;
+    ElaComboBox *m_languageComboBox;
 };

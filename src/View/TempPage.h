@@ -1,5 +1,6 @@
 #pragma once
 #include "Controller/AccountManager.h"
+#include <ElaComboBox.h>
 #include <ElaContentDialog.h>
 #include <ElaFlowLayout.h>
 #include <ElaIcon.h>
@@ -22,7 +23,6 @@
 #include <QPainter>
 #include <QStackedLayout>
 #include <QVBoxLayout>
-
 class TempPage : public ElaScrollPage
 {
     Q_OBJECT

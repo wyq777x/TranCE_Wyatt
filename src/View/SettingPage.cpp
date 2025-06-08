@@ -1,6 +1,5 @@
 #include "SettingPage.h"
-#include "ElaPushButton.h"
-#include "ElaToggleSwitch.h"
+
 #include <QPropertyAnimation>
 #include <qboxlayout.h>
 #include <qnamespace.h>
@@ -48,6 +47,33 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     splitLine1->setFrameShadow (QFrame::Sunken);
     settingPageLayout->addWidget (splitLine1);
 
+    // Language setting layout
+    QHBoxLayout *languageLayout = new QHBoxLayout (centralWidget);
+
+    QLabel *languageLabel = new QLabel (LANGUAGE_SETTING_TEXT, centralWidget);
+    languageLabel->setStyleSheet (
+        "font-size: 20px; font-weight: normal; color: #333;");
+    languageLabel->setSizePolicy (QSizePolicy::Expanding,
+                                  QSizePolicy::Preferred);
+    languageLabel->setFont (QFont ("Noto Sans", 24));
+
+    languageLayout->addWidget (languageLabel);
+
+    m_languageComboBox = new ElaComboBox (centralWidget);
+
+    m_languageComboBox->addItem ("中文");
+    m_languageComboBox->addItem ("English");
+    m_languageComboBox->setCurrentIndex (1); // Default to English
+
+    languageLayout->addWidget (m_languageComboBox);
+
+    settingPageLayout->addLayout (languageLayout);
+
+    auto *splitLine2 = new QFrame (centralWidget);
+    splitLine2->setFrameShape (QFrame::HLine);
+    splitLine2->setFrameShadow (QFrame::Sunken);
+    settingPageLayout->addWidget (splitLine2);
+
     QHBoxLayout *clearCacheLayout = new QHBoxLayout (centralWidget);
 
     QLabel *clearCacheLabel =
@@ -68,9 +94,11 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     settingPageLayout->addLayout (clearCacheLayout);
 
     addCentralWidget (centralWidget, true, true, 0);
-
     connect (m_historySearchSwitch, &ElaToggleSwitch::toggled, this,
              &SettingPage::onHistorySearchToggled);
+    connect (m_languageComboBox,
+             QOverload<int>::of (&ElaComboBox::currentIndexChanged), this,
+             &SettingPage::onLanguageChanged);
 }
 
 void SettingPage::onHistorySearchToggled (bool enabled)
@@ -100,3 +128,9 @@ void SettingPage::updateStatusWithAnimation (bool enabled)
 }
 
 void SettingPage::saveHistorySearchSetting (bool enabled) {}
+
+void SettingPage::onLanguageChanged (int index)
+{
+    // 0: Chinese, 1: English
+    QString selectedLanguage = (index == 0) ? "Chinese" : "English";
+}
