@@ -14,7 +14,7 @@ This is a project to help the Chinese users to learn English.In other words, it 
 # TECHNOLOGIES USED
 
 - **Languages**: `C++`,`SQLite`
-- **Dependencies**: `Qt`,`ElaWidgetsTools`,`SQLiteCpp`
+- **Dependencies**: `Qt`,`ElaWidgetsTools`,`SQLiteCpp`,`ECDICT`
 - **Build System**: `CMake`
 - **Pack-up Tools**: `Inno Setup`
 - **Operating System**: `Linux` & `Windows`
@@ -29,3 +29,4 @@ This is a project to help the Chinese users to learn English.In other words, it 
 - **[Inno Setup](https://www.jrsoftware.org/isinfo.php)**
 - **[Liniyous/ElaWidgetsTools](https://github.com/Liniyous/ElaWidgetTools)**
 - **[SQLiteCpp](https://github.com/SRombauts/SQLiteCpp)**
+- **[ECDICT](https://github.com/skywind3000/ECDICT)**

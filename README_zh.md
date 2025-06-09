@@ -14,7 +14,7 @@
 # 使用技术
 
 - **语言**: `C++`,`SQLite`
-- **依赖库**: `Qt`,`ElaWidgetsTools`,`SQLiteCpp`
+- **依赖库**: `Qt`,`ElaWidgetsTools`,`SQLiteCpp`,`ECDICT`
 - **构建系统**: `CMake`
 - **打包工具**: `Inno Setup`
 - **支持的操作系统**: `Linux` & `Windows`
@@ -29,3 +29,4 @@
 - **[Inno Setup](https://www.jrsoftware.org/isinfo.php)**
 - **[Liniyous/ElaWidgetsTools](https://github.com/Liniyous/ElaWidgetTools)**
 - **[SQLiteCpp](https://github.com/SRombauts/SQLiteCpp)**
+- **[ECDICT](https://github.com/skywind3000/ECDICT)**
