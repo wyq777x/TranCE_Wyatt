@@ -31,4 +31,8 @@ public:
     ~TempPage ();
 
     void showDialog (const QString &title, const QString &message);
+
+    void showDialog (const QString &title, const QString &message,
+                     std::function<void ()> onConfirm,
+                     std::function<void ()> onReject = nullptr);
 };
