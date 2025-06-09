@@ -56,19 +56,24 @@ public:
         }
 
         QString dictDbPath = dir.filePath ("dict.db");
-        if (!QFile::exists (dictDbPath))
+        bool isNewDictDb = !QFile::exists (dictDbPath);
+        if (isNewDictDb)
         {
             dict_db = std::make_unique<SQLite::Database> (
                 dictDbPath.toStdString (),
                 SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
             initDictTable ();
+            m_needsDictImport = true; // mark as needing import
         }
         else if (!isDictDbOpen ())
         {
             dict_db = std::make_unique<SQLite::Database> (
-                userDbPath.toStdString (), SQLite::OPEN_READWRITE);
+                dictDbPath.toStdString (), SQLite::OPEN_READWRITE);
         }
     }
+
+    // Asynchronous init method
+    AsyncTask<void> initializeAsync (const QString &dictPath = "");
     // Database connection and management
 
     bool isUserDbOpen () const;
@@ -132,7 +137,7 @@ public:
                 // Create "users"
 
                 dict_db->exec ("CREATE TABLE IF NOT EXISTS users("
-                               "user_id TEXT PRIMARY KEY AUTOINCREMENT,"
+                               "user_id TEXT PRIMARY KEY,"
                                "username TEXT NOT NULL UNIQUE);");
 
                 // Main dictionary table "words"
@@ -206,7 +211,7 @@ public:
                     "CREATE INDEX IF NOT EXISTS idx_translations_target ON "
                     "word_translations(target_word, target_language);");
                 dict_db->exec ("CREATE INDEX IF NOT EXISTS idx_examples_word "
-                               "ON examples(word, language);");
+                               "ON examples(word);");
             }
         }
         catch (const SQLite::Exception &e)
@@ -237,7 +242,15 @@ public:
         const QString &filePath,
         std::function<void (int, int)> progressCallback = nullptr);
 
+    // Synchronous import method (backup for when coroutines don't work)
+    void importFromFileSync (
+        const QString &filePath,
+        std::function<void (int, int)> progressCallback = nullptr);
+
     AsyncTask<void> insertWordBatch (const std::vector<WordEntry> &batch);
+
+    // Synchronous batch insert helper
+    void insertWordBatchSync (const std::vector<WordEntry> &batch);
 
     std::optional<WordEntry> lookupWord (const QString &word,
                                          const QString &lang);
@@ -267,6 +280,7 @@ private:
     std::unique_ptr<SQLite::Database> user_db;
     std::unique_ptr<SQLite::Database> dict_db;
     mutable std::string m_lastError;
+    bool m_needsDictImport = false;
 
     template <typename ExceptionT>
     void logErr (const std::string &errMsg, const ExceptionT &e) const
