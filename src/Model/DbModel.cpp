@@ -2,6 +2,7 @@
 #include "SQLiteCpp/Exception.h"
 #include "SQLiteCpp/Transaction.h"
 #include "Utility/Result.h"
+#include <qdebug.h>
 #include <quuid.h>
 #include <stdexcept>
 
@@ -262,7 +263,7 @@ AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
             translationsQuery.bind (1, wordEntry.word.toStdString ());
             translationsQuery.bind (2, wordEntry.language.toStdString ());
             translationsQuery.bind (3, wordEntry.translation.toStdString ());
-            translationsQuery.bind (4, wordEntry.language.toStdString ());
+            translationsQuery.bind (4, "zh");
             translationsQuery.bind (5, 1.0); // Default confidence score
             translationsQuery.exec ();
         }
@@ -274,7 +275,7 @@ AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
             SQLite::Statement examplesQuery (*dict_db,
                                              "INSERT INTO examples (word, "
                                              "example_sentence,translation) "
-                                             "VALUES (?,?,?,?)");
+                                             "VALUES (?,?,?)");
             examplesQuery.bind (1, wordEntry.word.toStdString ());
             examplesQuery.bind (2, wordEntry.examples.toStdString ());
             examplesQuery.bind (3, wordEntry.exampleTranslation.toStdString ());
@@ -302,15 +303,32 @@ AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
 AsyncTask<void>
 DbModel::importWordEntriesAsync (const std::vector<WordEntry> &wordEntries)
 {
-    if (!isDictDbOpen ())
+    if (!isDictDbOpen () || wordEntries.empty ())
     {
         co_return;
     }
 
     try
     {
+        SQLite::Transaction transaction (*dict_db);
 
-        // to be implemented
+        const int batchSize = 1000;
+        for (size_t i = 0; i < wordEntries.size (); i += batchSize)
+        {
+            size_t endIdx = std::min (i + batchSize, wordEntries.size ());
+            std::vector<WordEntry> batch (wordEntries.begin () + i,
+                                          wordEntries.begin () + endIdx);
+
+            co_await insertWordBatch (batch);
+
+            // let go of the coroutine to allow other tasks to run
+            if (i % (batchSize * 10) == 0)
+            {
+                co_await std::suspend_always{};
+            }
+        }
+
+        transaction.commit ();
     }
     catch (const SQLite::Exception &e)
     {
@@ -338,7 +356,84 @@ DbModel::importFromFileAsync (const QString &filePath,
 
     try
     {
-        // to be implemented
+        QFile csvFile (filePath);
+
+        if (!csvFile.open (QIODevice::ReadOnly | QIODevice::Text))
+        {
+            logErr ("Cannot open file",
+                    std::runtime_error ("File open failed"));
+            co_return;
+        }
+
+        QTextStream inputStream (&csvFile);
+        inputStream.setEncoding (QStringConverter::Utf8);
+
+        // Skip the format example header line
+        QString headerLine = inputStream.readLine ();
+
+        constexpr int batchSize = 1000;
+        std::vector<WordEntry> batch;
+        batch.reserve (batchSize);
+
+        // progress for callback
+        long long totalLines = 0;
+        long long processedLines = 0;
+        QTextStream countStream (&csvFile);
+        countStream.seek (inputStream.pos ());
+        while (!countStream.atEnd ())
+        {
+            countStream.readLine ();
+            totalLines++;
+        }
+
+        inputStream.seek (0); // Reset to the beginning of the file
+        inputStream.readLine ();
+
+        SQLite::Transaction transaction (*dict_db);
+
+        while (!inputStream.atEnd ())
+        {
+            QString line = inputStream.readLine ().trimmed ();
+            if (line.isEmpty ())
+                continue;
+
+            WordEntry entry = parseCSVLineToWordEntry (line);
+            if (!entry.word.isEmpty ())
+            {
+                batch.push_back (std::move (entry));
+            }
+
+            processedLines++;
+
+            if (batch.size () >= batchSize)
+            {
+                co_await insertWordBatch (batch);
+                batch.clear ();
+
+                if (progressCallback)
+                {
+                    progressCallback (processedLines, totalLines);
+                }
+
+                if (processedLines % 100 == 0)
+                {
+                    co_await std::suspend_always{};
+                }
+            }
+        }
+
+        if (!batch.empty ())
+        {
+            co_await insertWordBatch (batch);
+        }
+
+        transaction.commit ();
+
+        if (progressCallback)
+        {
+            progressCallback (totalLines, totalLines);
+        }
+
         co_return;
     }
     catch (const SQLite::Exception &e)
@@ -355,33 +450,69 @@ DbModel::importFromFileAsync (const QString &filePath,
                 std::runtime_error ("Unknown exception"));
     }
 }
-
-void DbModel::batchInsertWords (const std::vector<WordEntry> &wordEntries,
-                                std::function<void (int, int)> progressCallback)
+AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
 {
-    if (!isDictDbOpen ())
-    {
-        return;
-    }
+    if (batch.empty ())
+        co_return;
 
     try
     {
-        // to be implemented
+
+        SQLite::Statement wordsStmt (
+            *dict_db, "INSERT OR IGNORE INTO words "
+                      "(word, part_of_speech, pronunciation, frequency, notes) "
+                      "VALUES (?, ?, ?, ?, ?)");
+
+        SQLite::Statement translationsStmt (
+            *dict_db, "INSERT OR IGNORE INTO word_translations "
+                      "(source_word, source_language, target_word, "
+                      "target_language, confidence_score) "
+                      "VALUES (?, ?, ?, ?, ?)");
+
+        for (const auto &entry : batch)
+        {
+            // 插入单词
+            wordsStmt.reset ();
+            wordsStmt.bind (1, entry.word.toStdString ());
+            wordsStmt.bind (2, entry.partOfSpeech.toStdString ());
+            wordsStmt.bind (3, entry.pronunciation.toStdString ());
+            wordsStmt.bind (4, entry.frequency);
+            wordsStmt.bind (5, entry.partOfSpeech.toStdString ());
+            wordsStmt.exec ();
+
+            // 插入翻译
+            if (!entry.translation.isEmpty ())
+            {
+                translationsStmt.reset ();
+                translationsStmt.bind (1, entry.word.toStdString ());
+                translationsStmt.bind (2, entry.language.toStdString ());
+                translationsStmt.bind (3, entry.translation.toStdString ());
+                translationsStmt.bind (4, "zh");
+                translationsStmt.bind (5, 1.0);
+                translationsStmt.exec ();
+            }
+        }
     }
     catch (const SQLite::Exception &e)
     {
-        logErr ("Error batch inserting words", e);
+        logErr ("Error in batch insert", e);
+        throw;
     }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error batch inserting words", e);
+        logErr ("Unknown error in batch insert", e);
+        throw;
     }
     catch (...)
     {
-        logErr ("Unknown error batch inserting words",
+        logErr ("Unknown error in batch insert",
                 std::runtime_error ("Unknown exception"));
+        throw;
     }
+
+    co_return;
 }
+
 std::optional<WordEntry> DbModel::lookupWord (const QString &word,
                                               const QString &lang)
 {
@@ -411,15 +542,78 @@ void DbModel::removeFromUserVocabulary (const QString &userId,
     return;
 }
 
-void updateWordStatus (const QString &userId, const QString &word, int status)
+void DbModel::updateWordStatus (const QString &userId, const QString &word,
+                                int status)
 {
     // status: -1= never learned,0=learning, 1=mastered
     return;
 }
 
-std::vector<WordEntry> getUserVocabulary (const QString &userId,
-                                          int status = -1) // -1 means all
+std::vector<WordEntry> DbModel::getUserVocabulary (const QString &userId,
+                                                   int status) // -1 means all
 {
 
     return std::vector<WordEntry> ();
+}
+
+WordEntry DbModel::parseCSVLineToWordEntry (const QString &csvLine)
+{
+    WordEntry entry;
+    QStringList fields = parseCSVLine (csvLine);
+    if (fields.size () < 4)
+    {
+        return entry;
+    }
+
+    entry.word = fields[0].trimmed ();
+    entry.pronunciation = fields.size () > 1 ? fields[1].trimmed () : "";
+    entry.partOfSpeech = fields.size () > 2 ? fields[2].trimmed () : "";
+    entry.translation = fields.size () > 3 ? fields[3].trimmed () : "";
+    entry.partOfSpeech = fields.size () > 4 ? fields[4].trimmed () : "";
+    entry.language = "en";
+
+    if (fields.size () > 9)
+    {
+        bool ok;
+        int freq = fields[9].toInt (&ok);
+        entry.frequency = ok ? freq : 0;
+    }
+    return entry;
+}
+
+QStringList DbModel::parseCSVLine (const QString &line)
+{
+    QStringList result;
+    QString current;
+    bool inQuotes = false;
+
+    for (int i = 0; i < line.length (); ++i)
+    {
+        QChar c = line[i];
+
+        if (c == '"')
+        {
+            if (inQuotes && i + 1 < line.length () && line[i + 1] == '"')
+            {
+                current += '"';
+                ++i;
+            }
+            else
+            {
+                inQuotes = !inQuotes;
+            }
+        }
+        else if (c == ',' && !inQuotes)
+        {
+            result << current;
+            current.clear ();
+        }
+        else
+        {
+            current += c;
+        }
+    }
+
+    result << current;
+    return result;
 }

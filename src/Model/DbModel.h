@@ -237,6 +237,8 @@ public:
         const QString &filePath,
         std::function<void (int, int)> progressCallback = nullptr);
 
+    AsyncTask<void> insertWordBatch (const std::vector<WordEntry> &batch);
+
     std::optional<WordEntry> lookupWord (const QString &word,
                                          const QString &lang);
     std::vector<WordEntry> searchWords (const QString &pattern,
@@ -274,6 +276,7 @@ private:
         m_lastError = errMsg + " Exception:" + std::string (e.what ());
     }
 
-    void batchInsertWords (const std::vector<WordEntry> &wordEntries,
-                           std::function<void (int, int)> progressCallback);
+    WordEntry parseCSVLineToWordEntry (const QString &csvLine);
+
+    QStringList parseCSVLine (const QString &line);
 };
