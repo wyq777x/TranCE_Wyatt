@@ -64,6 +64,6 @@ private:
     AccountManager () = default;
 
     UserModel *userModel = nullptr;
-    QString username;
-    QString password_Hash;
+    QString username{};
+    QString password_Hash{};
 };

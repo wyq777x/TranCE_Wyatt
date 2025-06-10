@@ -1,1 +1,45 @@
 #include "DbManager.h"
+#include "Model/DbModel.h"
+
+void DbManager::initDBs () { DbModel::getInstance ().initDBs (); }
+
+AsyncTask<void> DbManager::initializeAsync (const QString &dictPath)
+{
+    return DbModel::getInstance ().initializeAsync (dictPath);
+}
+
+std::optional<WordEntry> DbManager::lookupWord (const QString &word,
+                                                const QString &lang)
+{
+    return DbModel::getInstance ().lookupWord (word, lang);
+}
+
+std::vector<WordEntry> DbManager::searchWords (const QString &pattern,
+                                               const QString &lang, int limit)
+{
+    return DbModel::getInstance ().searchWords (pattern, lang, limit);
+}
+
+ChangeResult DbManager::changeUsername (const QString &newUsername)
+{
+
+    QString currentUsername = "";
+    return DbModel::getInstance ().changeUsername (currentUsername,
+                                                   newUsername);
+}
+
+ChangeResult DbManager::changePassword (const QString &username,
+                                        const QString &oldPasswordHash,
+                                        const QString &newPasswordHash)
+{
+    DbModel::getInstance ().updateUserPassword (username, oldPasswordHash,
+                                                newPasswordHash);
+    return ChangeResult::Success;
+}
+
+ChangeResult DbManager::changeEmail (const QString &newEmail)
+{
+
+    QString currentUsername = "";
+    return DbModel::getInstance ().changeEmail (currentUsername, newEmail);
+}

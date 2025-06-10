@@ -226,6 +226,18 @@ void DbModel::updateUserPassword (const QString &username,
     }
 }
 
+ChangeResult DbModel::changeUsername (const QString &oldUsername,
+                                      const QString &newUsername)
+{
+    return ChangeResult::Success;
+}
+
+ChangeResult DbModel::changeEmail (const QString &username,
+                                   const QString &newEmail)
+{
+    return ChangeResult::Success;
+}
+
 AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
 {
     if (!isDictDbOpen ())

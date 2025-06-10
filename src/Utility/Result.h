@@ -48,3 +48,25 @@ struct ValidationResult
     bool isValid;
     QStringList ErrMessages;
 };
+
+enum class ChangeResult
+{
+    Success,
+    UserNotLoggedIn,
+    AlreadyExists,
+    StillSame,
+    DatabaseError,
+    UnknownError,
+    Password_OldIncorrect
+};
+
+static const std::unordered_map<ChangeResult, std::string> ChangeResultMessage =
+    {{ChangeResult::Success, "Change successful."},
+     {ChangeResult::UserNotLoggedIn, "User not logged in."},
+     {ChangeResult::AlreadyExists, "Username or email already exists."},
+     {ChangeResult::StillSame, "New value is the same as the old one."},
+     {ChangeResult::DatabaseError, "Database error."},
+     {ChangeResult::UnknownError, "Unknown error."},
+     {ChangeResult::Password_OldIncorrect, "Old password is incorrect."}
+
+};

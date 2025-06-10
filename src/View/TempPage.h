@@ -1,5 +1,6 @@
 #pragma once
 #include "Controller/AccountManager.h"
+#include "Controller/DbManager.h"
 #include <ElaComboBox.h>
 #include <ElaContentDialog.h>
 #include <ElaFlowLayout.h>

@@ -95,6 +95,10 @@ public:
                              const QString &oldPasswordHash,
                              const QString &newPasswordHash);
 
+    ChangeResult changeUsername (const QString &oldUsername,
+                                 const QString &newUsername);
+    ChangeResult changeEmail (const QString &username, const QString &newEmail);
+
     std::optional<QString> getUserId (const QString &username) const;
     std::optional<QString> getUserName (const QString &userId) const;
 

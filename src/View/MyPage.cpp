@@ -1,4 +1,6 @@
 #include "MyPage.h"
+#include "DbManager.h"
+#include "ElaPushButton.h"
 #include <qnamespace.h>
 
 MyPage::MyPage (QWidget *parent) : TempPage (parent)
@@ -106,6 +108,27 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     logoutButton->setFont (QFont ("Noto Sans", 16));
     logoutLayout->addWidget (logoutButton);
     userProfileLayout->addLayout (logoutLayout);
+
+    connect (changeAvatarButton, &ElaPushButton::clicked, this,
+                 [] () { 
+
+
+                 });
+
+    connect (changeUsernameButton, &ElaPushButton::clicked, this, [] () {
+
+
+    });
+
+    connect (changePasswordButton, &ElaPushButton::clicked, this, [] () {
+
+
+    });
+
+    connect (changeEmailButton, &ElaPushButton::clicked, this, [] () {
+
+
+    });
 
     connect (
         logoutButton, &ElaPushButton::clicked, this,
