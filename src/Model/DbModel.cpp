@@ -638,7 +638,6 @@ AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
             wordsStmt.bind (5, entry.notes.toStdString ());
             wordsStmt.exec ();
 
-            // 插入翻译
             if (!entry.translation.isEmpty ())
             {
                 translationsStmt.reset ();

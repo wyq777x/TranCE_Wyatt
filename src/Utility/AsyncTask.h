@@ -4,7 +4,9 @@
 #include <exception>
 #include <utility>
 
-template <typename T> struct AsyncTask
+template <typename T>
+
+struct AsyncTask
 {
     struct promise_type
     {
@@ -109,7 +111,9 @@ template <typename T> struct AsyncTask
     }
 };
 
-template <> struct AsyncTask<void>
+template <>
+
+struct AsyncTask<void>
 {
     struct promise_type
     {
