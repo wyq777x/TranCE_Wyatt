@@ -61,4 +61,3 @@ private:
     bool loginExpired = true;
     inline static const QString storageFile = "users.json";
 };
-#

@@ -135,6 +135,14 @@ public:
     {
         try
         {
+
+            dict_db->exec ("PRAGMA journal_mode = WAL");
+            dict_db->exec ("PRAGMA synchronous = NORMAL");
+            dict_db->exec ("PRAGMA cache_size = 200000");
+            dict_db->exec ("PRAGMA temp_store = MEMORY");
+            dict_db->exec ("PRAGMA locking_mode = EXCLUSIVE");
+            dict_db->exec ("PRAGMA page_size = 8192");
+
             if (dict_db != nullptr)
             {
 
