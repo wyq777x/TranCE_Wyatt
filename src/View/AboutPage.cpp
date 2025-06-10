@@ -25,7 +25,7 @@ AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
     titleLayout->setSpacing (5);
 
     QLabel *logoLabel = new QLabel (centralWidget);
-    logoLabel->setPixmap (QPixmap (":/res/image/learnENG.ico"));
+    logoLabel->setPixmap (QPixmap (":image/learnENG.ico"));
     logoLabel->setFixedSize (50, 50);
     logoLabel->setScaledContents (true);
 

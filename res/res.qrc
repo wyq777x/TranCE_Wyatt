@@ -1,7 +1,8 @@
-<RCC>
-    <qresource prefix="/res">
-        <file>image/learnENG.ico</file>
-        <file>image/DefaultUser.png</file>
-        <file>image/engICO.png</file>
-    </qresource>
+<!DOCTYPE RCC>
+<RCC version="1.0">
+<qresource>
+    <file>image/DefaultUser.png</file>
+    <file>image/engICO.png</file>
+    <file>image/learnENG.ico</file>
+</qresource>
 </RCC>

@@ -66,3 +66,31 @@ if(NOT WIN32)
         dl
     )
 endif()
+
+function(auto_generate_qrc)
+    file(GLOB_RECURSE IMAGE_FILES
+        ${CMAKE_SOURCE_DIR}/res/image/*.png
+        ${CMAKE_SOURCE_DIR}/res/image/*.jpg
+        ${CMAKE_SOURCE_DIR}/res/image/*.svg
+        ${CMAKE_SOURCE_DIR}/res/image/*.jpeg
+        ${CMAKE_SOURCE_DIR}/res/image/*.gif
+        ${CMAKE_SOURCE_DIR}/res/image/*.bmp
+        ${CMAKE_SOURCE_DIR}/res/image/*.webp
+        ${CMAKE_SOURCE_DIR}/res/image/*.ico
+        ${CMAKE_SOURCE_DIR}/res/image/*.svg
+    )
+
+    set(QRC_CONTENT "<!DOCTYPE RCC>\n<RCC version=\"1.0\">\n<qresource>\n")
+
+    foreach(IMAGE_FILE ${IMAGE_FILES})
+        file(RELATIVE_PATH REL_PATH "${CMAKE_SOURCE_DIR}/res" "${IMAGE_FILE}")
+        string(REPLACE "\\" "/" REL_PATH "${REL_PATH}")
+        set(QRC_CONTENT "${QRC_CONTENT}    <file>${REL_PATH}</file>\n")
+    endforeach()
+
+    set(QRC_CONTENT "${QRC_CONTENT}</qresource>\n</RCC>")
+
+    file(WRITE "${CMAKE_SOURCE_DIR}/res/res.qrc" "${QRC_CONTENT}")
+endfunction()
+
+auto_generate_qrc()

@@ -2,14 +2,14 @@
 MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
 {
     setWindowTitle ("TranCE_Wyatt");
-    setWindowIcon (QIcon (":res/image/learnENG.ico"));
+    setWindowIcon (QIcon (":image/learnENG.ico"));
 
     initPages ();
     moveToCenter ();
 
     setUserInfoCardTitle ("User");
     setUserInfoCardSubTitle ("Click to login");
-    setUserInfoCardPixmap (QPixmap (":/res/image/DefaultUser.png"));
+    setUserInfoCardPixmap (QPixmap (":image/DefaultUser.png"));
 
     connect (this, &ElaWindow::userInfoCardClicked, this,
              [this] ()

@@ -145,7 +145,7 @@ void UserModel::saveUserData (const QString &filename)
         userData["userAccount"] = userAccount;
 
         QJsonObject userProfile;
-        userProfile["avatar"] = ":/res/image/DefaultUser.png";
+        userProfile["avatar"] = ":image/DefaultUser.png";
         userProfile["email"] = "*@example.com";
 
         userData["userProfile"] = userProfile;
