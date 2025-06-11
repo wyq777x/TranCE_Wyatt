@@ -1,4 +1,5 @@
 #pragma once
+#include "Controller/DbManager.h"
 #include "Model/AppSettingModel.h"
 #include "Model/DbModel.h"
 #include "Model/UserModel.h"
@@ -51,7 +52,12 @@ public:
         return UserModel::getInstance ().isLoginExpired ();
     }
 
-    void setUsername (const QString &username);
+    ChangeResult changeUsername (const QString &newUsername);
+    ChangeResult changePassword (const QString &username,
+                                 const QString &oldPasswordHash,
+                                 const QString &newPasswordHash);
+    ChangeResult changeEmail (const QString &newEmail);
+
     QString getUsername () const;
     QString getHashedPassword () const;
     QString getEmail () const;

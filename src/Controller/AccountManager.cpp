@@ -91,6 +91,37 @@ QString AccountManager::hashPassword (const QString &password)
     return QString (hashed.toHex ());
 }
 
+ChangeResult AccountManager::changeUsername (const QString &newUsername)
+{
+    if (newUsername.isEmpty ())
+    {
+        return ChangeResult::NullValue;
+    }
+
+    auto result =
+        DbManager::getInstance ().changeUsername (username, newUsername);
+
+    if (result == ChangeResult::Success)
+    {
+        username = newUsername;
+    }
+
+    return result;
+}
+
+ChangeResult AccountManager::changePassword (const QString &username,
+                                             const QString &oldPasswordHash,
+                                             const QString &newPasswordHash)
+{
+    return ChangeResult::Success;
+}
+
+ChangeResult AccountManager::changeEmail (const QString &newEmail)
+{
+
+    return ChangeResult::Success;
+}
+
 QString AccountManager::getUsername () const { return username; }
 
 QString AccountManager::getHashedPassword () const { return password_Hash; }

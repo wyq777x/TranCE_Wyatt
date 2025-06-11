@@ -26,7 +26,8 @@ public:
     std::vector<WordEntry> searchWords (const QString &pattern,
                                         const QString &lang, int limit = 10);
 
-    ChangeResult changeUsername (const QString &newUsername);
+    ChangeResult changeUsername (const QString &oldUsername,
+                                 const QString &newUsername);
     ChangeResult changePassword (const QString &username,
                                  const QString &oldPasswordHash,
                                  const QString &newPasswordHash);

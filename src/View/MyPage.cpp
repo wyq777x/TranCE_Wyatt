@@ -3,6 +3,7 @@
 #include "DbManager.h"
 #include "ElaLineEdit.h"
 #include "ElaPushButton.h"
+#include "Utility/Result.h"
 #include <qnamespace.h>
 
 MyPage::MyPage (QWidget *parent) : TempPage (parent)
@@ -151,20 +152,53 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
 
                  });
 
-    connect (changeUsernameButton, &ElaPushButton::clicked, this, [] () {
+    connect (changeUsernameButton, &ElaPushButton::clicked, this,
+             [this] ()
+             {
+                 if (usernameLineEdit->text ().isEmpty ())
+                 {
+                     showDialog ("Error", "Username cannot be empty.");
+                     return;
+                 }
+
+                 auto result = AccountManager::getInstance ().changeUsername (
+                     usernameLineEdit->text ());
+
+                 if (result == ChangeResult::Success)
+                 {
+                     showDialog ("Success", "Username changed successfully.");
+                 }
+                 else
+                 {
+                     auto it = ChangeResultMessage.find (result);
+                     QString errorMsg =
+                         it != ChangeResultMessage.end ()
+                             ? QString::fromStdString (it->second)
+                             : "Unknown error";
+                     showDialog ("Change Username Error", errorMsg);
+                 }
+             });
+
+    connect (changePasswordButton, &ElaPushButton::clicked, this, [this] () {
 
 
     });
 
-    connect (changePasswordButton, &ElaPushButton::clicked, this, [] () {
+    connect (changeEmailButton, &ElaPushButton::clicked, this,
+             [this] ()
+             {
+                 if (emailLineEdit->text ().isEmpty ())
+                 {
+                     showDialog ("Error", "Email cannot be empty.");
+                     return;
+                 }
 
-
-    });
-
-    connect (changeEmailButton, &ElaPushButton::clicked, this, [] () {
-
-
-    });
+                 if (!emailLineEdit->text ().contains ("@"))
+                 {
+                     showDialog ("Error", "Invalid email format.");
+                     return;
+                 }
+             });
 
     connect (
         logoutButton, &ElaPushButton::clicked, this,

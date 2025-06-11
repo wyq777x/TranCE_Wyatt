@@ -20,12 +20,11 @@ std::vector<WordEntry> DbManager::searchWords (const QString &pattern,
     return DbModel::getInstance ().searchWords (pattern, lang, limit);
 }
 
-ChangeResult DbManager::changeUsername (const QString &newUsername)
+ChangeResult DbManager::changeUsername (const QString &oldUsername,
+                                        const QString &newUsername)
 {
 
-    QString currentUsername = "";
-    return DbModel::getInstance ().changeUsername (currentUsername,
-                                                   newUsername);
+    return DbModel::getInstance ().changeUsername (oldUsername, newUsername);
 }
 
 ChangeResult DbManager::changePassword (const QString &username,
