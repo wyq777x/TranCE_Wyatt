@@ -95,6 +95,8 @@ QString AccountManager::getUsername () const { return username; }
 
 QString AccountManager::getHashedPassword () const { return password_Hash; }
 
+QString AccountManager::getEmail () const { return QString (""); }
+
 QString AccountManager::getLanguage () const
 {
     return AppSettingModel::getInstance ().getLanguage ();

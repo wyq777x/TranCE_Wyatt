@@ -54,6 +54,7 @@ public:
     void setUsername (const QString &username);
     QString getUsername () const;
     QString getHashedPassword () const;
+    QString getEmail () const;
     QString getLanguage () const;
 
 signals:
@@ -66,4 +67,5 @@ private:
     UserModel *userModel = nullptr;
     QString username{};
     QString password_Hash{};
+    QString email{};
 };

@@ -1,5 +1,7 @@
 #include "MyPage.h"
+#include "AccountManager.h"
 #include "DbManager.h"
+#include "ElaLineEdit.h"
 #include "ElaPushButton.h"
 #include <qnamespace.h>
 
@@ -52,15 +54,30 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
 
     QHBoxLayout *usernameLayout = new QHBoxLayout (centralWidget);
 
-    usernameTextLabel->setText (
-        QString ("Username: %1")
-            .arg (AccountManager::getInstance ().getUsername ()));
+    QLabel *usernameTextLabel = new QLabel ();
+
+    usernameTextLabel->setText (QString ("Username: "));
 
     usernameTextLabel->setStyleSheet (
         "font-size: 20px; font-weight: normal; color: #333;");
     usernameTextLabel->setFont (QFont ("Noto Sans", 24));
 
     usernameLayout->addWidget (usernameTextLabel);
+
+    usernameLineEdit = new ElaLineEdit (centralWidget);
+
+    usernameLineEdit->setPlaceholderText ("Enter your username");
+
+    usernameLineEdit->setStyleSheet (
+        "font-size: 15px; color: #333; padding: 5px; "
+        "border: 1px solid #ccc; border-radius: 5px;");
+    usernameLineEdit->setFont (QFont ("Noto Sans", 24));
+
+    usernameLineEdit->setText (AccountManager::getInstance ().getUsername ());
+
+    usernameLineEdit->setFixedWidth (400);
+
+    usernameLayout->addWidget (usernameLineEdit);
 
     ElaPushButton *changeUsernameButton =
         new ElaPushButton ("Change Username", centralWidget);
@@ -70,7 +87,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     userProfileLayout->addLayout (usernameLayout);
 
     QHBoxLayout *passwordLayout = new QHBoxLayout (centralWidget);
-    QLabel *passwordTextLabel = new QLabel ("Password: ", centralWidget);
+    QLabel *passwordTextLabel = new QLabel ("Password: ******", centralWidget);
     passwordTextLabel->setStyleSheet (
         "font-size: 20px; font-weight: normal; color: #333;");
     passwordTextLabel->setFont (QFont ("Noto Sans", 24));
@@ -83,11 +100,30 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     userProfileLayout->addLayout (passwordLayout);
 
     QHBoxLayout *emailLayout = new QHBoxLayout (centralWidget);
+
     QLabel *emailTextLabel = new QLabel ("Email: ", centralWidget);
+
     emailTextLabel->setStyleSheet (
         "font-size: 20px; font-weight: normal; color: #333;");
     emailTextLabel->setFont (QFont ("Noto Sans", 24));
+
     emailLayout->addWidget (emailTextLabel);
+
+    emailLineEdit = new ElaLineEdit (centralWidget);
+
+    emailLineEdit->setPlaceholderText ("Enter your email");
+
+    emailLineEdit->setStyleSheet (
+        "font-size: 15px; color: #333; padding: 5px; "
+        "border: 1px solid #ccc; border-radius: 5px;");
+    emailLineEdit->setFont (QFont ("Noto Sans", 24));
+
+    emailLineEdit->setText (AccountManager::getInstance ().getEmail ());
+
+    emailLineEdit->setFixedWidth (400);
+
+    emailLayout->addWidget (emailLineEdit);
+
     ElaPushButton *changeEmailButton =
         new ElaPushButton ("Change Email", centralWidget);
     emailLayout->addWidget (changeEmailButton);
