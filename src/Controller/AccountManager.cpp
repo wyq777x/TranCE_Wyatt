@@ -126,7 +126,8 @@ ChangeResult AccountManager::changePassword (const QString &newPasswordHash)
 ChangeResult AccountManager::changeEmail (const QString &newEmail)
 {
 
-    auto result = DbManager::getInstance ().changeEmail (username, newEmail);
+    auto result =
+        DbManager::getInstance ().changeEmail (username, email, newEmail);
     if (result == ChangeResult::Success)
     {
         email = newEmail;

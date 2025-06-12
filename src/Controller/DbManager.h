@@ -31,7 +31,8 @@ public:
     ChangeResult changePassword (const QString &username,
                                  const QString &oldPasswordHash,
                                  const QString &newPasswordHash);
-    ChangeResult changeEmail (const QString &username, const QString &newEmail);
+    ChangeResult changeEmail (const QString &username, const QString &oldEmail,
+                              const QString &newEmail);
 
 private:
     DbManager () = default;

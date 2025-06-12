@@ -1,8 +1,10 @@
 #include "DbModel.h"
 #include "SQLiteCpp/Exception.h"
+#include "SQLiteCpp/Statement.h"
 #include "SQLiteCpp/Transaction.h"
 #include "Utility/Result.h"
 #include <qdebug.h>
+#include <qhashfunctions.h>
 #include <quuid.h>
 #include <stdexcept>
 
@@ -229,13 +231,105 @@ void DbModel::updateUserPassword (const QString &username,
 ChangeResult DbModel::changeUsername (const QString &oldUsername,
                                       const QString &newUsername)
 {
-    return ChangeResult::Success;
+    if (!isUserDbOpen ())
+    {
+        return ChangeResult::DatabaseError;
+    }
+
+    if (oldUsername == newUsername)
+    {
+        return ChangeResult::StillSame; // No change needed
+    }
+
+    if (newUsername.isEmpty () || oldUsername.isEmpty ())
+    {
+        return ChangeResult::NullValue; // New username cannot be empty
+    }
+
+    if (userExists (newUsername))
+    {
+        return ChangeResult::AlreadyExists; // New username already exists
+    }
+
+    try
+    {
+        SQLite::Statement query (*user_db, "UPDATE users SET username = ? "
+                                           "WHERE username = ?");
+
+        query.bind (1, newUsername.toStdString ());
+        query.bind (2, oldUsername.toStdString ());
+        query.exec ();
+
+        if (query.getChanges () < 0)
+        {
+            return ChangeResult::DatabaseError;
+        }
+
+        return ChangeResult::Success;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error changing username in database", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error changing username in database", e);
+        return ChangeResult::UnknownError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error changing username in database",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::UnknownError;
+    }
 }
 
 ChangeResult DbModel::changeEmail (const QString &username,
+                                   const QString &oldEmail,
                                    const QString &newEmail)
 {
-    return ChangeResult::Success;
+    if (!isUserDbOpen ())
+    {
+        return ChangeResult::DatabaseError;
+    }
+
+    if (username.isEmpty () || newEmail.isEmpty ())
+    {
+        return ChangeResult::NullValue;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "UPDATE users SET email = ? WHERE username = ?");
+        query.bind (1, newEmail.toStdString ());
+        query.bind (2, username.toStdString ());
+        query.exec ();
+
+        if (query.getChanges () == 0)
+        {
+            return ChangeResult::DatabaseError;
+        }
+
+        return ChangeResult::Success;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error changing username in database", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error changing username in database", e);
+        return ChangeResult::UnknownError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error changing username in database",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::UnknownError;
+    }
 }
 
 AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
@@ -731,7 +825,8 @@ WordEntry DbModel::parseCSVLineToWordEntry (const QString &csvLine)
     QStringList fields = parseCSVLine (csvLine);
     if (fields.size () < 4)
     {
-        return entry; // Need at least word, phonetic, definition, translation
+        return entry; // Need at least word, phonetic, definition,
+                      // translation
     }
 
     // CSV format:

@@ -68,7 +68,9 @@ void MainWindow::onLoginSuccessful (const QString &username)
     setUserInfoCardTitle (username);
     setUserInfoCardSubTitle ("Click to open MyPage");
 
-    // myPage->usernameTextLabel->setText (QString ("Username: "));
+    myPage->usernameLineEdit->setText (username);
+
+    myPage->emailLineEdit->setText (AccountManager::getInstance ().getEmail ());
 
     // setUserInfoCardPixmap (QPixmap (const QString &avatarPath));
 
