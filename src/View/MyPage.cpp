@@ -138,10 +138,17 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     userProfileLayout->addWidget (splitLine2);
 
     QHBoxLayout *logoutLayout = new QHBoxLayout (centralWidget);
-    ElaPushButton *logoutButton = new ElaPushButton ("Logout", centralWidget);
-    logoutButton->setStyleSheet (
-        "background-color: #F44336; color: white; font-size: 16px; "
-        "border-radius: 5px; padding: 10px;");
+    QPushButton *logoutButton = new QPushButton ("Logout", centralWidget);
+    logoutButton->setStyleSheet ("QPushButton { "
+                                 "color: #F44336; "
+                                 "font-size: 16px; "
+                                 "border: 2px solid #F44336; "
+                                 "border-radius: 5px; "
+                                 "padding: 10px; "
+                                 "background-color: transparent; } "
+                                 "QPushButton:hover { "
+                                 "border-color: #0078d7; "
+                                 "color: #0078d7; }");
     logoutButton->setFont (QFont ("Noto Sans", 16));
     logoutLayout->addWidget (logoutButton);
     userProfileLayout->addLayout (logoutLayout);
@@ -253,7 +260,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
              });
 
     connect (
-        logoutButton, &ElaPushButton::clicked, this,
+        logoutButton, &QPushButton::clicked, this,
         [this] ()
         {
             showDialog (
