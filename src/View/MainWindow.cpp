@@ -32,6 +32,14 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
 
     connect (&AccountManager::getInstance (), &AccountManager::loginSuccessful,
              this, &MainWindow::onLoginSuccessful);
+
+    connect (myPage, &MyPage::usernameChanged, this,
+             [this] (const QString &newUsername)
+             { setUserInfoCardTitle (newUsername); });
+
+    connect (myPage, &MyPage::emailChanged, this,
+             [this] (const QString &newEmail)
+             { setUserInfoCardSubTitle (newEmail); });
 }
 
 void MainWindow::initPages ()

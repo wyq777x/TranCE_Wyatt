@@ -174,6 +174,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                  if (result == ChangeResult::Success)
                  {
                      showDialog ("Success", "Username changed successfully.");
+                     emit usernameChanged (usernameLineEdit->text ());
                  }
                  else
                  {
@@ -247,6 +248,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                  if (result == ChangeResult::Success)
                  {
                      showDialog ("Success", "Email changed successfully.");
+                     emit emailChanged (emailLineEdit->text ());
                  }
                  else
                  {

@@ -10,4 +10,8 @@ public:
 
     ElaLineEdit *usernameLineEdit;
     ElaLineEdit *emailLineEdit;
+
+signals:
+    void usernameChanged (const QString &newUsername);
+    void emailChanged (const QString &newEmail);
 };
