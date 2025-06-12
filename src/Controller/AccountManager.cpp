@@ -1,4 +1,5 @@
 #include "AccountManager.h"
+#include "DbManager.h"
 #include "DbModel.h"
 #include "UserModel.h"
 #include "Utility/Result.h"
@@ -109,24 +110,36 @@ ChangeResult AccountManager::changeUsername (const QString &newUsername)
     return result;
 }
 
-ChangeResult AccountManager::changePassword (const QString &username,
-                                             const QString &oldPasswordHash,
-                                             const QString &newPasswordHash)
+ChangeResult AccountManager::changePassword (const QString &newPasswordHash)
 {
-    return ChangeResult::Success;
+    auto result = DbManager::getInstance ().changePassword (
+        username, password_Hash, newPasswordHash);
+
+    if (result == ChangeResult::Success)
+    {
+        password_Hash = newPasswordHash;
+    }
+
+    return result;
 }
 
 ChangeResult AccountManager::changeEmail (const QString &newEmail)
 {
 
-    return ChangeResult::Success;
+    auto result = DbManager::getInstance ().changeEmail (username, newEmail);
+    if (result == ChangeResult::Success)
+    {
+        email = newEmail;
+    }
+
+    return result;
 }
 
 QString AccountManager::getUsername () const { return username; }
 
 QString AccountManager::getHashedPassword () const { return password_Hash; }
 
-QString AccountManager::getEmail () const { return QString (""); }
+QString AccountManager::getEmail () const { return email; }
 
 QString AccountManager::getLanguage () const
 {

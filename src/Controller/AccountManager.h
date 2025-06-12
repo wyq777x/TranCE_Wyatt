@@ -53,9 +53,7 @@ public:
     }
 
     ChangeResult changeUsername (const QString &newUsername);
-    ChangeResult changePassword (const QString &username,
-                                 const QString &oldPasswordHash,
-                                 const QString &newPasswordHash);
+    ChangeResult changePassword (const QString &newPasswordHash);
     ChangeResult changeEmail (const QString &newEmail);
 
     QString getUsername () const;
