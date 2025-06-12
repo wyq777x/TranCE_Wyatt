@@ -45,8 +45,12 @@ StatisticsPage::StatisticsPage (QWidget *parent) : TempPage (parent)
     learningWordsLabel->setAlignment (Qt::AlignLeft);
     statsLayout->addWidget (learningWordsLabel);
 
+    statsLayout->addStretch ();
+
     ElaIconButton *refreshButton =
         new ElaIconButton (ElaIconType::ArrowRotateLeft);
+    refreshButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
+    refreshButton->setMinimumHeight (40);
     statsLayout->addWidget (refreshButton);
 
     statisticsPageLayout->addWidget (statsWidget);
