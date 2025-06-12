@@ -24,6 +24,7 @@
 #include <QPainter>
 #include <QStackedLayout>
 #include <QVBoxLayout>
+#include <functional>
 class TempPage : public ElaScrollPage
 {
     Q_OBJECT
@@ -35,5 +36,8 @@ public:
 
     void showDialog (const QString &title, const QString &message,
                      std::function<void ()> onConfirm,
+                     std::function<void ()> onReject = nullptr);
+
+    void showDialog (const QString &title, std::function<void ()> onConfirm,
                      std::function<void ()> onReject = nullptr);
 };

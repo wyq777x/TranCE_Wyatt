@@ -179,10 +179,15 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                  }
              });
 
-    connect (changePasswordButton, &ElaPushButton::clicked, this, [this] () {
-
-
-    });
+    connect (changePasswordButton, &ElaPushButton::clicked, this,
+             [this] ()
+             {
+                 showDialog("Change Password",
+                   [this] ()
+                   {
+                       
+                   });
+             });
 
     connect (changeEmailButton, &ElaPushButton::clicked, this,
              [this] ()
@@ -197,6 +202,22 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                  {
                      showDialog ("Error", "Invalid email format.");
                      return;
+                 }
+
+                 auto result = AccountManager::getInstance ().changeEmail (
+                     emailLineEdit->text ());
+                 if (result == ChangeResult::Success)
+                 {
+                     showDialog ("Success", "Email changed successfully.");
+                 }
+                 else
+                 {
+                     auto it = ChangeResultMessage.find (result);
+                     QString errorMsg =
+                         it != ChangeResultMessage.end ()
+                             ? QString::fromStdString (it->second)
+                             : "Unknown error";
+                     showDialog ("Change Email Error", errorMsg);
                  }
              });
 
