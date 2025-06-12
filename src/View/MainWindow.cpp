@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "AccountManager.h"
 MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
 {
     setWindowTitle ("TranCE_Wyatt");
@@ -8,7 +9,11 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
     moveToCenter ();
 
     setUserInfoCardTitle ("User");
-    setUserInfoCardSubTitle ("Click to login");
+    setUserInfoCardSubTitle (
+        QString ("%1").arg (AccountManager::getInstance ().isLoggedIn ()
+                                ? AccountManager::getInstance ().getEmail ()
+                                : "Click to login"));
+
     setUserInfoCardPixmap (QPixmap (":image/DefaultUser.png"));
 
     connect (this, &ElaWindow::userInfoCardClicked, this,
@@ -66,7 +71,9 @@ void MainWindow::initPages ()
 void MainWindow::onLoginSuccessful (const QString &username)
 {
     setUserInfoCardTitle (username);
-    setUserInfoCardSubTitle ("Click to open MyPage");
+
+    setUserInfoCardSubTitle (
+        QString ("%1").arg (AccountManager::getInstance ().getEmail ()));
 
     myPage->usernameLineEdit->setText (username);
 

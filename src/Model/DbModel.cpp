@@ -353,6 +353,141 @@ ChangeResult DbModel::changeEmail (const QString &username,
     }
 }
 
+std::optional<QString> DbModel::getUserId (const QString &username) const
+{
+    if (!isUserDbOpen ())
+    {
+        return std::nullopt;
+    }
+
+    if (username.isEmpty ())
+    {
+        return std::nullopt;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "SELECT user_id FROM users WHERE username = ?");
+        query.bind (1, username.toStdString ());
+
+        if (query.executeStep ())
+        {
+            return QString::fromStdString (query.getColumn (0).getString ());
+        }
+
+        return std::nullopt;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error getting user ID from database", e);
+        return std::nullopt;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting user ID from database", e);
+        return std::nullopt;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting user ID from database",
+                std::runtime_error ("Unknown exception"));
+        return std::nullopt;
+    }
+}
+
+std::optional<QString> DbModel::getUserName (const QString &userId) const
+{
+    if (!isUserDbOpen ())
+    {
+        return std::nullopt;
+    }
+
+    if (userId.isEmpty ())
+    {
+        return std::nullopt;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "SELECT username FROM users WHERE user_id = ?");
+        query.bind (1, userId.toStdString ());
+
+        if (query.executeStep ())
+        {
+            return QString::fromStdString (query.getColumn (0).getString ());
+        }
+
+        return std::nullopt;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error getting username from database", e);
+        return std::nullopt;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting username from database", e);
+        return std::nullopt;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting username from database",
+                std::runtime_error ("Unknown exception"));
+        return std::nullopt;
+    }
+}
+
+QString DbModel::getUserEmail (const QString &username) const
+{
+    if (!isUserDbOpen ())
+    {
+        return QString ();
+    }
+
+    if (username.isEmpty ())
+    {
+        return QString ();
+    }
+
+    try
+    {
+        SQLite::Statement query (*user_db,
+                                 "SELECT email FROM users WHERE username = ?");
+        query.bind (1, username.toStdString ());
+
+        if (query.executeStep ())
+        {
+            // Check if the email column is NULL
+            if (!query.getColumn (0).isNull ())
+            {
+                return QString::fromStdString (
+                    query.getColumn (0).getString ());
+            }
+        }
+
+        return QString (); // Return empty string if no email found or email is
+                           // NULL
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error getting user email from database", e);
+        return QString ();
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting user email from database", e);
+        return QString ();
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting user email from database",
+                std::runtime_error ("Unknown exception"));
+        return QString ();
+    }
+}
+
 AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
 {
     if (!isDictDbOpen ())

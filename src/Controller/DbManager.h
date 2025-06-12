@@ -38,6 +38,8 @@ public:
     ChangeResult changeEmail (const QString &username, const QString &oldEmail,
                               const QString &newEmail);
 
+    QString getUserEmail (const QString &username);
+
 private:
     DbManager () = default;
     DbManager (const DbManager &) = delete;

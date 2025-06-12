@@ -47,3 +47,8 @@ ChangeResult DbManager::changeEmail (const QString &username,
 {
     return DbModel::getInstance ().changeEmail (username, oldEmail, newEmail);
 }
+
+QString DbManager::getUserEmail (const QString &username)
+{
+    return DbModel::getInstance ().getUserEmail (username);
+}

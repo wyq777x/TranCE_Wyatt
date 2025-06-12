@@ -23,7 +23,7 @@ UserAuthResult AccountManager::login (const QString &username,
         {
             this->username = username;
             this->password_Hash = hashPassword (password);
-
+            this->email = DbManager::getInstance ().getUserEmail (username);
             emit loginSuccessful (username);
         }
 
@@ -129,6 +129,7 @@ ChangeResult AccountManager::changeEmail (const QString &newEmail)
 
     auto result =
         DbManager::getInstance ().changeEmail (username, email, newEmail);
+
     if (result == ChangeResult::Success)
     {
         email = newEmail;
