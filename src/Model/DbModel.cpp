@@ -315,6 +315,11 @@ ChangeResult DbModel::changeEmail (const QString &username,
         return ChangeResult::DatabaseError;
     }
 
+    if (oldEmail == newEmail)
+    {
+        return ChangeResult::StillSame;
+    }
+
     if (username.isEmpty () || newEmail.isEmpty ())
     {
         return ChangeResult::NullValue;
