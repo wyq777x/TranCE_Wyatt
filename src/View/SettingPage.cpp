@@ -61,6 +61,14 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 
     m_languageComboBox = new ElaComboBox (centralWidget);
 
+    m_languageComboBox->setStyleSheet (
+        "QComboBox {"
+        "    color: black;" // set default text color as black
+        "    font-family: 'Noto Sans';"
+        "}"
+        "QComboBox QAbstractItemView {"
+        "    color: black;" // set text color of dropdown list as black
+        "}");
     m_languageComboBox->addItem ("中文");
     m_languageComboBox->addItem ("English");
     m_languageComboBox->setCurrentIndex (1); // Default to English
