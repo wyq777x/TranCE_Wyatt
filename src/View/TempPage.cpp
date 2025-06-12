@@ -169,7 +169,7 @@ void TempPage::showDialog (const QString &title,
     dialogLayout->addWidget (titleLabel);
 
     // Old password input
-    ElaLineEdit *oldPasswordLineEdit = new ElaLineEdit (changePasswordDialog);
+    oldPasswordLineEdit = new ElaLineEdit (changePasswordDialog);
     oldPasswordLineEdit->setPlaceholderText ("Old Password");
     oldPasswordLineEdit->setMinimumHeight (50);
     oldPasswordLineEdit->setMaximumHeight (50);
@@ -180,7 +180,7 @@ void TempPage::showDialog (const QString &title,
     dialogLayout->addWidget (oldPasswordLineEdit);
 
     // New password input
-    ElaLineEdit *newPasswordLineEdit = new ElaLineEdit (changePasswordDialog);
+    newPasswordLineEdit = new ElaLineEdit (changePasswordDialog);
     newPasswordLineEdit->setPlaceholderText ("New Password");
     newPasswordLineEdit->setMinimumHeight (50);
     newPasswordLineEdit->setMaximumHeight (50);

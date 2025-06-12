@@ -40,4 +40,8 @@ public:
 
     void showDialog (const QString &title, std::function<void ()> onConfirm,
                      std::function<void ()> onReject = nullptr);
+
+protected:
+    ElaLineEdit *oldPasswordLineEdit;
+    ElaLineEdit *newPasswordLineEdit;
 };

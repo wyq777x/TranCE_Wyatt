@@ -112,6 +112,7 @@ ChangeResult AccountManager::changeUsername (const QString &newUsername)
 
 ChangeResult AccountManager::changePassword (const QString &newPasswordHash)
 {
+
     auto result = DbManager::getInstance ().changePassword (
         username, password_Hash, newPasswordHash);
 

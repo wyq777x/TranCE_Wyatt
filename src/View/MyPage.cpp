@@ -179,15 +179,54 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                  }
              });
 
-    connect (changePasswordButton, &ElaPushButton::clicked, this,
-             [this] ()
-             {
-                 showDialog("Change Password",
-                   [this] ()
-                   {
-                       
-                   });
-             });
+    connect (
+        changePasswordButton, &ElaPushButton::clicked, this,
+        [this] ()
+        {
+            showDialog (
+                "Change Password",
+                [this] ()
+                {
+                    if (oldPasswordLineEdit->text ().isEmpty () ||
+                        newPasswordLineEdit->text ().isEmpty ())
+                    {
+                        showDialog ("Error", "Fields cannot be empty.");
+                        return;
+                    }
+
+                    auto oldPasswordHash = AccountManager::hashPassword (
+                        oldPasswordLineEdit->text ());
+
+                    auto newPasswordHash = AccountManager::hashPassword (
+                        newPasswordLineEdit->text ());
+
+                    if (oldPasswordHash !=
+                        AccountManager::getInstance ().getHashedPassword ())
+                    {
+                        showDialog ("Error", "Old password is incorrect.");
+                        return;
+                    }
+
+                    auto result =
+                        AccountManager::getInstance ().changePassword (
+                            newPasswordHash);
+
+                    if (result == ChangeResult::Success)
+                    {
+                        showDialog ("Success",
+                                    "Password changed successfully.");
+                    }
+                    else
+                    {
+                        auto it = ChangeResultMessage.find (result);
+                        QString errorMsg =
+                            it != ChangeResultMessage.end ()
+                                ? QString::fromStdString (it->second)
+                                : "Unknown error";
+                        showDialog ("Change Password Error", errorMsg);
+                    }
+                });
+        });
 
     connect (changeEmailButton, &ElaPushButton::clicked, this,
              [this] ()
