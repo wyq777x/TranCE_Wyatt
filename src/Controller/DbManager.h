@@ -21,6 +21,10 @@ public:
     void initDBs ();
     AsyncTask<void> initializeAsync (const QString &dictPath = "");
 
+    // User management functions
+    RegisterUserResult registerUser (const QString &username,
+                                     const QString &passwordHash);
+
     std::optional<WordEntry> lookupWord (const QString &word,
                                          const QString &lang);
     std::vector<WordEntry> searchWords (const QString &pattern,

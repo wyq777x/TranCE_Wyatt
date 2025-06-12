@@ -8,6 +8,12 @@ AsyncTask<void> DbManager::initializeAsync (const QString &dictPath)
     return DbModel::getInstance ().initializeAsync (dictPath);
 }
 
+RegisterUserResult DbManager::registerUser (const QString &username,
+                                            const QString &passwordHash)
+{
+    return DbModel::registerUser (username, passwordHash);
+}
+
 std::optional<WordEntry> DbManager::lookupWord (const QString &word,
                                                 const QString &lang)
 {

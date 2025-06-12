@@ -1,6 +1,5 @@
 #include "AccountManager.h"
 #include "DbManager.h"
-#include "DbModel.h"
 #include "UserModel.h"
 #include "Utility/Result.h"
 #include <qcontainerfwd.h>
@@ -43,7 +42,8 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
     try
     {
         password_Hash = hashPassword (password);
-        auto result = DbModel::registerUser (username, password_Hash);
+        auto result =
+            DbManager::getInstance ().registerUser (username, password_Hash);
 
         if (result != RegisterUserResult::Success)
         {
