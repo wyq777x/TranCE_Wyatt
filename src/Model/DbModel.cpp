@@ -194,13 +194,19 @@ void DbModel::deleteUser (const QString &username)
     }
 }
 
-void DbModel::updateUserPassword (const QString &username,
-                                  const QString &oldPasswordHash,
-                                  const QString &newPasswordHash)
+ChangeResult DbModel::updateUserPassword (const QString &username,
+                                          const QString &oldPasswordHash,
+                                          const QString &newPasswordHash)
 {
     if (!isUserDbOpen ())
     {
-        return;
+        return ChangeResult::DatabaseError;
+    }
+
+    if (username.isEmpty () || oldPasswordHash.isEmpty () ||
+        newPasswordHash.isEmpty ())
+    {
+        return ChangeResult::NullValue;
     }
 
     try
@@ -212,19 +218,34 @@ void DbModel::updateUserPassword (const QString &username,
         query.bind (2, username.toStdString ());
         query.bind (3, oldPasswordHash.toStdString ());
         query.exec ();
+
+        if (query.getChanges () == 0)
+        {
+            return ChangeResult::Password_OldIncorrect;
+        }
+
+        if (oldPasswordHash == newPasswordHash)
+        {
+            return ChangeResult::StillSame;
+        }
+
+        return ChangeResult::Success;
     }
     catch (const SQLite::Exception &e)
     {
         logErr ("Error updating user password in database", e);
+        return ChangeResult::DatabaseError;
     }
     catch (const std::exception &e)
     {
         logErr ("Unknown error updating user password in database", e);
+        return ChangeResult::UnknownError;
     }
     catch (...)
     {
         logErr ("Unknown error updating user password in database",
                 std::runtime_error ("Unknown exception"));
+        return ChangeResult::UnknownError;
     }
 }
 

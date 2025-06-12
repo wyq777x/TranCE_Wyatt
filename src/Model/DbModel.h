@@ -91,9 +91,9 @@ public:
 
     void deleteUser (const QString &username);
 
-    void updateUserPassword (const QString &username,
-                             const QString &oldPasswordHash,
-                             const QString &newPasswordHash);
+    ChangeResult updateUserPassword (const QString &username,
+                                     const QString &oldPasswordHash,
+                                     const QString &newPasswordHash);
 
     ChangeResult changeUsername (const QString &oldUsername,
                                  const QString &newUsername);

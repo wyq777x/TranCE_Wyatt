@@ -37,9 +37,8 @@ ChangeResult DbManager::changePassword (const QString &username,
                                         const QString &oldPasswordHash,
                                         const QString &newPasswordHash)
 {
-    DbModel::getInstance ().updateUserPassword (username, oldPasswordHash,
-                                                newPasswordHash);
-    return ChangeResult::Success;
+    return DbModel::getInstance ().updateUserPassword (
+        username, oldPasswordHash, newPasswordHash);
 }
 
 ChangeResult DbManager::changeEmail (const QString &username,

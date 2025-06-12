@@ -110,11 +110,11 @@ ChangeResult AccountManager::changeUsername (const QString &newUsername)
     return result;
 }
 
-ChangeResult AccountManager::changePassword (const QString &newPasswordHash)
+ChangeResult AccountManager::changePassword (const QString &oldPasswordHash,
+                                             const QString &newPasswordHash)
 {
-
     auto result = DbManager::getInstance ().changePassword (
-        username, password_Hash, newPasswordHash);
+        username, oldPasswordHash, newPasswordHash);
 
     if (result == ChangeResult::Success)
     {
