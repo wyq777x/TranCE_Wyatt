@@ -154,10 +154,23 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     userProfileLayout->addLayout (logoutLayout);
 
     connect (changeAvatarButton, &ElaPushButton::clicked, this,
-                 [] () { 
-
-
-                 });
+             [this] ()
+             {
+                 auto result = AccountManager::getInstance ().changeAvatar ();
+                 if (result == ChangeResult::Success)
+                 {
+                     showDialog ("Success", "Avatar changed successfully.");
+                 }
+                 else
+                 {
+                     auto it = ChangeResultMessage.find (result);
+                     QString errorMsg =
+                         it != ChangeResultMessage.end ()
+                             ? QString::fromStdString (it->second)
+                             : "Unknown error";
+                     showDialog ("Change Avatar Error", errorMsg);
+                 }
+             });
 
     connect (changeUsernameButton, &ElaPushButton::clicked, this,
              [this] ()

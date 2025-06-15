@@ -2,6 +2,11 @@
 #include "DbManager.h"
 #include "UserModel.h"
 #include "Utility/Result.h"
+#include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QRegularExpression>
+#include <QStandardPaths>
 #include <qcontainerfwd.h>
 
 void AccountManager::logout ()
@@ -142,6 +147,94 @@ ChangeResult AccountManager::changeEmail (const QString &newEmail)
     return result;
 }
 
+ChangeResult AccountManager::changeAvatar ()
+{
+    QString filePath = QString ();
+
+    filePath = QFileDialog::getOpenFileName (
+        nullptr, "Choose Avatar", "", "Images(*.png *.jpg *.bmp *.jpeg *gif)");
+
+    if (filePath.isEmpty ())
+    {
+        qDebug () << "No file selected.";
+        return ChangeResult::NullValue;
+    }
+    else
+    {
+        qDebug () << "Selected file:" << filePath;
+    }
+
+    if (!QFile::exists (filePath))
+    {
+        qDebug () << "Avatar file does not exist:" << filePath;
+        return ChangeResult::FileNotFound;
+    }
+
+    QString avatarDir =
+        QCoreApplication::applicationDirPath () + "/Utility/Avatars";
+    QDir dir;
+    if (!dir.exists (avatarDir))
+    {
+        if (!dir.mkpath (avatarDir))
+        {
+            qDebug () << "Failed to create avatar directory:" << avatarDir;
+            return ChangeResult::DatabaseError;
+        }
+    }
+
+    QFileInfo fileInfo (filePath);
+    QString extension = fileInfo.suffix ();
+
+    QDir avatarDirHandle (avatarDir);
+    QStringList nameFilters;
+    nameFilters << QString ("%1-*").arg (username);
+    QStringList existingAvatars =
+        avatarDirHandle.entryList (nameFilters, QDir::Files);
+
+    int nextNumber = 1;
+    if (!existingAvatars.isEmpty ())
+    {
+        QStringList numbers;
+        for (const QString &filename : existingAvatars)
+        {
+            QRegularExpression regex (QString ("%1-(\\d+)").arg (username));
+            QRegularExpressionMatch match = regex.match (filename);
+            if (match.hasMatch ())
+            {
+                numbers.append (match.captured (1));
+            }
+        }
+
+        if (!numbers.isEmpty ())
+        {
+            std::sort (numbers.begin (), numbers.end (),
+                       [] (const QString &a, const QString &b)
+                       { return a.toInt () < b.toInt (); });
+            nextNumber = numbers.last ().toInt () + 1;
+        }
+    }
+
+    QString newFileName =
+        QString ("%1-%2.%3").arg (username).arg (nextNumber).arg (extension);
+    QString newAvatarPath = avatarDir + "/" + newFileName;
+
+    if (!QFile::copy (filePath, newAvatarPath))
+    {
+        qDebug () << "Failed to copy avatar file from" << filePath << "to"
+                  << newAvatarPath;
+        return ChangeResult::DatabaseError;
+    }
+
+    auto result =
+        DbManager::getInstance ().changeAvatar (username, newAvatarPath);
+
+    if (result == ChangeResult::Success)
+    {
+        this->avatarPath = newAvatarPath;
+    }
+
+    return result;
+}
 QString AccountManager::getUsername () const { return username; }
 
 QString AccountManager::getHashedPassword () const { return password_Hash; }

@@ -56,6 +56,7 @@ enum class ChangeResult
     AlreadyExists,
     StillSame,
     NullValue,
+    FileNotFound,
     DatabaseError,
     UnknownError,
     Password_OldIncorrect
@@ -67,6 +68,7 @@ static const std::unordered_map<ChangeResult, std::string> ChangeResultMessage =
      {ChangeResult::AlreadyExists, "Username or email already exists."},
      {ChangeResult::StillSame, "New value is the same as the old one."},
      {ChangeResult::NullValue, "New value cannot be null."},
+     {ChangeResult::FileNotFound, "File not found."},
      {ChangeResult::DatabaseError, "Database error."},
      {ChangeResult::UnknownError, "Unknown error."},
      {ChangeResult::Password_OldIncorrect, "Old password is incorrect."}

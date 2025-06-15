@@ -358,6 +358,66 @@ ChangeResult DbModel::changeEmail (const QString &username,
     }
 }
 
+ChangeResult DbModel::changeAvatar (const QString &username,
+                                    const QString &avatarPath)
+{
+    if (!isUserDbOpen ())
+    {
+        return ChangeResult::DatabaseError;
+    }
+    if (username.isEmpty () || avatarPath.isEmpty ())
+    {
+        return ChangeResult::NullValue;
+    }
+    if (!QFile::exists (avatarPath))
+    {
+        return ChangeResult::FileNotFound;
+    }
+
+    QDir avatarDir (m_avatarDir);
+    if (!avatarDir.exists ())
+    {
+        if (!avatarDir.mkpath ("."))
+        {
+            logErr ("Failed to create avatar directory",
+                    std::runtime_error ("Directory creation failed"));
+            return ChangeResult::DatabaseError;
+        }
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "UPDATE users SET avatar_path = ? WHERE username = ?");
+        query.bind (1, avatarPath.toStdString ());
+        query.bind (2, username.toStdString ());
+        query.exec ();
+
+        if (query.getChanges () == 0)
+        {
+            return ChangeResult::DatabaseError;
+        }
+
+        return ChangeResult::Success;
+    }
+    catch (SQLite::Exception &e)
+    {
+        logErr ("Error changing user avatar in database", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error changing user avatar in database", e);
+        return ChangeResult::UnknownError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error changing user avatar in database",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::UnknownError;
+    }
+}
+
 std::optional<QString> DbModel::getUserId (const QString &username) const
 {
     if (!isUserDbOpen ())

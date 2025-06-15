@@ -38,6 +38,8 @@ public:
     ChangeResult changeEmail (const QString &username, const QString &oldEmail,
                               const QString &newEmail);
 
+    ChangeResult changeAvatar (const QString &username,
+                               const QString &avatarPath);
     QString getUserEmail (const QString &username);
     QString getUserAvatarPath (const QString &username);
 

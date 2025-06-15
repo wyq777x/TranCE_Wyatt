@@ -102,6 +102,8 @@ public:
     ChangeResult changeEmail (const QString &username, const QString &oldEmail,
                               const QString &newEmail);
 
+    ChangeResult changeAvatar (const QString &username,
+                               const QString &avatarPath);
     std::optional<QString> getUserId (const QString &username) const;
     std::optional<QString> getUserName (const QString &userId) const;
     QString getUserEmail (const QString &username) const;

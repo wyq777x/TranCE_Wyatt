@@ -1,5 +1,6 @@
 #include "DbManager.h"
 #include "Model/DbModel.h"
+#include "Utility/Result.h"
 
 void DbManager::initDBs () { DbModel::getInstance ().initDBs (); }
 
@@ -48,6 +49,11 @@ ChangeResult DbManager::changeEmail (const QString &username,
     return DbModel::getInstance ().changeEmail (username, oldEmail, newEmail);
 }
 
+ChangeResult DbManager::changeAvatar (const QString &username,
+                                      const QString &avatarPath)
+{
+    return DbModel::getInstance ().changeAvatar (username, avatarPath);
+}
 QString DbManager::getUserEmail (const QString &username)
 {
     return DbModel::getInstance ().getUserEmail (username);

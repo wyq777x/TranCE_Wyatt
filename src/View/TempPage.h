@@ -18,6 +18,7 @@
 #include <QAction>
 #include <QDesktopServices>
 #include <QDialogButtonBox>
+#include <QFileDialog>
 #include <QFrame>
 #include <QGraphicsBlurEffect>
 #include <QLabel>
