@@ -39,6 +39,7 @@ public:
                               const QString &newEmail);
 
     QString getUserEmail (const QString &username);
+    QString getUserAvatarPath (const QString &username);
 
 private:
     DbManager () = default;

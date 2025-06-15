@@ -493,6 +493,54 @@ QString DbModel::getUserEmail (const QString &username) const
     }
 }
 
+QString DbModel::getUserAvatarPath (const QString &username) const
+{
+    if (!isUserDbOpen ())
+    {
+        return QString (":/image/DefaultUser.png");
+    }
+
+    if (username.isEmpty ())
+    {
+        return QString (":/image/DefaultUser.png");
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "SELECT avatar_path FROM users WHERE username = ?");
+        query.bind (1, username.toStdString ());
+
+        if (query.executeStep ())
+        {
+
+            if (!query.getColumn (0).isNull ())
+            {
+                return QString::fromStdString (
+                    query.getColumn (0).getString ());
+            }
+        }
+
+        return QString (":/image/DefaultUser.png");
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error getting user avatar path from database", e);
+        return QString (":/image/DefaultUser.png");
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting user avatar path from database", e);
+        return QString (":/image/DefaultUser.png");
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting user avatar path from database",
+                std::runtime_error ("Unknown exception"));
+        return QString (":/image/DefaultUser.png");
+    }
+}
+
 AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
 {
     if (!isDictDbOpen ())

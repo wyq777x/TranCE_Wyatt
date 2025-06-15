@@ -12,6 +12,7 @@
 #include <memory>
 #include <optional>
 #include <qcontainerfwd.h>
+#include <qcoreapplication.h>
 #include <qtmetamacros.h>
 #include <vector>
 class DbModel
@@ -28,8 +29,9 @@ public:
 
     static DbModel &getInstance ()
     {
-        static DbModel instance (QCoreApplication::applicationDirPath () +
-                                 "/Utility/DBs");
+        static DbModel instance (
+            QCoreApplication::applicationDirPath () + "/Utility/DBs",
+            QCoreApplication::applicationDirPath () + "/Utility/Avatars");
         return instance;
     }
 
@@ -103,6 +105,7 @@ public:
     std::optional<QString> getUserId (const QString &username) const;
     std::optional<QString> getUserName (const QString &userId) const;
     QString getUserEmail (const QString &username) const;
+    QString getUserAvatarPath (const QString &username) const;
 
     void initUserTable ()
     {
@@ -286,13 +289,15 @@ public:
     std::string getLastError () const { return m_lastError; }
 
 private:
-    explicit DbModel (const QString &dbPath)
-        : m_dbDir (dbPath), user_db (nullptr), dict_db (nullptr)
+    explicit DbModel (const QString &dbPath, const QString &avatarPath)
+        : m_dbDir (dbPath), m_avatarDir (avatarPath), user_db (nullptr),
+          dict_db (nullptr)
     {
         initDBs ();
     }
 
     QString m_dbDir;
+    QString m_avatarDir;
     std::unique_ptr<SQLite::Database> user_db;
     std::unique_ptr<SQLite::Database> dict_db;
     mutable std::string m_lastError;

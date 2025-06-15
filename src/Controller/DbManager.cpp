@@ -52,3 +52,8 @@ QString DbManager::getUserEmail (const QString &username)
 {
     return DbModel::getInstance ().getUserEmail (username);
 }
+
+QString DbManager::getUserAvatarPath (const QString &username)
+{
+    return DbModel::getInstance ().getUserAvatarPath (username);
+}

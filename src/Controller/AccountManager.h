@@ -61,6 +61,7 @@ public:
     QString getHashedPassword () const;
     QString getEmail () const;
     QString getLanguage () const;
+    QString getAvatarPath () const;
 
 signals:
     void loginSuccessful (const QString &username);
@@ -73,4 +74,5 @@ private:
     QString username{};
     QString password_Hash{};
     QString email{};
+    QString avatarPath{};
 };

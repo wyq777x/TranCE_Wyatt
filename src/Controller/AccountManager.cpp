@@ -11,6 +11,8 @@ void AccountManager::logout ()
         userModel->logout ();
     username.clear ();
     password_Hash.clear ();
+    email.clear ();
+    avatarPath.clear ();
 }
 
 UserAuthResult AccountManager::login (const QString &username,
@@ -24,6 +26,8 @@ UserAuthResult AccountManager::login (const QString &username,
             this->username = username;
             this->password_Hash = hashPassword (password);
             this->email = DbManager::getInstance ().getUserEmail (username);
+            this->avatarPath =
+                DbManager::getInstance ().getUserAvatarPath (username);
             emit loginSuccessful (username);
         }
 
@@ -148,3 +152,5 @@ QString AccountManager::getLanguage () const
 {
     return AppSettingModel::getInstance ().getLanguage ();
 }
+
+QString AccountManager::getAvatarPath () const { return avatarPath; }
