@@ -68,6 +68,7 @@ public:
 signals:
     void loginSuccessful (const QString &username);
     void logoutSuccessful ();
+    void changeAvatarSuccessful (const QString &avatarPath);
 
 private:
     AccountManager () = default;

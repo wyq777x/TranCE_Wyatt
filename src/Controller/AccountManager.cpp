@@ -231,6 +231,8 @@ ChangeResult AccountManager::changeAvatar ()
     if (result == ChangeResult::Success)
     {
         this->avatarPath = newAvatarPath;
+        emit changeAvatarSuccessful (newAvatarPath);
+        qDebug () << "Avatar changed successfully to" << newAvatarPath;
     }
 
     return result;

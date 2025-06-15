@@ -30,8 +30,11 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
 
     avatarLayout->addWidget (avatarTextLabel);
 
-    QLabel *avatarLabel = new QLabel (centralWidget);
+    avatarLabel = new QLabel (centralWidget);
+
+    avatarLabel->setFixedSize (100, 100);
     avatarLabel->setPixmap (QPixmap (":/image/DefaultUser.png"));
+    avatarLabel->setScaledContents (true);
 
     avatarLayout->addWidget (avatarLabel);
 

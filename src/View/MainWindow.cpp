@@ -43,6 +43,14 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
 
     connect (&AccountManager::getInstance (), &AccountManager::logoutSuccessful,
              this, &MainWindow::onLogoutSuccessful);
+
+    connect (&AccountManager::getInstance (),
+             &AccountManager::changeAvatarSuccessful, this,
+             [this] (const QString &newAvatarPath)
+             {
+                 setUserInfoCardPixmap (QPixmap (newAvatarPath));
+                 myPage->setAvatar (QPixmap (newAvatarPath));
+             });
 }
 
 void MainWindow::initPages ()
@@ -86,15 +94,17 @@ void MainWindow::onLoginSuccessful (const QString &username)
     setUserInfoCardSubTitle (
         QString ("%1").arg (AccountManager::getInstance ().getEmail ()));
 
+    setUserInfoCardPixmap (
+        QPixmap (AccountManager::getInstance ().getAvatarPath ()));
+
     myPage->setEnabled (true);
 
     myPage->usernameLineEdit->setText (username);
 
     myPage->emailLineEdit->setText (AccountManager::getInstance ().getEmail ());
 
-    // setUserInfoCardPixmap (QPixmap (const QString &avatarPath));
-
-    // to be further designed
+    myPage->setAvatar (
+        QPixmap (AccountManager::getInstance ().getAvatarPath ()));
 }
 
 void MainWindow::onLogoutSuccessful ()
