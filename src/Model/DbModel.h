@@ -111,11 +111,13 @@ public:
         {
             if (user_db != nullptr)
             {
-                user_db->exec ("CREATE TABLE IF NOT EXISTS users("
-                               "user_id TEXT PRIMARY KEY,"
-                               "username TEXT NOT NULL UNIQUE,"
-                               "password_hash TEXT NOT NULL,"
-                               "email TEXT UNIQUE);");
+                user_db->exec (
+                    "CREATE TABLE IF NOT EXISTS users("
+                    "user_id TEXT PRIMARY KEY,"
+                    "username TEXT NOT NULL UNIQUE,"
+                    "password_hash TEXT NOT NULL,"
+                    "email TEXT UNIQUE,"
+                    "avatar_path TEXT DEFAULT ':/image/DefaultUser.png');");
             }
         }
         catch (const SQLite::Exception &e)

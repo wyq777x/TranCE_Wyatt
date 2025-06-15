@@ -3,7 +3,7 @@
 MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
 {
     setWindowTitle ("TranCE_Wyatt");
-    setWindowIcon (QIcon (":image/learnENG.ico"));
+    setWindowIcon (QIcon (":/image/learnENG.ico"));
 
     initPages ();
     moveToCenter ();
@@ -14,7 +14,7 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
                                 ? AccountManager::getInstance ().getEmail ()
                                 : "Click to login"));
 
-    setUserInfoCardPixmap (QPixmap (":image/DefaultUser.png"));
+    setUserInfoCardPixmap (QPixmap (":/image/DefaultUser.png"));
 
     connect (this, &ElaWindow::userInfoCardClicked, this,
              [this] ()
@@ -101,7 +101,8 @@ void MainWindow::onLogoutSuccessful ()
 {
     setUserInfoCardTitle ("User");
     setUserInfoCardSubTitle ("Click to login");
-    setUserInfoCardPixmap (QPixmap (":image/DefaultUser.png"));
+
+    setUserInfoCardPixmap (QPixmap (":/image/DefaultUser.png"));
 
     myPage->setEnabled (false);
 
