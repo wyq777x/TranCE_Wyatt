@@ -32,4 +32,5 @@ private:
     StatisticsPage *statisticsPage;
 private slots:
     void onLoginSuccessful (const QString &username);
+    void onLogoutSuccessful ();
 };

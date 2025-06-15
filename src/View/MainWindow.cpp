@@ -40,6 +40,9 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
     connect (myPage, &MyPage::emailChanged, this,
              [this] (const QString &newEmail)
              { setUserInfoCardSubTitle (newEmail); });
+
+    connect (&AccountManager::getInstance (), &AccountManager::logoutSuccessful,
+             this, &MainWindow::onLogoutSuccessful);
 }
 
 void MainWindow::initPages ()
@@ -83,6 +86,8 @@ void MainWindow::onLoginSuccessful (const QString &username)
     setUserInfoCardSubTitle (
         QString ("%1").arg (AccountManager::getInstance ().getEmail ()));
 
+    myPage->setEnabled (true);
+
     myPage->usernameLineEdit->setText (username);
 
     myPage->emailLineEdit->setText (AccountManager::getInstance ().getEmail ());
@@ -90,4 +95,16 @@ void MainWindow::onLoginSuccessful (const QString &username)
     // setUserInfoCardPixmap (QPixmap (const QString &avatarPath));
 
     // to be further designed
+}
+
+void MainWindow::onLogoutSuccessful ()
+{
+    setUserInfoCardTitle ("User");
+    setUserInfoCardSubTitle ("Click to login");
+    setUserInfoCardPixmap (QPixmap (":image/DefaultUser.png"));
+
+    myPage->setEnabled (false);
+
+    myPage->usernameLineEdit->clear ();
+    myPage->emailLineEdit->clear ();
 }
