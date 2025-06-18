@@ -1046,19 +1046,75 @@ AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
 }
 
 std::optional<WordEntry> DbModel::lookupWord (const QString &word,
-                                              const QString &lang)
+                                              const QString &srcLang)
 {
     if (!isDictDbOpen ())
     {
         return std::nullopt;
     }
 
+    if (word.isEmpty () || srcLang.isEmpty ())
+    {
+        return std::nullopt; // Invalid input
+    }
+
+    try
+    {
+        // Building...
+
+        return std::nullopt;
+    }
+    catch (SQLite::Exception &e)
+    {
+        logErr ("Error looking up word in database", e);
+        return std::nullopt;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error looking up word in database", e);
+        return std::nullopt;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error looking up word in database",
+                std::runtime_error ("Unknown exception"));
+        return std::nullopt;
+    }
     return std::nullopt;
 }
 
 std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
-                                             const QString &lang, int limit)
+                                             const QString &srcLang, int limit)
 {
+    if (!isDictDbOpen ())
+    {
+        return std::vector<WordEntry> ();
+    }
+    if (pattern.isEmpty () || srcLang.isEmpty ())
+    {
+        return std::vector<WordEntry> (); // Invalid input
+    }
+
+    try
+    {
+        // Building...
+    }
+    catch (SQLite::Exception &e)
+    {
+        logErr ("Error searching words in database", e);
+        return std::vector<WordEntry> ();
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error searching words in database", e);
+        return std::vector<WordEntry> ();
+    }
+    catch (...)
+    {
+        logErr ("Unknown error searching words in database",
+                std::runtime_error ("Unknown exception"));
+        return std::vector<WordEntry> ();
+    }
     return std::vector<WordEntry> ();
 }
 

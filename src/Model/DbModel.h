@@ -274,9 +274,9 @@ public:
     void insertWordBatchSync (const std::vector<WordEntry> &batch);
 
     std::optional<WordEntry> lookupWord (const QString &word,
-                                         const QString &lang);
+                                         const QString &srcLang);
     std::vector<WordEntry> searchWords (const QString &pattern,
-                                        const QString &lang, int limit = 10);
+                                        const QString &srcLang, int limit = 10);
 
     void addToUserVocabulary (const QString &userId, const QString &word);
     void removeFromUserVocabulary (const QString &userId, const QString &word);

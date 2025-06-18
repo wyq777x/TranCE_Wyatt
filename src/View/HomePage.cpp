@@ -86,12 +86,17 @@ Online)");
     lineEdit->setBorderRadius (20);
 
     ElaListView *suggestionsList = new ElaListView (centralWidget);
+
+    suggestionsList->setEditTriggers (QAbstractItemView::NoEditTriggers);
+    suggestionsList->setIsTransparent (true);
     suggestionsList->setFixedSize (550, 200);
+
     suggestionsList->hide ();
 
     QStringListModel *suggestionModel = new QStringListModel (this);
     QStringList suggestions = {"1", "2", "3", "4", "5",
                                "6", "7", "8", "9", "10"};
+
     suggestionModel->setStringList (suggestions);
     suggestionsList->setModel (suggestionModel);
 
@@ -178,6 +183,12 @@ Online)");
                      clearAction->setVisible (true);
                      suggestionsList->show ();
                  }
+             });
+
+    connect (suggestionsList, &ElaListView::clicked, this,
+             [=, this] (const QModelIndex &index)
+             {
+                 // Building...
              });
     connect (lineEdit, &ElaLineEdit::returnPressed,
              [=] ()
