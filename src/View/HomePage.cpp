@@ -21,7 +21,13 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     homePageLayout->setSpacing (20);
 
     ElaComboBox *LangComboBox_left = new ElaComboBox (centralWidget);
+
+    LangComboBox_left->setToolTip ("Select Source Language");
+
     ElaComboBox *LangComboBox_right = new ElaComboBox (centralWidget);
+
+    LangComboBox_right->setToolTip ("Select Target Language");
+
     LangComboBox_left->setStyleSheet (
         "QComboBox {"
         "    color: black;" // set default text color as black
@@ -43,6 +49,7 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     ElaIconButton *swapButton =
         new ElaIconButton (ElaIconType::SwapArrows, centralWidget);
     swapButton->setBorderRadius (3);
+    swapButton->setToolTip ("Swap Languages");
 
     QHBoxLayout *langLayout = new QHBoxLayout (centralWidget);
     langLayout->setAlignment (Qt::AlignHCenter);
@@ -61,6 +68,9 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     LangComboBox_right->addItem ("English");
 
     ElaToggleButton *searchOnline = new ElaToggleButton (centralWidget);
+
+    searchOnline->setToolTip ("Search Online by Bing");
+
     searchOnline->setText (R"(Search
 Online)");
     searchOnline->setMinimumHeight (60);

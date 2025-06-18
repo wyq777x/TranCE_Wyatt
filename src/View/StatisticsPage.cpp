@@ -49,6 +49,9 @@ StatisticsPage::StatisticsPage (QWidget *parent) : TempPage (parent)
 
     ElaIconButton *refreshButton =
         new ElaIconButton (ElaIconType::ArrowRotateLeft);
+
+    refreshButton->setToolTip ("Refresh Statistics");
+
     refreshButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
     refreshButton->setMinimumHeight (40);
     statsLayout->addWidget (refreshButton);
