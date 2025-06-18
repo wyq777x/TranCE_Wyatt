@@ -75,6 +75,16 @@ Online)");
     lineEdit->setMinimumWidth (550);
     lineEdit->setBorderRadius (20);
 
+    ElaListView *suggestionsList = new ElaListView (centralWidget);
+    suggestionsList->setFixedSize (550, 200);
+    suggestionsList->hide ();
+
+    QStringListModel *suggestionModel = new QStringListModel (this);
+    QStringList suggestions = {"1", "2", "3", "4", "5",
+                               "6", "7", "8", "9", "10"};
+    suggestionModel->setStringList (suggestions);
+    suggestionsList->setModel (suggestionModel);
+
     QAction *searchAction = lineEdit->addAction (
         ElaIcon::getInstance ()->getElaIcon (ElaIconType::MagnifyingGlass, 512),
         QLineEdit::LeadingPosition);
@@ -91,7 +101,10 @@ Online)");
     searchLayout->setSpacing (20);
     searchLayout->addWidget (lineEdit);
     searchLayout->addWidget (searchOnline);
+
     homePageLayout->addLayout (searchLayout);
+
+    homePageLayout->addWidget (suggestionsList);
 
     QLabel *randomRecommendationLabel =
         new QLabel ("Random Recommendation:", centralWidget);
@@ -148,10 +161,12 @@ Online)");
                  if (text.isEmpty ())
                  {
                      clearAction->setVisible (false);
+                     suggestionsList->hide ();
                  }
                  else
                  {
                      clearAction->setVisible (true);
+                     suggestionsList->show ();
                  }
              });
     connect (lineEdit, &ElaLineEdit::returnPressed,

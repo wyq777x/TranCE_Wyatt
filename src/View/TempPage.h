@@ -24,6 +24,8 @@
 #include <QLabel>
 #include <QPainter>
 #include <QStackedLayout>
+#include <QStringList>
+#include <QStringListModel>
 #include <QVBoxLayout>
 #include <functional>
 class TempPage : public ElaScrollPage
