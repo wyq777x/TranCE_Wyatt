@@ -94,10 +94,6 @@ Online)");
     suggestionsList->hide ();
 
     QStringListModel *suggestionModel = new QStringListModel (this);
-    QStringList suggestions = {"1", "2", "3", "4", "5",
-                               "6", "7", "8", "9", "10"};
-
-    suggestionModel->setStringList (suggestions);
     suggestionsList->setModel (suggestionModel);
 
     QAction *searchAction = lineEdit->addAction (
@@ -171,7 +167,7 @@ Online)");
     connect (clearAction, &QAction::triggered, [=] () { lineEdit->clear (); });
 
     connect (lineEdit, &ElaLineEdit::textChanged,
-             [=] (const QString &text)
+             [=, this] (const QString &text)
              {
                  if (text.isEmpty ())
                  {
@@ -181,6 +177,43 @@ Online)");
                  else
                  {
                      clearAction->setVisible (true);
+
+                     if (LangComboBox_left->currentText () ==
+                         LangComboBox_right->currentText ())
+                     {
+                         suggestionsList->hide ();
+                         return;
+                     }
+
+                     if (LangComboBox_left->currentText ().isEmpty () ||
+                         LangComboBox_right->currentText ().isEmpty ())
+                     {
+                         suggestionsList->hide ();
+                         return;
+                     }
+
+                     if (LangComboBox_left->currentText () == "English" &&
+                         LangComboBox_right->currentText () == "Chinese")
+                     {
+                         auto wordEntry = DbModel::getInstance ().lookupWord (
+                             lineEdit->text (),
+                             LangComboBox_left->currentText ());
+
+                         QStringList singleSuggestion;
+                         singleSuggestion << wordEntry->word;
+                         suggestionModel->setStringList (singleSuggestion);
+                         suggestionsList->setModel (suggestionModel);
+                     }
+                     else if (LangComboBox_left->currentText () == "Chinese" &&
+                              LangComboBox_right->currentText () == "English")
+                     {
+                         suggestionsList->setModel (suggestionModel);
+                     }
+                     else
+                     {
+                         suggestionsList->hide ();
+                         return;
+                     }
                      suggestionsList->show ();
                  }
              });

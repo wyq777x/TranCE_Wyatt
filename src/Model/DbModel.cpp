@@ -3,6 +3,7 @@
 #include "SQLiteCpp/Statement.h"
 #include "SQLiteCpp/Transaction.h"
 #include "Utility/Result.h"
+#include "Utility/WordEntry.h"
 #include <qdebug.h>
 #include <qhashfunctions.h>
 #include <quuid.h>
@@ -1061,8 +1062,39 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
     try
     {
         // Building...
+        WordEntry entry;
 
-        return std::nullopt;
+        SQLite::Statement queryWordBasic (*dict_db,
+                                          "SELECT word, pronunciation "
+                                          "FROM words WHERE word = ?");
+        queryWordBasic.bind (1, word.toStdString ());
+        if (queryWordBasic.executeStep ())
+        {
+
+            entry.word = QString::fromStdString (
+                queryWordBasic.getColumn (0).getString ());
+            entry.pronunciation = QString::fromStdString (
+                queryWordBasic.getColumn (1).getString ());
+            entry.language = srcLang;
+        }
+
+        SQLite::Statement queryTranslation (
+            *dict_db, "SELECT target_word, target_language "
+                      "FROM word_translations WHERE source_word = ? "
+                      "AND source_language = ?");
+        queryTranslation.bind (1, word.toStdString ());
+        queryTranslation.bind (2, srcLang.toStdString ());
+        if (queryTranslation.executeStep ())
+        {
+            entry.translation = QString::fromStdString (
+                queryTranslation.getColumn (0).getString ());
+        }
+        else
+        {
+            entry.translation = ""; // No translation found
+        }
+
+        return entry;
     }
     catch (SQLite::Exception &e)
     {
@@ -1098,6 +1130,9 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
     try
     {
         // Building...
+        // to add fuzzy search, we can use LIKE or MATCH
+
+        return std::vector<WordEntry> ();
     }
     catch (SQLite::Exception &e)
     {

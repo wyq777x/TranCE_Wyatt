@@ -12,8 +12,6 @@
 UserAuthResult UserModel::login (const QString &username,
                                  const QString &password)
 {
-    // Building...
-
     auto &instance = UserModel::getInstance ();
     if (instance.isLoggedIn ())
     {

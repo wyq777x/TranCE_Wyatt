@@ -6,7 +6,7 @@ struct WordEntry
 {
     QString word;
     QString translation;
-    QString language;
+    QString language;           // source language (e.g., "en", "zh")
     QString partOfSpeech;       // Part of speech (e.g., noun, verb)
     QString examples;           // Example sentences
     QString exampleTranslation; // Translations of example sentences
