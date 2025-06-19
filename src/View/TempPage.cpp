@@ -2,7 +2,6 @@
 
 TempPage::TempPage (QWidget *parent) : ElaScrollPage (parent)
 {
-
     setWindowIcon (QIcon (":/image/learnENG.ico"));
 };
 

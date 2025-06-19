@@ -14,7 +14,7 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
     setStyleSheet (
         "background-color: #f0f0f0; font-family: 'Noto Sans', sans-serif;");
 
-    QVBoxLayout *mainLayout = new QVBoxLayout ();
+    QVBoxLayout *mainLayout = new QVBoxLayout (this);
     mainLayout->setContentsMargins (20, 20, 20, 20);
     mainLayout->setSpacing (10);
 
@@ -65,7 +65,7 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
 
     QWidget *container = new QWidget ();
     container->setLayout (mainLayout);
-
+    container->setWindowTitle ("Word Card");
     addCentralWidget (container);
 }
 

@@ -258,10 +258,13 @@ Online)");
                                    .arg (index.data ().toString ())));
                      return;
                  }
-
+                 auto wordEntry = DbManager::getInstance ().lookupWord (
+                     index.data ().toString (),
+                     LangComboBox_left->currentText () == "English" ? "en"
+                                                                    : "zh");
                  auto wordCard = WordCard::getInstance ();
 
-                 // wordCard->setWordEntry(wordEntry);
+                 wordCard->setWordEntry (wordEntry.value ());
 
                  wordCard->show ();
              });
