@@ -1,4 +1,4 @@
-#include "MyPage.h"
+#include "View/Components/MyPage.h"
 #include "AccountManager.h"
 #include "DbManager.h"
 #include "ElaLineEdit.h"

@@ -1,4 +1,4 @@
-#include "RegisterPage.h"
+#include "View/Components/RegisterPage.h"
 #include "ElaLineEdit.h"
 #include <qdialogbuttonbox.h>
 #include <qlabel.h>

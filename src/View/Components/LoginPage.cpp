@@ -1,4 +1,4 @@
-#include "LoginPage.h"
+#include "View/Components/LoginPage.h"
 #include "ElaContentDialog.h"
 #include "Utility/Result.h"
 #include <qboxlayout.h>

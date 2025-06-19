@@ -4,7 +4,7 @@
 #include "ElaLineEdit.h"
 #include "ElaPushButton.h"
 #include "TempPage.h"
-#include "View/RegisterPage.h"
+#include "View/Components/RegisterPage.h"
 
 class LoginPage : public TempPage
 {

@@ -213,14 +213,24 @@ Online)");
                      if (LangComboBox_left->currentText () == "English" &&
                          LangComboBox_right->currentText () == "Chinese")
                      {
-                         auto wordEntry = DbManager::getInstance ().lookupWord (
-                             lineEdit->text (),
-                             LangComboBox_left->currentText ());
+                         if (searchMode_precise->isChecked ())
+                         {
+                             auto wordEntry =
+                                 DbManager::getInstance ().lookupWord (
+                                     lineEdit->text (),
+                                     LangComboBox_left->currentText ());
 
-                         QStringList singleSuggestion;
-                         singleSuggestion << wordEntry->word;
-                         suggestionModel->setStringList (singleSuggestion);
-                         suggestionsList->setModel (suggestionModel);
+                             QStringList singleSuggestion;
+                             singleSuggestion << wordEntry->word;
+                             suggestionModel->setStringList (singleSuggestion);
+                             suggestionsList->setModel (suggestionModel);
+                         }
+
+                         if (searchMode_fuzzy->isChecked ())
+                         {
+
+                             // to be implemented
+                         }
                      }
                      else if (LangComboBox_left->currentText () == "Chinese" &&
                               LangComboBox_right->currentText () == "English")
@@ -248,6 +258,12 @@ Online)");
                                    .arg (index.data ().toString ())));
                      return;
                  }
+
+                 auto wordCard = WordCard::getInstance ();
+
+                 // wordCard->setWordEntry(wordEntry);
+
+                 wordCard->show ();
              });
     connect (lineEdit, &ElaLineEdit::returnPressed,
              [=] ()

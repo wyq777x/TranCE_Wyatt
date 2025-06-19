@@ -1,10 +1,10 @@
 #pragma once
 #include "Model/UserModel.h"
 #include "View/AboutPage.h"
+#include "View/Components/LoginPage.h"
+#include "View/Components/MyPage.h"
 #include "View/HistoryPage.h"
 #include "View/HomePage.h"
-#include "View/LoginPage.h"
-#include "View/MyPage.h"
 #include "View/RecitePage.h"
 #include "View/SettingPage.h"
 #include "View/StatisticsPage.h"
