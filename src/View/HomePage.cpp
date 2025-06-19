@@ -1,4 +1,5 @@
 #include "HomePage.h"
+#include "DbManager.h"
 #include "Def.h"
 #include "ElaComboBox.h"
 #include "ElaFlowLayout.h"
@@ -115,6 +116,23 @@ Online)");
 
     homePageLayout->addLayout (searchLayout);
 
+    QHBoxLayout *searchModeLayout = new QHBoxLayout (centralWidget);
+    searchModeLayout->setAlignment (Qt::AlignHCenter);
+    searchModeLayout->setSpacing (20);
+    ElaRadioButton *searchMode_precise =
+        new ElaRadioButton ("Precise Search", centralWidget);
+    searchMode_precise->setToolTip ("Precise Search Mode");
+
+    ElaRadioButton *searchMode_fuzzy =
+        new ElaRadioButton ("Fuzzy Search", centralWidget);
+    searchMode_fuzzy->setToolTip ("Fuzzy Search Mode");
+    searchMode_fuzzy->setChecked (true);
+
+    searchModeLayout->addWidget (searchMode_precise);
+    searchModeLayout->addWidget (searchMode_fuzzy);
+
+    homePageLayout->addLayout (searchModeLayout);
+
     homePageLayout->addWidget (suggestionsList);
 
     QLabel *randomRecommendationLabel =
@@ -195,7 +213,7 @@ Online)");
                      if (LangComboBox_left->currentText () == "English" &&
                          LangComboBox_right->currentText () == "Chinese")
                      {
-                         auto wordEntry = DbModel::getInstance ().lookupWord (
+                         auto wordEntry = DbManager::getInstance ().lookupWord (
                              lineEdit->text (),
                              LangComboBox_left->currentText ());
 
@@ -222,6 +240,14 @@ Online)");
              [=, this] (const QModelIndex &index)
              {
                  // Building...
+
+                 if (searchOnline->getIsToggled ())
+                 {
+                     QDesktopServices::openUrl (
+                         QUrl (QString ("https://www.bing.com/search?q=%1")
+                                   .arg (index.data ().toString ())));
+                     return;
+                 }
              });
     connect (lineEdit, &ElaLineEdit::returnPressed,
              [=] ()

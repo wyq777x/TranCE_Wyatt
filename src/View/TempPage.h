@@ -9,6 +9,7 @@
 #include <ElaLineEdit.h>
 #include <ElaListView.h>
 #include <ElaPushButton.h>
+#include <ElaRadioButton.h>
 #include <ElaScrollArea.h>
 #include <ElaScrollPage.h>
 #include <ElaTableView.h>
