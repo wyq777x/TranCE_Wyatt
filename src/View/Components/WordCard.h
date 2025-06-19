@@ -2,6 +2,9 @@
 
 #include "Utility/WordEntry.h"
 #include "View/TempPage.h"
+#include <QFrame>
+#include <QLabel>
+#include <QVBoxLayout>
 #include <qevent.h>
 
 class WordCard : public TempPage
@@ -22,4 +25,10 @@ private:
     WordCard () = delete;
     WordCard (const WordCard &) = delete;
     WordCard &operator= (const WordCard &) = delete;
+
+    // UI components
+    QLabel *wordLabel;
+    QLabel *pronunciationLabel;
+    QFrame *separatorLine;
+    QLabel *translationLabel;
 };
