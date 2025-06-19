@@ -10,6 +10,7 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
 
     setWindowTitle ("Word Card");
 
+    setFixedSize (400, 400);
     setStyleSheet (
         "background-color: #f0f0f0; font-family: 'Noto Sans', sans-serif;");
 
