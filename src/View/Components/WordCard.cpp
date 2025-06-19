@@ -1,4 +1,5 @@
 #include "Components/WordCard.h"
+#include <qnamespace.h>
 
 WordCard::WordCard (QWidget *parent) : TempPage (parent)
 {
@@ -46,8 +47,8 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
 
     translationLabel = new QLabel ();
     translationLabel->setAlignment (Qt::AlignLeft | Qt::AlignTop);
-    translationLabel->setWordWrap (true);
     translationLabel->setMinimumHeight (100);
+    translationLabel->setWordWrap (true);
     translationLabel->setStyleSheet ("QLabel {"
                                      "font-size: 16px;"
                                      "color: #34495e;"
@@ -85,19 +86,28 @@ void WordCard::setWordEntry (WordEntry &entry)
     }
 
     QString translationText = entry.translation;
+    translationText.replace ("\\n", "\n");
+
     if (!entry.partOfSpeech.isEmpty ())
     {
+
         translationText =
-            QString ("[%1] %2").arg (entry.partOfSpeech, entry.translation);
+            QString ("[%1] %2").arg (entry.partOfSpeech, translationText);
     }
 
     if (!entry.examples.isEmpty ())
     {
-        translationText += QString ("\n\nExamples: %1").arg (entry.examples);
+        QString examples = entry.examples;
+        examples.replace ("\\n", "\n");
+
+        translationText += QString ("\n\nExamples: %1").arg (examples);
+
         if (!entry.exampleTranslation.isEmpty ())
         {
+            QString exampleTranslation = entry.exampleTranslation;
+            exampleTranslation.replace ("\\n", "\n");
             translationText +=
-                QString ("\nTranslation: %1").arg (entry.exampleTranslation);
+                QString ("\nTranslation: %1").arg (exampleTranslation);
         }
     }
 
