@@ -1179,6 +1179,68 @@ std::vector<WordEntry> DbModel::getUserVocabulary (const QString &userId,
     return std::vector<WordEntry> ();
 }
 
+std::optional<WordEntry> DbModel::getRandomWord ()
+{
+    if (!isDictDbOpen ())
+    {
+        return std::nullopt;
+    }
+
+    try
+    {
+        WordEntry randomWordEntry;
+
+        SQLite::Statement queryRandomWord (
+            *dict_db, "SELECT word, pronunciation "
+                      "FROM words ORDER BY RANDOM() LIMIT 1");
+
+        if (queryRandomWord.executeStep ())
+        {
+            randomWordEntry.word = QString::fromStdString (
+                queryRandomWord.getColumn (0).getString ());
+            randomWordEntry.pronunciation = QString::fromStdString (
+                queryRandomWord.getColumn (1).getString ());
+            randomWordEntry.language = "en"; // Default language
+        }
+
+        SQLite::Statement queryTranslation (
+            *dict_db, "SELECT target_word, target_language "
+                      "FROM word_translations WHERE source_word = ? "
+                      "AND source_language = ?");
+
+        queryTranslation.bind (1, randomWordEntry.word.toStdString ());
+        queryTranslation.bind (2, "en"); // Default source language
+
+        if (queryTranslation.executeStep ())
+        {
+            randomWordEntry.translation = QString::fromStdString (
+                queryTranslation.getColumn (0).getString ());
+        }
+        else
+        {
+            randomWordEntry.translation = ""; // No translation found
+        }
+
+        return randomWordEntry;
+    }
+    catch (SQLite::Exception &e)
+    {
+        logErr ("Error getting random word from database", e);
+        return std::nullopt;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting random word from database", e);
+        return std::nullopt;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting random word from database",
+                std::runtime_error ("Unknown exception"));
+        return std::nullopt;
+    }
+}
+
 WordEntry DbModel::parseCSVLineToWordEntry (const QString &csvLine)
 {
     WordEntry entry;

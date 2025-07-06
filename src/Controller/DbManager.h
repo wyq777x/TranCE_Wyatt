@@ -43,6 +43,8 @@ public:
     QString getUserEmail (const QString &username);
     QString getUserAvatarPath (const QString &username);
 
+    std::optional<WordEntry> getRandomWord ();
+
 private:
     DbManager () = default;
     DbManager (const DbManager &) = delete;

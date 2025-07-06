@@ -63,3 +63,8 @@ QString DbManager::getUserAvatarPath (const QString &username)
 {
     return DbModel::getInstance ().getUserAvatarPath (username);
 }
+
+std::optional<WordEntry> DbManager::getRandomWord ()
+{
+    return DbModel::getInstance ().getRandomWord ();
+}

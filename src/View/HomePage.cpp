@@ -301,8 +301,15 @@ Online)");
              });
 
     connect (recommendWordButton, &ElaPushButton::clicked,
-             [=] () {
-
+             [=] ()
+             {
+                 auto wordEntry = DbManager::getInstance ().getRandomWord ();
+                 if (wordEntry.has_value ())
+                 {
+                     auto wordCard = WordCard::getInstance ();
+                     wordCard->setWordEntry (wordEntry.value ());
+                     wordCard->show ();
+                 }
              });
 
     addCentralWidget (centralWidget, true, true, 0);

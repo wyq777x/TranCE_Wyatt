@@ -290,6 +290,8 @@ public:
 
     std::string getLastError () const { return m_lastError; }
 
+    std::optional<WordEntry> getRandomWord ();
+
 private:
     explicit DbModel (const QString &dbPath, const QString &avatarPath)
         : m_dbDir (dbPath), m_avatarDir (avatarPath), user_db (nullptr),
