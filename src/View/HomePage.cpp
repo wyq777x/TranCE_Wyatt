@@ -151,19 +151,11 @@ Online)");
     ElaPushButton *recommendWordButton =
         new ElaPushButton ("Recommend Word", centralWidget);
     recommendWordButton->setMinimumHeight (50);
-    recommendWordButton->setMinimumWidth (300);
+    recommendWordButton->setMinimumWidth (600);
     recommendWordButton->setBorderRadius (8);
     recommendWordButton->setToolTip ("Get a random word recommendation");
 
-    ElaIconButton *refreshButton =
-        new ElaIconButton (ElaIconType::ArrowRotateLeft, centralWidget);
-    refreshButton->setMinimumHeight (50);
-    refreshButton->setMinimumWidth (50);
-    refreshButton->setBorderRadius (8);
-    refreshButton->setToolTip ("Refresh recommendation");
-
     randomRecommendationLayout->addWidget (recommendWordButton);
-    randomRecommendationLayout->addWidget (refreshButton);
 
     homePageLayout->addLayout (randomRecommendationLayout);
 
@@ -188,7 +180,8 @@ Online)");
                  LangComboBox_left->blockSignals (false);
                  LangComboBox_right->blockSignals (false);
 
-                 // emit languageSwapped
+                 suggestionModel->setStringList (QStringList ());
+                 suggestionsList->hide ();
              });
 
     connect (searchAction, &QAction::triggered,
@@ -201,9 +194,6 @@ Online)");
                                    .arg (lineEdit->text ())));
                      return;
                  }
-
-                 // Query the local database
-                 // emit searchTriggered
              });
 
     connect (clearAction, &QAction::triggered, [=] () { lineEdit->clear (); });
@@ -260,6 +250,8 @@ Online)");
                               LangComboBox_right->currentText () == "English")
                      {
                          suggestionsList->setModel (suggestionModel);
+                         suggestionsList->hide ();
+                         return;
                      }
                      else
                      {
@@ -306,6 +298,11 @@ Online)");
                                    .arg (lineEdit->text ())));
                      return;
                  }
+             });
+
+    connect (recommendWordButton, &ElaPushButton::clicked,
+             [=] () {
+
              });
 
     addCentralWidget (centralWidget, true, true, 0);
