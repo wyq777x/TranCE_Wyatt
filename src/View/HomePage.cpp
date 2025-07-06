@@ -143,6 +143,30 @@ Online)");
 
     homePageLayout->addWidget (randomRecommendationLabel);
 
+    // Random Recommendation Layout
+    QHBoxLayout *randomRecommendationLayout = new QHBoxLayout (centralWidget);
+    randomRecommendationLayout->setAlignment (Qt::AlignHCenter);
+    randomRecommendationLayout->setSpacing (20);
+
+    ElaPushButton *recommendWordButton =
+        new ElaPushButton ("Recommend Word", centralWidget);
+    recommendWordButton->setMinimumHeight (50);
+    recommendWordButton->setMinimumWidth (300);
+    recommendWordButton->setBorderRadius (8);
+    recommendWordButton->setToolTip ("Get a random word recommendation");
+
+    ElaIconButton *refreshButton =
+        new ElaIconButton (ElaIconType::ArrowRotateLeft, centralWidget);
+    refreshButton->setMinimumHeight (50);
+    refreshButton->setMinimumWidth (50);
+    refreshButton->setBorderRadius (8);
+    refreshButton->setToolTip ("Refresh recommendation");
+
+    randomRecommendationLayout->addWidget (recommendWordButton);
+    randomRecommendationLayout->addWidget (refreshButton);
+
+    homePageLayout->addLayout (randomRecommendationLayout);
+
     connect (swapButton, &ElaIconButton::clicked,
              [=] ()
              {

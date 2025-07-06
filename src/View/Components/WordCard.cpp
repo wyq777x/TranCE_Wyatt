@@ -87,6 +87,8 @@ void WordCard::setWordEntry (WordEntry &entry)
 
     QString translationText = entry.translation;
     translationText.replace ("\\n", "\n");
+    translationText.replace ("\\t", "\t");
+    translationText.replace ("\\r", "\r");
 
     if (!entry.partOfSpeech.isEmpty ())
     {
