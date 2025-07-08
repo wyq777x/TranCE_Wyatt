@@ -8,6 +8,7 @@
 #include "ElaPushButton.h"
 #include "ElaToggleButton.h"
 #include <qboxlayout.h>
+#include <qhashfunctions.h>
 #include <qnamespace.h>
 
 HomePage::HomePage (QWidget *parent) : TempPage (parent)
@@ -196,71 +197,96 @@ Online)");
                  }
              });
 
-    connect (clearAction, &QAction::triggered, [=] () { lineEdit->clear (); });
-
-    connect (lineEdit, &ElaLineEdit::textChanged,
-             [=, this] (const QString &text)
+    connect (clearAction, &QAction::triggered,
+             [=] ()
              {
-                 if (text.isEmpty ())
-                 {
-                     clearAction->setVisible (false);
-                     suggestionsList->hide ();
-                 }
-                 else
-                 {
-                     clearAction->setVisible (true);
+                 lineEdit->clear ();
 
-                     if (LangComboBox_left->currentText () ==
-                         LangComboBox_right->currentText ())
-                     {
-                         suggestionsList->hide ();
-                         return;
-                     }
-
-                     if (LangComboBox_left->currentText ().isEmpty () ||
-                         LangComboBox_right->currentText ().isEmpty ())
-                     {
-                         suggestionsList->hide ();
-                         return;
-                     }
-
-                     if (LangComboBox_left->currentText () == "English" &&
-                         LangComboBox_right->currentText () == "Chinese")
-                     {
-                         if (searchMode_precise->isChecked ())
-                         {
-                             auto wordEntry =
-                                 DbManager::getInstance ().lookupWord (
-                                     lineEdit->text (),
-                                     LangComboBox_left->currentText ());
-
-                             QStringList singleSuggestion;
-                             singleSuggestion << wordEntry->word;
-                             suggestionModel->setStringList (singleSuggestion);
-                             suggestionsList->setModel (suggestionModel);
-                         }
-
-                         if (searchMode_fuzzy->isChecked ())
-                         {
-
-                             // to be implemented
-                         }
-                     }
-                     else if (LangComboBox_left->currentText () == "Chinese" &&
-                              LangComboBox_right->currentText () == "English")
-                     {
-                         suggestionsList->setModel (suggestionModel);
-                         suggestionsList->hide ();
-                         return;
-                     }
-                     else
-                     {
-                         suggestionsList->hide ();
-                         return;
-                     }
-                     suggestionsList->show ();
-                 }
+                 suggestionModel->setStringList (QStringList ());
+                 suggestionsList->hide ();
              });
+
+    connect (
+        lineEdit, &ElaLineEdit::textEdited,
+        [=, this] (const QString &text)
+        {
+            if (text.isEmpty ())
+            {
+                clearAction->setVisible (false);
+                suggestionsList->hide ();
+            }
+            else
+            {
+                clearAction->setVisible (true);
+
+                if (LangComboBox_left->currentText () ==
+                    LangComboBox_right->currentText ())
+                {
+                    suggestionsList->hide ();
+                    return;
+                }
+
+                if (LangComboBox_left->currentText ().isEmpty () ||
+                    LangComboBox_right->currentText ().isEmpty ())
+                {
+                    suggestionsList->hide ();
+                    return;
+                }
+
+                if (LangComboBox_left->currentText () == "English" &&
+                    LangComboBox_right->currentText () == "Chinese")
+                {
+                    if (searchMode_precise->isChecked ())
+                    {
+                        auto wordEntry = DbManager::getInstance ().lookupWord (
+                            lineEdit->text (),
+                            LangComboBox_left->currentText ());
+                        if (wordEntry.has_value ())
+                        {
+                            QStringList singleSuggestion;
+                            singleSuggestion << wordEntry->word;
+                            suggestionModel->setStringList (singleSuggestion);
+                            suggestionsList->setModel (suggestionModel);
+                        }
+                        else
+                        {
+                            suggestionModel->setStringList (QStringList ());
+                            suggestionsList->hide ();
+                        }
+                    }
+
+                    if (searchMode_fuzzy->isChecked ())
+                    {
+
+                        // to be implemented
+                        auto wordEntries =
+                            DbManager::getInstance ().searchWords (
+                                lineEdit->text (),
+                                LangComboBox_left->currentText ());
+                        QStringList suggestions;
+                        for (const auto &entry : wordEntries)
+                        {
+                            suggestions << entry.word;
+                        }
+                        suggestionModel->setStringList (suggestions);
+                        suggestionsList->setModel (suggestionModel);
+                    }
+                }
+                else if (LangComboBox_left->currentText () == "Chinese" &&
+                         LangComboBox_right->currentText () == "English")
+                {
+                    suggestionsList->setModel (suggestionModel);
+                    suggestionsList->hide ();
+                    return;
+                }
+                else
+                {
+                    suggestionsList->hide ();
+                    return;
+                }
+                suggestionsList->show ();
+            }
+        });
 
     connect (suggestionsList, &ElaListView::clicked, this,
              [=, this] (const QModelIndex &index)
@@ -278,11 +304,21 @@ Online)");
                      index.data ().toString (),
                      LangComboBox_left->currentText () == "English" ? "en"
                                                                     : "zh");
-                 auto wordCard = WordCard::getInstance ();
 
-                 wordCard->setWordEntry (wordEntry.value ());
+                 if (!wordEntry.has_value ())
+                 {
+                     showDialog ("Error Loading Word Card",
+                                 "The word you selected can't be loaded from "
+                                 "the database. ");
+                 }
+                 else
+                 {
+                     auto wordCard = WordCard::getInstance ();
 
-                 wordCard->show ();
+                     wordCard->setWordEntry (wordEntry.value ());
+
+                     wordCard->show ();
+                 }
              });
     connect (lineEdit, &ElaLineEdit::returnPressed,
              [=] ()

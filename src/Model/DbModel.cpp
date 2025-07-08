@@ -1061,7 +1061,6 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
 
     try
     {
-        // Building...
         WordEntry entry;
 
         SQLite::Statement queryWordBasic (*dict_db,
