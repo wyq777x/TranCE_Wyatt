@@ -1131,6 +1131,31 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
         // Building...
         // to add fuzzy search, we can use LIKE or MATCH
 
+        std::vector<WordEntry> results;
+
+        SQLite::Statement queryWordsBasic (
+            *dict_db,
+            "SELECT word,pronunciation, "
+            "CASE"
+            " WHEN word = '?' THEN 1 "  // precise match
+            " WHEN word LIKE ? THEN 2 " // prefix match
+            " WHEN word LIKE ? THEN 3 " // include match
+            " ELSE 4 "
+            " END AS match_priority "
+            " FROM words "
+            " WHERE word = '?' OR "
+            " word LIKE ? OR "
+            " word LIKE ? "
+            " ORDER BY match_priority, word "
+            " LIMIT 10; ");
+
+        queryWordsBasic.bind (1, pattern.toStdString ());
+        queryWordsBasic.bind (2, pattern.toStdString () + "%");
+        queryWordsBasic.bind (3, "%" + pattern.toStdString () + "%");
+        queryWordsBasic.bind (4, pattern.toStdString ());
+        queryWordsBasic.bind (5, pattern.toStdString () + "%");
+        queryWordsBasic.bind (6, "%" + pattern.toStdString () + "%");
+
         return std::vector<WordEntry> ();
     }
     catch (SQLite::Exception &e)
