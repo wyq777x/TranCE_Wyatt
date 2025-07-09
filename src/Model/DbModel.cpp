@@ -1135,19 +1135,19 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
 
         SQLite::Statement queryWordsBasic (
             *dict_db,
-            "SELECT word,pronunciation, "
+            "SELECT word,pronunciation ,"
             "CASE"
-            " WHEN word = '?' THEN 1 "  // precise match
+            " WHEN word = ? THEN 1 "    // precise match
             " WHEN word LIKE ? THEN 2 " // prefix match
             " WHEN word LIKE ? THEN 3 " // include match
             " ELSE 4 "
             " END AS match_priority "
             " FROM words "
-            " WHERE word = '?' OR "
+            " WHERE word = ? OR "
             " word LIKE ? OR "
             " word LIKE ? "
             " ORDER BY match_priority, word "
-            " LIMIT 10; ");
+            " LIMIT ? ; ");
 
         queryWordsBasic.bind (1, pattern.toStdString ());
         queryWordsBasic.bind (2, pattern.toStdString () + "%");
@@ -1155,8 +1155,39 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
         queryWordsBasic.bind (4, pattern.toStdString ());
         queryWordsBasic.bind (5, pattern.toStdString () + "%");
         queryWordsBasic.bind (6, "%" + pattern.toStdString () + "%");
+        queryWordsBasic.bind (7, limit);
 
-        return std::vector<WordEntry> ();
+        while (queryWordsBasic.executeStep ())
+        {
+            WordEntry entry;
+            entry.word = QString::fromStdString (
+                queryWordsBasic.getColumn (0).getString ());
+            entry.pronunciation = QString::fromStdString (
+                queryWordsBasic.getColumn (1).getString ());
+            entry.language = srcLang;
+
+            // Fetch translation
+            SQLite::Statement queryTranslation (
+                *dict_db, "SELECT target_word, target_language "
+                          "FROM word_translations WHERE source_word = ? "
+                          "AND source_language = ?");
+            queryTranslation.bind (1, entry.word.toStdString ());
+            queryTranslation.bind (2, srcLang.toStdString ());
+
+            if (queryTranslation.executeStep ())
+            {
+                entry.translation = QString::fromStdString (
+                    queryTranslation.getColumn (0).getString ());
+            }
+            else
+            {
+                entry.translation = ""; // No translation found
+            }
+
+            results.emplace_back (entry);
+        }
+
+        return results;
     }
     catch (SQLite::Exception &e)
     {
