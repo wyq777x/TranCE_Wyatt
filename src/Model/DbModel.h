@@ -114,6 +114,14 @@ public:
 
         try
         {
+            user_db->exec ("PRAGMA journal_mode = WAL");
+            user_db->exec ("PRAGMA synchronous = NORMAL");
+            user_db->exec ("PRAGMA cache_size = 10000");
+            user_db->exec ("PRAGMA temp_store = MEMORY");
+            user_db->exec ("PRAGMA locking_mode = NORMAL");
+            user_db->exec ("PRAGMA page_size = 4096");
+            user_db->exec ("PRAGMA foreign_keys = ON");
+
             if (user_db != nullptr)
             {
                 user_db->exec (
@@ -149,8 +157,9 @@ public:
             dict_db->exec ("PRAGMA synchronous = NORMAL");
             dict_db->exec ("PRAGMA cache_size = 20000");
             dict_db->exec ("PRAGMA temp_store = MEMORY");
-            dict_db->exec ("PRAGMA locking_mode = EXCLUSIVE");
+            dict_db->exec ("PRAGMA locking_mode = NORMAL");
             dict_db->exec ("PRAGMA page_size = 8192");
+            dict_db->exec ("PRAGMA foreign_keys = ON");
 
             if (dict_db != nullptr)
             {

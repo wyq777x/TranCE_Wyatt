@@ -206,6 +206,30 @@ Online)");
                  suggestionsList->hide ();
              });
 
+    connect (searchMode_precise, &ElaRadioButton::toggled,
+             [=, this] (bool checked)
+             {
+                 if (checked && !lineEdit->text ().isEmpty ())
+                 {
+                     // Clear current suggestions and trigger new search
+                     suggestionModel->setStringList (QStringList ());
+                     // Trigger the same logic as textEdited
+                     emit lineEdit->textEdited (lineEdit->text ());
+                 }
+             });
+
+    connect (searchMode_fuzzy, &ElaRadioButton::toggled,
+             [=, this] (bool checked)
+             {
+                 if (checked && !lineEdit->text ().isEmpty ())
+                 {
+                     // Clear current suggestions and trigger new search
+                     suggestionModel->setStringList (QStringList ());
+                     // Trigger the same logic as textEdited
+                     emit lineEdit->textEdited (lineEdit->text ());
+                 }
+             });
+
     connect (
         lineEdit, &ElaLineEdit::textEdited,
         [=, this] (const QString &text)
@@ -238,6 +262,7 @@ Online)");
                 {
                     if (searchMode_precise->isChecked ())
                     {
+                        suggestionModel->setStringList (QStringList ());
                         auto wordEntry = DbManager::getInstance ().lookupWord (
                             lineEdit->text (),
                             LangComboBox_left->currentText ());
@@ -258,7 +283,8 @@ Online)");
                     if (searchMode_fuzzy->isChecked ())
                     {
 
-                        // to be implemented
+                        // Building...
+                        suggestionModel->setStringList (QStringList ());
                         auto wordEntries =
                             DbManager::getInstance ().searchWords (
                                 lineEdit->text (),
@@ -323,6 +349,7 @@ Online)");
     connect (lineEdit, &ElaLineEdit::returnPressed,
              [=] ()
              {
+                 // Building...
                  if (searchOnline->getIsToggled ())
                  {
                      if (lineEdit->text ().isEmpty ())
@@ -333,6 +360,9 @@ Online)");
                          QUrl (QString ("https://www.bing.com/search?q=%1")
                                    .arg (lineEdit->text ())));
                      return;
+                 }
+                 else
+                 {
                  }
              });
 
