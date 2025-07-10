@@ -1049,6 +1049,7 @@ AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
 std::optional<WordEntry> DbModel::lookupWord (const QString &word,
                                               const QString &srcLang)
 {
+    // Building...
     if (!isDictDbOpen ())
     {
         return std::nullopt;
@@ -1058,39 +1059,74 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
     {
         return std::nullopt; // Invalid input
     }
-
+    if (srcLang != "en" && srcLang != "zh")
+    {
+        return std::nullopt; // Unsupported language
+    }
     try
     {
         WordEntry entry;
-
-        SQLite::Statement queryWordBasic (*dict_db,
-                                          "SELECT word, pronunciation "
-                                          "FROM words WHERE word = ?");
-        queryWordBasic.bind (1, word.toStdString ());
-        if (queryWordBasic.executeStep ())
+        if (srcLang == "en")
         {
+            SQLite::Statement queryWordBasic (*dict_db,
+                                              "SELECT word, pronunciation "
+                                              "FROM words WHERE word = ?");
+            queryWordBasic.bind (1, word.toStdString ());
+            if (queryWordBasic.executeStep ())
+            {
 
-            entry.word = QString::fromStdString (
-                queryWordBasic.getColumn (0).getString ());
-            entry.pronunciation = QString::fromStdString (
-                queryWordBasic.getColumn (1).getString ());
-            entry.language = srcLang;
+                entry.word = QString::fromStdString (
+                    queryWordBasic.getColumn (0).getString ());
+                entry.pronunciation = QString::fromStdString (
+                    queryWordBasic.getColumn (1).getString ());
+                entry.language = srcLang;
+            }
+
+            SQLite::Statement queryTranslation (
+                *dict_db, "SELECT target_word, target_language "
+                          "FROM word_translations WHERE source_word = ? "
+                          "AND source_language = ?");
+            queryTranslation.bind (1, word.toStdString ());
+            queryTranslation.bind (2, srcLang.toStdString ());
+            if (queryTranslation.executeStep ())
+            {
+                entry.translation = QString::fromStdString (
+                    queryTranslation.getColumn (0).getString ());
+            }
+            else
+            {
+                entry.translation = ""; // No translation found
+            }
         }
 
-        SQLite::Statement queryTranslation (
-            *dict_db, "SELECT target_word, target_language "
-                      "FROM word_translations WHERE source_word = ? "
-                      "AND source_language = ?");
-        queryTranslation.bind (1, word.toStdString ());
-        queryTranslation.bind (2, srcLang.toStdString ());
-        if (queryTranslation.executeStep ())
+        else if (srcLang == "zh")
         {
-            entry.translation = QString::fromStdString (
-                queryTranslation.getColumn (0).getString ());
-        }
-        else
-        {
-            entry.translation = ""; // No translation found
+            SQLite::Statement queryWord (
+                *dict_db, "SELECT source_word FROM word_translations WHERE "
+                          "target_word = ? AND target_language = ?");
+            queryWord.bind (1, word.toStdString ());
+            queryWord.bind (2, srcLang.toStdString ());
+            if (queryWord.executeStep ())
+            {
+                entry.translation = word;
+                entry.word = QString::fromStdString (
+                    queryWord.getColumn (0).getString ());
+                entry.language = srcLang;
+
+                // get pronunciation
+                SQLite::Statement queryPronunciation (
+                    *dict_db, "SELECT pronunciation FROM words WHERE word = ?");
+                queryPronunciation.bind (1, entry.word.toStdString ());
+                if (queryPronunciation.executeStep ())
+                {
+                    entry.pronunciation = QString::fromStdString (
+                        queryPronunciation.getColumn (0).getString ());
+                }
+                else
+                {
+                    entry.pronunciation = ""; // No pronunciation found
+                }
+            }
         }
 
         return entry;

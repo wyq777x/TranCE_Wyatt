@@ -257,6 +257,16 @@ Online)");
                     return;
                 }
 
+                // map language to code
+                auto mapLang = [] (const QString &lang) -> QString
+                {
+                    if (lang == "Chinese" || lang == "中文" || lang == "汉语")
+                        return "zh";
+                    if (lang == "English" || lang == "英语" || lang == "英文")
+                        return "en";
+                    return lang;
+                };
+
                 if (LangComboBox_left->currentText () == "English" &&
                     LangComboBox_right->currentText () == "Chinese")
                 {
@@ -265,7 +275,7 @@ Online)");
                         suggestionModel->setStringList (QStringList ());
                         auto wordEntry = DbManager::getInstance ().lookupWord (
                             lineEdit->text (),
-                            LangComboBox_left->currentText ());
+                            mapLang (LangComboBox_left->currentText ()));
                         if (wordEntry.has_value ())
                         {
                             QStringList singleSuggestion;
@@ -288,7 +298,7 @@ Online)");
                         auto wordEntries =
                             DbManager::getInstance ().searchWords (
                                 lineEdit->text (),
-                                LangComboBox_left->currentText ());
+                                mapLang (LangComboBox_left->currentText ()));
                         QStringList suggestions;
                         for (const auto &entry : wordEntries)
                         {
@@ -301,9 +311,31 @@ Online)");
                 else if (LangComboBox_left->currentText () == "Chinese" &&
                          LangComboBox_right->currentText () == "English")
                 {
-                    suggestionsList->setModel (suggestionModel);
-                    suggestionsList->hide ();
-                    return;
+                    if (searchMode_precise->isChecked ())
+                    {
+                        suggestionModel->setStringList (QStringList ());
+                        auto wordEntry = DbManager::getInstance ().lookupWord (
+                            lineEdit->text (),
+                            mapLang (LangComboBox_left->currentText ()));
+                        if (wordEntry.has_value ())
+                        {
+                            QStringList singleSuggestion;
+                            singleSuggestion << wordEntry->word;
+                            suggestionModel->setStringList (singleSuggestion);
+                            suggestionsList->setModel (suggestionModel);
+                        }
+                        else
+                        {
+                            suggestionModel->setStringList (QStringList ());
+                            suggestionsList->hide ();
+                        }
+                    }
+
+                    if (searchMode_fuzzy->isChecked ())
+                    {
+                        // Building...
+                        suggestionModel->setStringList (QStringList ());
+                    }
                 }
                 else
                 {
