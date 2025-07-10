@@ -359,10 +359,7 @@ Online)");
                      return;
                  }
                  auto wordEntry = DbManager::getInstance ().lookupWord (
-                     index.data ().toString (),
-                     LangComboBox_left->currentText () == "English" ? "en"
-                                                                    : "zh");
-
+                     index.data ().toString (), "en");
                  if (!wordEntry.has_value ())
                  {
                      showDialog ("Error Loading Word Card",
