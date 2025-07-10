@@ -14,6 +14,8 @@ public:
     AppSettingModel &operator= (AppSettingModel &&) = delete;
     QString getLanguage () const { return language; }
 
+    bool isHistoryListEnabled () const { return true; } // Placeholder
+
 private:
     AppSettingModel () = default;
 
