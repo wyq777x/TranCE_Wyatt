@@ -1049,7 +1049,6 @@ AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
 std::optional<WordEntry> DbModel::lookupWord (const QString &word,
                                               const QString &srcLang)
 {
-    // Building...
     if (!isDictDbOpen ())
     {
         return std::nullopt;
@@ -1164,63 +1163,117 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
 
     try
     {
-        // Building...
-        // to add fuzzy search, we can use LIKE or MATCH
 
         std::vector<WordEntry> results;
-
-        SQLite::Statement queryWordsBasic (
-            *dict_db,
-            "SELECT word,pronunciation ,"
-            "CASE"
-            " WHEN word = ? THEN 1 "    // precise match
-            " WHEN word LIKE ? THEN 2 " // prefix match
-            " WHEN word LIKE ? THEN 3 " // include match
-            " ELSE 4 "
-            " END AS match_priority "
-            " FROM words "
-            " WHERE word = ? OR "
-            " word LIKE ? OR "
-            " word LIKE ? "
-            " ORDER BY match_priority, word "
-            " LIMIT ? ; ");
-
-        queryWordsBasic.bind (1, pattern.toStdString ());
-        queryWordsBasic.bind (2, pattern.toStdString () + "%");
-        queryWordsBasic.bind (3, "%" + pattern.toStdString () + "%");
-        queryWordsBasic.bind (4, pattern.toStdString ());
-        queryWordsBasic.bind (5, pattern.toStdString () + "%");
-        queryWordsBasic.bind (6, "%" + pattern.toStdString () + "%");
-        queryWordsBasic.bind (7, limit);
-
-        while (queryWordsBasic.executeStep ())
+        if (srcLang == "en")
         {
-            WordEntry entry;
-            entry.word = QString::fromStdString (
-                queryWordsBasic.getColumn (0).getString ());
-            entry.pronunciation = QString::fromStdString (
-                queryWordsBasic.getColumn (1).getString ());
-            entry.language = srcLang;
+            SQLite::Statement queryWordsBasic (
+                *dict_db,
+                "SELECT word,pronunciation ,"
+                "CASE"
+                " WHEN word = ? THEN 1 "    // precise match
+                " WHEN word LIKE ? THEN 2 " // prefix match
+                " WHEN word LIKE ? THEN 3 " // include match
+                " ELSE 4 "
+                " END AS match_priority "
+                " FROM words "
+                " WHERE word = ? OR "
+                " word LIKE ? OR "
+                " word LIKE ? "
+                " ORDER BY match_priority, word "
+                " LIMIT ? ; ");
 
-            // Fetch translation
-            SQLite::Statement queryTranslation (
-                *dict_db, "SELECT target_word, target_language "
-                          "FROM word_translations WHERE source_word = ? "
-                          "AND source_language = ?");
-            queryTranslation.bind (1, entry.word.toStdString ());
-            queryTranslation.bind (2, srcLang.toStdString ());
+            queryWordsBasic.bind (1, pattern.toStdString ());
+            queryWordsBasic.bind (2, pattern.toStdString () + "%");
+            queryWordsBasic.bind (3, "%" + pattern.toStdString () + "%");
+            queryWordsBasic.bind (4, pattern.toStdString ());
+            queryWordsBasic.bind (5, pattern.toStdString () + "%");
+            queryWordsBasic.bind (6, "%" + pattern.toStdString () + "%");
+            queryWordsBasic.bind (7, limit);
 
-            if (queryTranslation.executeStep ())
+            while (queryWordsBasic.executeStep ())
             {
+                WordEntry entry;
+                entry.word = QString::fromStdString (
+                    queryWordsBasic.getColumn (0).getString ());
+                entry.pronunciation = QString::fromStdString (
+                    queryWordsBasic.getColumn (1).getString ());
+                entry.language = srcLang;
+
+                // Fetch translation
+                SQLite::Statement queryTranslation (
+                    *dict_db, "SELECT target_word, target_language "
+                              "FROM word_translations WHERE source_word = ? "
+                              "AND source_language = ?");
+                queryTranslation.bind (1, entry.word.toStdString ());
+                queryTranslation.bind (2, srcLang.toStdString ());
+
+                if (queryTranslation.executeStep ())
+                {
+                    entry.translation = QString::fromStdString (
+                        queryTranslation.getColumn (0).getString ());
+                }
+                else
+                {
+                    entry.translation = ""; // No translation found
+                }
+
+                results.emplace_back (entry);
+            }
+        }
+        else if (srcLang == "zh")
+        {
+            SQLite::Statement queryTranslations (
+                *dict_db,
+                "SELECT source_word, target_word ,"
+                "CASE"
+                " WHEN target_word = ? THEN 1 "    // precise match
+                " WHEN target_word LIKE ? THEN 2 " // prefix match
+                " WHEN target_word LIKE ? THEN 3 " // include match
+                " ELSE 4 "
+                " END AS match_priority "
+                " FROM word_translations "
+                " WHERE target_language = 'zh' AND ("
+                " target_word = ? OR "
+                " target_word LIKE ? OR "
+                " target_word LIKE ? )"
+                " ORDER BY match_priority, target_word "
+                " LIMIT ? ; ");
+
+            queryTranslations.bind (1, pattern.toStdString ());
+            queryTranslations.bind (2, pattern.toStdString () + "%");
+            queryTranslations.bind (3, "%" + pattern.toStdString () + "%");
+            queryTranslations.bind (4, pattern.toStdString ());
+            queryTranslations.bind (5, pattern.toStdString () + "%");
+            queryTranslations.bind (6, "%" + pattern.toStdString () + "%");
+            queryTranslations.bind (7, limit);
+
+            while (queryTranslations.executeStep ())
+            {
+                WordEntry entry;
+                entry.word = QString::fromStdString (
+                    queryTranslations.getColumn (0).getString ());
                 entry.translation = QString::fromStdString (
-                    queryTranslation.getColumn (0).getString ());
-            }
-            else
-            {
-                entry.translation = ""; // No translation found
-            }
+                    queryTranslations.getColumn (1).getString ());
+                entry.language = srcLang;
 
-            results.emplace_back (entry);
+                // Fetch pronunciation for the English word
+                SQLite::Statement queryPronunciation (
+                    *dict_db, "SELECT pronunciation FROM words WHERE word = ?");
+                queryPronunciation.bind (1, entry.word.toStdString ());
+
+                if (queryPronunciation.executeStep ())
+                {
+                    entry.pronunciation = QString::fromStdString (
+                        queryPronunciation.getColumn (0).getString ());
+                }
+                else
+                {
+                    entry.pronunciation = ""; // No pronunciation found
+                }
+
+                results.emplace_back (entry);
+            }
         }
 
         return results;

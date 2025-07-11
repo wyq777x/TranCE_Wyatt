@@ -293,7 +293,6 @@ Online)");
                     if (searchMode_fuzzy->isChecked ())
                     {
 
-                        // Building...
                         suggestionModel->setStringList (QStringList ());
                         auto wordEntries =
                             DbManager::getInstance ().searchWords (
@@ -333,8 +332,18 @@ Online)");
 
                     if (searchMode_fuzzy->isChecked ())
                     {
-                        // Building...
                         suggestionModel->setStringList (QStringList ());
+                        auto wordEntries =
+                            DbManager::getInstance ().searchWords (
+                                lineEdit->text (),
+                                mapLang (LangComboBox_left->currentText ()));
+                        QStringList suggestions;
+                        for (const auto &entry : wordEntries)
+                        {
+                            suggestions << entry.word;
+                        }
+                        suggestionModel->setStringList (suggestions);
+                        suggestionsList->setModel (suggestionModel);
                     }
                 }
                 else
