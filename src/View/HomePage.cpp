@@ -336,7 +336,8 @@ Online)");
                         auto wordEntries =
                             DbManager::getInstance ().searchWords (
                                 lineEdit->text (),
-                                mapLang (LangComboBox_left->currentText ()));
+                                mapLang (LangComboBox_left->currentText ()),
+                                20);
                         QStringList suggestions;
                         for (const auto &entry : wordEntries)
                         {

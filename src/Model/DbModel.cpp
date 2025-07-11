@@ -1227,26 +1227,46 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
                 *dict_db,
                 "SELECT source_word, target_word ,"
                 "CASE"
-                " WHEN target_word = ? THEN 1 "    // precise match
-                " WHEN target_word LIKE ? THEN 2 " // prefix match
-                " WHEN target_word LIKE ? THEN 3 " // include match
-                " ELSE 4 "
+                " WHEN target_word = ? THEN 1 " // precise match
+                " WHEN target_word LIKE '_. %' AND target_word LIKE ? THEN "
+                "2 " // single letter+dot+space prefix (e.g., "a. xxx")
+                " WHEN target_word LIKE '__. %' AND target_word LIKE ? "
+                "THEN 3 " // two letters+dot+space prefix (e.g., "ad. xxx")
+                " WHEN target_word LIKE '___. %' AND target_word LIKE ? "
+                "THEN 4 " // three letters+dot+space prefix (e.g., "adj. xxx")
+                " WHEN target_word LIKE '. %' AND target_word LIKE ? THEN "
+                "5 " // dot+space prefix (e.g., ". xxx")
+                " WHEN target_word LIKE ? THEN 6 " // normal prefix match
+                " WHEN target_word LIKE ? THEN 7 " // include match
+                " ELSE 8 "
                 " END AS match_priority "
                 " FROM word_translations "
                 " WHERE target_language = 'zh' AND ("
                 " target_word = ? OR "
+                " (target_word LIKE '_. %' AND target_word LIKE ?) OR "
+                " (target_word LIKE '__. %' AND target_word LIKE ?) OR "
+                " (target_word LIKE '___. %' AND target_word LIKE ?) OR "
+                " (target_word LIKE '. %' AND target_word LIKE ?) OR "
                 " target_word LIKE ? OR "
                 " target_word LIKE ? )"
                 " ORDER BY match_priority, target_word "
                 " LIMIT ? ; ");
 
             queryTranslations.bind (1, pattern.toStdString ());
-            queryTranslations.bind (2, pattern.toStdString () + "%");
-            queryTranslations.bind (3, "%" + pattern.toStdString () + "%");
-            queryTranslations.bind (4, pattern.toStdString ());
-            queryTranslations.bind (5, pattern.toStdString () + "%");
-            queryTranslations.bind (6, "%" + pattern.toStdString () + "%");
-            queryTranslations.bind (7, limit);
+            queryTranslations.bind (2, "_. " + pattern.toStdString () + "%");
+            queryTranslations.bind (3, "__. " + pattern.toStdString () + "%");
+            queryTranslations.bind (4, "___. " + pattern.toStdString () + "%");
+            queryTranslations.bind (5, ". " + pattern.toStdString () + "%");
+            queryTranslations.bind (6, pattern.toStdString () + "%");
+            queryTranslations.bind (7, "%" + pattern.toStdString () + "%");
+            queryTranslations.bind (8, pattern.toStdString ());
+            queryTranslations.bind (9, "_. " + pattern.toStdString () + "%");
+            queryTranslations.bind (10, "__. " + pattern.toStdString () + "%");
+            queryTranslations.bind (11, "___. " + pattern.toStdString () + "%");
+            queryTranslations.bind (12, ". " + pattern.toStdString () + "%");
+            queryTranslations.bind (13, pattern.toStdString () + "%");
+            queryTranslations.bind (14, "%" + pattern.toStdString () + "%");
+            queryTranslations.bind (15, limit);
 
             while (queryTranslations.executeStep ())
             {
