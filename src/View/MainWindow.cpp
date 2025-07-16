@@ -21,7 +21,7 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
              {
                  if (!AccountManager::getInstance ().isLoggedIn ())
                  {
-                     // If not logged in, show login page
+                     // show login page if not logged in
                      loginPage->show ();
                  }
                  else

@@ -359,8 +359,6 @@ Online)");
     connect (suggestionsList, &ElaListView::clicked, this,
              [=, this] (const QModelIndex &index)
              {
-                 // Building...
-
                  if (searchOnline->getIsToggled ())
                  {
                      QDesktopServices::openUrl (
@@ -388,7 +386,6 @@ Online)");
     connect (lineEdit, &ElaLineEdit::returnPressed,
              [=, this] ()
              {
-                 // Building...
                  if (searchOnline->getIsToggled ())
                  {
                      if (lineEdit->text ().isEmpty ())

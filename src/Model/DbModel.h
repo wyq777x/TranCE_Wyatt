@@ -131,6 +131,32 @@ public:
                     "password_hash TEXT NOT NULL,"
                     "email TEXT UNIQUE,"
                     "avatar_path TEXT DEFAULT ':/image/DefaultUser.png');");
+
+                user_db->exec (
+                    "CREATE TABLE IF NOT EXISTS user_search_history("
+                    "serach_history_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    "user_id TEXT NOT NULL,"
+                    "search_word TEXT NOT NULL,"
+                    "FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                    "ON DELETE CASCADE "
+                    "ON UPDATE CASCADE );");
+
+                user_db->exec (
+                    "CREATE TABLE IF NOT EXISTS user_vocabulary("
+                    "user_id TEXT NOT NULL,"
+                    "word TEXT NOT NULL,"
+                    "status INTEGER DEFAULT -1 CHECK (status IN (-1, "
+                    "0, 1))," // status:
+                              // -1= never learned
+                              // 0= learning,
+                              // 1= mastered
+                    "FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                    "ON DELETE CASCADE ON UPDATE CASCADE,"
+                    "PRIMARY KEY (user_id, word));");
+
+                user_db->exec (
+                    "CREATE INDEX IF NOT EXISTS idx_user_search_history "
+                    "ON user_search_history(search_history_id, user_id);");
             }
         }
         catch (const SQLite::Exception &e)
@@ -300,6 +326,8 @@ public:
     std::string getLastError () const { return m_lastError; }
 
     std::optional<WordEntry> getRandomWord ();
+
+    std::optional<std::vector<QString>> getSearchHistory ();
 
 private:
     explicit DbModel (const QString &dbPath, const QString &avatarPath)
