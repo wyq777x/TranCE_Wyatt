@@ -386,7 +386,7 @@ Online)");
                  }
              });
     connect (lineEdit, &ElaLineEdit::returnPressed,
-             [=] ()
+             [=, this] ()
              {
                  // Building...
                  if (searchOnline->getIsToggled ())
@@ -402,6 +402,46 @@ Online)");
                  }
                  else
                  {
+                     if (searchMode_precise->isChecked ())
+                     {
+                         auto wordEntry = DbManager::getInstance ().lookupWord (
+                             lineEdit->text (),
+                             LangComboBox_left->currentText ());
+
+                         if (wordEntry.has_value ())
+                         {
+                             auto wordCard = WordCard::getInstance ();
+                             wordCard->setWordEntry (wordEntry.value ());
+                             wordCard->show ();
+                         }
+                         else
+                         {
+                             showDialog ("Error Loading Word Card",
+                                         "The word you entered can't be "
+                                         "loaded from the database. ");
+                         }
+                     }
+
+                     if (searchMode_fuzzy->isChecked ())
+                     {
+                         auto firstWordEntry =
+                             DbManager::getInstance ().searchWords (
+                                 lineEdit->text (),
+                                 LangComboBox_left->currentText (), 1);
+
+                         if (!firstWordEntry.empty ())
+                         {
+                             auto wordCard = WordCard::getInstance ();
+                             wordCard->setWordEntry (firstWordEntry[0]);
+                             wordCard->show ();
+                         }
+                         else
+                         {
+                             showDialog ("Error Loading Word Card",
+                                         "The word you entered can't be "
+                                         "loaded from the database. ");
+                         }
+                     }
                  }
              });
 

@@ -24,12 +24,14 @@ void TempPage::showDialog (const QString &title, const QString &message)
 
     QVBoxLayout *Layout = new QVBoxLayout (Dialog);
     Layout->setSpacing (20);
+    Layout->setContentsMargins (20, 20, 20, 20);
 
     QLabel *Label = new QLabel (message, Dialog);
 
     Label->setStyleSheet ("font-size: 16px; font-weight: bold; color: #333;");
     Label->setWordWrap (true);
     Label->setAlignment (Qt::AlignCenter);
+    Label->setFont (QFont ("Noto Sans", 16, QFont::Bold));
 
     QDialogButtonBox *okButtonBox =
         new QDialogButtonBox (QDialogButtonBox::Ok, Dialog);
@@ -70,33 +72,50 @@ void TempPage::showDialog (const QString &title, const QString &message,
     confirmDialog->setWindowTitle (title);
     confirmDialog->setMinimumSize (300, 150);
     confirmDialog->setMaximumSize (300, 150);
+    confirmDialog->setWindowModality (Qt::ApplicationModal);
+    confirmDialog->setModal (true);
     confirmDialog->setStyleSheet ("QDialog { background-color: #f0f0f0; "
-                                  "border-radius: 10px; }");
+                                  "border-radius: 20px; }");
 
     QVBoxLayout *dialogLayout = new QVBoxLayout (confirmDialog);
     dialogLayout->setAlignment (Qt::AlignCenter);
     dialogLayout->setContentsMargins (20, 20, 20, 20);
+    dialogLayout->setSpacing (20);
 
     QLabel *confirmLabel = new QLabel (message, confirmDialog);
     confirmLabel->setAlignment (Qt::AlignCenter);
     confirmLabel->setStyleSheet (
         "font-size: 16px; color: #333; font-weight: bold;");
     confirmLabel->setFont (QFont ("Noto Sans", 16, QFont::Bold));
+    confirmLabel->setWordWrap (true);
     dialogLayout->addWidget (confirmLabel);
 
     QHBoxLayout *buttonLayout = new QHBoxLayout ();
+    buttonLayout->setAlignment (Qt::AlignCenter);
+    buttonLayout->setSpacing (20);
+
     ElaPushButton *yesButton = new ElaPushButton ("Yes", confirmDialog);
+    yesButton->setMinimumHeight (50);
+    yesButton->setMaximumHeight (50);
+    yesButton->setMinimumWidth (120);
+    yesButton->setMaximumWidth (120);
+    yesButton->setBorderRadius (20);
     yesButton->setStyleSheet (
         "background-color: #4CAF50; color: white; font-size: "
         "16px; "
-        "border-radius: 5px; padding: 10px;");
+        "border-radius: 20px; padding: 10px;");
     yesButton->setFont (QFont ("Noto Sans", 16));
 
     ElaPushButton *noButton = new ElaPushButton ("No", confirmDialog);
+    noButton->setMinimumHeight (50);
+    noButton->setMaximumHeight (50);
+    noButton->setMinimumWidth (120);
+    noButton->setMaximumWidth (120);
+    noButton->setBorderRadius (20);
     noButton->setStyleSheet (
         "background-color: #F44336; color: white; font-size: "
         "16px; "
-        "border-radius: 5px; padding: 10px;");
+        "border-radius: 20px; padding: 10px;");
     noButton->setFont (QFont ("Noto Sans", 16));
 
     buttonLayout->addWidget (yesButton);
@@ -152,7 +171,7 @@ void TempPage::showDialog (const QString &title,
     changePasswordDialog->setModal (true);
     changePasswordDialog->setAttribute (Qt::WA_DeleteOnClose, true);
     changePasswordDialog->setStyleSheet ("QDialog { background-color: #f0f0f0; "
-                                         "border-radius: 10px; }");
+                                         "border-radius: 20px; }");
 
     QVBoxLayout *dialogLayout = new QVBoxLayout (changePasswordDialog);
     dialogLayout->setAlignment (Qt::AlignCenter);
