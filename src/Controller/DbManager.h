@@ -40,6 +40,8 @@ public:
 
     ChangeResult changeAvatar (const QString &username,
                                const QString &avatarPath);
+
+    std::optional<QString> getUserId (const QString &username) const;
     QString getUserEmail (const QString &username);
     QString getUserAvatarPath (const QString &username);
 

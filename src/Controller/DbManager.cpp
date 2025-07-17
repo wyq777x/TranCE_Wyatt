@@ -54,6 +54,12 @@ ChangeResult DbManager::changeAvatar (const QString &username,
 {
     return DbModel::getInstance ().changeAvatar (username, avatarPath);
 }
+
+std::optional<QString> DbManager::getUserId (const QString &username) const
+{
+    return DbModel::getInstance ().getUserId (username);
+}
+
 QString DbManager::getUserEmail (const QString &username)
 {
     return DbModel::getInstance ().getUserEmail (username);

@@ -1,4 +1,5 @@
 #include "SettingPage.h"
+#include "Utility/Result.h"
 
 #include <QPropertyAnimation>
 #include <qboxlayout.h>
@@ -135,10 +136,40 @@ void SettingPage::updateStatusWithAnimation (bool enabled)
     animation->start (QAbstractAnimation::DeleteWhenStopped);
 }
 
-void SettingPage::saveHistorySearchSetting (bool enabled) {}
+void SettingPage::saveHistorySearchSetting (bool enabled)
+{
+    // Building...
+    if (enabled)
+    {
+
+        // Adjust settings to enable history search
+        auto result = Setting::getInstance ().setHistorySearchEnabled (enabled);
+        if (result == ChangeResult::Success)
+        {
+            qDebug () << "History search enabled successfully.";
+        }
+
+        else
+        {
+            auto it = ChangeResultMessage.find (result);
+            QString errorMsg = it != ChangeResultMessage.end ()
+                                   ? QString::fromStdString (it->second)
+                                   : "Unknown error";
+            showDialog ("Save Error", errorMsg);
+        }
+        // save to user settings
+    }
+}
 
 void SettingPage::onLanguageChanged (int index)
 {
+
+    // Building...
+
     // 0: Chinese, 1: English
     QString selectedLanguage = (index == 0) ? "Chinese" : "English";
+
+    // Set the application language
+
+    // Save the selected language to user settings
 }

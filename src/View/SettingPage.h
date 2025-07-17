@@ -1,5 +1,6 @@
 #pragma once
 #include "TempPage.h"
+#include <Controller/Setting.h>
 #include <QLabel>
 #include <QPropertyAnimation>
 

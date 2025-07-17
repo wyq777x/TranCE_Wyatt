@@ -11,6 +11,12 @@ public:
         return instance;
     }
 
+    ChangeResult setHistorySearchEnabled (bool enabled)
+    {
+        // Building...
+        return ChangeResult::Success;
+    }
+
 private:
     Setting () = default;
     Setting (const Setting &) = delete;

@@ -237,6 +237,20 @@ ChangeResult AccountManager::changeAvatar ()
 
     return result;
 }
+
+QString AccountManager::getUserUuid () const
+{
+    auto UUID = DbManager::getInstance ().getUserId (username);
+
+    if (!UUID.has_value ())
+    {
+        qWarning () << "User UUID not found for username:" << username;
+        return QString ();
+    }
+
+    return UUID.value ();
+}
+
 QString AccountManager::getUsername () const { return username; }
 
 QString AccountManager::getHashedPassword () const { return password_Hash; }

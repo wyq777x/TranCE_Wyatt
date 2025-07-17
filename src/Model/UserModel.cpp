@@ -77,7 +77,8 @@ void UserModel::saveUserData (const QString &filename)
 
         QJsonObject userAccount;
         userAccount["username"] = AccountManager::getInstance ().getUsername ();
-        userAccount["userkey"] = 1;
+        userAccount["user_uuid"] =
+            AccountManager::getInstance ().getUserUuid ();
 
         userData["userAccount"] = userAccount;
 
