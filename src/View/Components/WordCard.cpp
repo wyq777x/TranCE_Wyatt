@@ -1,10 +1,13 @@
 #include "Components/WordCard.h"
+#include "Def.h"
+#include "ElaIconButton.h"
+#include <qboxlayout.h>
 #include <qnamespace.h>
 
 WordCard::WordCard (QWidget *parent) : TempPage (parent)
 {
     // UI Layout:
-    //   BIG WORD
+    //   BIG WORD     ADD2FAVORITES_BUTTON
     //   SMALL PRONUNCIATION
     //   -------------------
     //   TRANSLATION
@@ -19,6 +22,8 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
     mainLayout->setContentsMargins (20, 20, 20, 20);
     mainLayout->setSpacing (10);
 
+    QHBoxLayout *headerLayout = new QHBoxLayout ();
+
     wordLabel = new QLabel ();
     wordLabel->setAlignment (Qt::AlignCenter);
     wordLabel->setStyleSheet ("QLabel {"
@@ -27,6 +32,13 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
                               "color: #2c3e50;"
                               "padding: 10px;"
                               "}");
+
+    headerLayout->addStretch ();
+    headerLayout->addWidget (wordLabel);
+    headerLayout->addStretch ();
+
+    add2FavoritesButton->setFixedSize (32, 32);
+    headerLayout->addWidget (add2FavoritesButton);
 
     pronunciationLabel = new QLabel ();
     pronunciationLabel->setAlignment (Qt::AlignCenter);
@@ -58,7 +70,7 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
                                      "border-radius: 8px;"
                                      "}");
 
-    mainLayout->addWidget (wordLabel);
+    mainLayout->addLayout (headerLayout);
     mainLayout->addWidget (pronunciationLabel);
     mainLayout->addWidget (separatorLine);
     mainLayout->addWidget (translationLabel);
@@ -68,6 +80,16 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
     container->setLayout (mainLayout);
     container->setWindowTitle ("Word Card");
     addCentralWidget (container);
+
+    connect (add2FavoritesButton, &ElaIconButton::clicked, this,
+             [this] ()
+             {
+                 // Building...
+
+                 add2FavoritesButton->setAwesome (
+                     ElaIconType::HeartCircleCheck);
+                 qDebug () << "Add to Favorites clicked";
+             });
 }
 
 void WordCard::setWordEntry (WordEntry &entry)

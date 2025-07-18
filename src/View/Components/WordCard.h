@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ElaIcon.h"
+#include "ElaIconButton.h"
 #include "Utility/WordEntry.h"
 #include "View/TempPage.h"
 #include <QFrame>
@@ -31,4 +33,7 @@ private:
     QLabel *pronunciationLabel;
     QFrame *separatorLine;
     QLabel *translationLabel;
+
+    ElaIconButton *add2FavoritesButton =
+        new ElaIconButton (ElaIconType::Heart); // Default unfavorited icon
 };
