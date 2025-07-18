@@ -1521,7 +1521,10 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
             }
             else if (!QFile::exists (dictFilePath))
             {
-                qDebug () << "Dictionary file not found at:" << dictFilePath;
+                auto exception =
+                    std::runtime_error ("Dictionary file not found at: " +
+                                        dictFilePath.toStdString ());
+                logErr ("Dictionary file not found", exception);
             }
         }
         catch (const SQLite::Exception &e)

@@ -33,7 +33,7 @@ public:
         }
         catch (const std::exception &e)
         {
-            qDebug () << "Error setting UserModel:" << e.what ();
+            logErr ("Error setting UserModel", e);
             throw;
         }
     }
@@ -73,6 +73,16 @@ signals:
 
 private:
     AccountManager () = default;
+
+    mutable std::string m_lastError;
+
+    template <typename ExceptionT>
+    void logErr (const std::string &errMsg, const ExceptionT &e) const
+    {
+        qCritical () << "[AccountManager]" << QString::fromStdString (errMsg)
+                     << "Exception:" << e.what ();
+        m_lastError = errMsg + " Exception:" + std::string (e.what ());
+    }
 
     UserModel *userModel = nullptr;
     QString username{};

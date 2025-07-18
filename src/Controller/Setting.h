@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Model/DbModel.h"
 #include "SettingPage.h"
+#include "Utility/Result.h"
 
 class Setting
 {
@@ -23,4 +25,13 @@ private:
     Setting &operator= (const Setting &) = delete;
     Setting (Setting &&) = delete;
     Setting &operator= (Setting &&) = delete;
+
+    mutable std::string m_lastError;
+
+    template <typename ExceptionT>
+    void logErr (const std::string &errMsg, const ExceptionT &e) const
+    {
+        qCritical () << "[Setting]" << QString::fromStdString (errMsg)
+                     << "Exception:" << e.what ();
+    }
 };

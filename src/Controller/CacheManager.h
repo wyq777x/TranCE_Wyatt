@@ -1,5 +1,6 @@
 #pragma once
 #include "Utility/CacheEntry.h"
+#include <QCoreApplication>
 
 class CacheManager
 {
@@ -16,4 +17,14 @@ private:
     CacheManager &operator= (const CacheManager &) = delete;
     CacheManager (CacheManager &&) = delete;
     CacheManager &operator= (CacheManager &&) = delete;
+
+    mutable std::string m_lastError;
+
+    template <typename ExceptionT>
+    void logErr (const std::string &errMsg, const ExceptionT &e) const
+    {
+        qCritical () << "[CacheManager]" << QString::fromStdString (errMsg)
+                     << "Exception:" << e.what ();
+        m_lastError = errMsg + " Exception:" + std::string (e.what ());
+    }
 };

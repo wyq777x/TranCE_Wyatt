@@ -57,14 +57,12 @@ void UserModel::loadUserData (const QJsonObject &userData)
     auto validation = validateUserData (userData);
     if (!validation.isValid)
     {
-        qCritical () << "User data is invalid";
-        for (const QString &err : validation.ErrMessages)
-        {
-            qCritical () << err;
-        }
-        throw std::runtime_error (
+        std::string errorMsg =
             "User data is invalid: " +
-            validation.ErrMessages.join (", ").toStdString ());
+            validation.ErrMessages.join (", ").toStdString ();
+        auto exception = std::runtime_error (errorMsg);
+        getInstance ().logErr ("User data validation failed", exception);
+        throw exception;
     }
 }
 
@@ -91,10 +89,11 @@ void UserModel::saveUserData (const QString &filename)
 
     catch (const std::exception &e)
     {
-        qCritical () << "Error loading user data:" << e.what ();
+        getInstance ().logErr ("Error loading user data", e);
     }
     catch (...)
     {
-        qCritical () << "Unknown error occurred while loading user data.";
+        getInstance ().logErr ("Unknown error occurred while loading user data",
+                               std::runtime_error ("Unknown exception"));
     }
 }

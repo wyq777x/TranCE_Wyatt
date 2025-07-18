@@ -60,4 +60,13 @@ private:
     bool loggedIn = false;
     bool loginExpired = true;
     inline static const QString storageFile = "users.json";
+
+    mutable std::string m_lastError;
+    template <typename ExceptionT>
+    void logErr (const std::string &errMsg, const ExceptionT &e)
+    {
+        qCritical () << "[UserModel]" << QString::fromStdString (errMsg)
+                     << "Exception:" << e.what ();
+        m_lastError = errMsg + " Exception:" + std::string (e.what ());
+    }
 };

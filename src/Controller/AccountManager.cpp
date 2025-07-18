@@ -23,24 +23,34 @@ void AccountManager::logout ()
 UserAuthResult AccountManager::login (const QString &username,
                                       const QString &password)
 {
-    if (userModel)
+    try
     {
-        auto result = userModel->login (username, password);
-        if (result == UserAuthResult::Success)
+        if (userModel)
         {
-            this->username = username;
-            this->password_Hash = hashPassword (password);
-            this->email = DbManager::getInstance ().getUserEmail (username);
-            this->avatarPath =
-                DbManager::getInstance ().getUserAvatarPath (username);
-            emit loginSuccessful (username);
-        }
+            auto result = userModel->login (username, password);
+            if (result == UserAuthResult::Success)
+            {
+                this->username = username;
+                this->password_Hash = hashPassword (password);
+                this->email = DbManager::getInstance ().getUserEmail (username);
+                this->avatarPath =
+                    DbManager::getInstance ().getUserAvatarPath (username);
+                emit loginSuccessful (username);
+            }
 
-        return result;
+            return result;
+        }
+        else
+        {
+            auto exception =
+                std::runtime_error ("UserModel is not set in AccountManager");
+            logErr ("UserModel not set", exception);
+            return UserAuthResult::UnknownError;
+        }
     }
-    else
+    catch (const std::exception &e)
     {
-        qCritical () << "UserModel is not set in AccountManager.";
+        logErr ("Error during login process", e);
         return UserAuthResult::UnknownError;
     }
 }
@@ -56,24 +66,25 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
 
         if (result != RegisterUserResult::Success)
         {
-
             auto it = RegisterUserResultMessage.find (result);
+            std::string errorMsg;
             if (it != RegisterUserResultMessage.end ())
             {
-                qCritical () << "User registration failed:"
-                             << QString::fromStdString (it->second);
+                errorMsg = "User registration failed: " + it->second;
             }
             else
             {
-                qCritical () << "User registration failed with unknown reason.";
+                errorMsg = "User registration failed with unknown reason";
             }
+            auto exception = std::runtime_error (errorMsg);
+            logErr ("User registration failed", exception);
         }
 
         return result;
     }
     catch (const std::exception &e)
     {
-        qCritical () << "Error registering user:" << e.what ();
+        logErr ("Error registering user", e);
         return RegisterUserResult::UnknownError;
     }
 }
@@ -103,48 +114,71 @@ QString AccountManager::hashPassword (const QString &password)
 
 ChangeResult AccountManager::changeUsername (const QString &newUsername)
 {
-    if (newUsername.isEmpty ())
+    try
     {
-        return ChangeResult::NullValue;
+        if (newUsername.isEmpty ())
+        {
+            return ChangeResult::NullValue;
+        }
+
+        auto result =
+            DbManager::getInstance ().changeUsername (username, newUsername);
+
+        if (result == ChangeResult::Success)
+        {
+            username = newUsername;
+        }
+
+        return result;
     }
-
-    auto result =
-        DbManager::getInstance ().changeUsername (username, newUsername);
-
-    if (result == ChangeResult::Success)
+    catch (const std::exception &e)
     {
-        username = newUsername;
+        logErr ("Error changing username", e);
+        return ChangeResult::DatabaseError;
     }
-
-    return result;
 }
 
 ChangeResult AccountManager::changePassword (const QString &oldPasswordHash,
                                              const QString &newPasswordHash)
 {
-    auto result = DbManager::getInstance ().changePassword (
-        username, oldPasswordHash, newPasswordHash);
-
-    if (result == ChangeResult::Success)
+    try
     {
-        password_Hash = newPasswordHash;
-    }
+        auto result = DbManager::getInstance ().changePassword (
+            username, oldPasswordHash, newPasswordHash);
 
-    return result;
+        if (result == ChangeResult::Success)
+        {
+            password_Hash = newPasswordHash;
+        }
+
+        return result;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Error changing password", e);
+        return ChangeResult::DatabaseError;
+    }
 }
 
 ChangeResult AccountManager::changeEmail (const QString &newEmail)
 {
-
-    auto result =
-        DbManager::getInstance ().changeEmail (username, email, newEmail);
-
-    if (result == ChangeResult::Success)
+    try
     {
-        email = newEmail;
-    }
+        auto result =
+            DbManager::getInstance ().changeEmail (username, email, newEmail);
 
-    return result;
+        if (result == ChangeResult::Success)
+        {
+            email = newEmail;
+        }
+
+        return result;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Error changing email", e);
+        return ChangeResult::DatabaseError;
+    }
 }
 
 ChangeResult AccountManager::changeAvatar ()
@@ -166,7 +200,9 @@ ChangeResult AccountManager::changeAvatar ()
 
     if (!QFile::exists (filePath))
     {
-        qDebug () << "Avatar file does not exist:" << filePath;
+        auto exception = std::runtime_error ("Avatar file does not exist: " +
+                                             filePath.toStdString ());
+        logErr ("Avatar file not found", exception);
         return ChangeResult::FileNotFound;
     }
 
@@ -177,7 +213,10 @@ ChangeResult AccountManager::changeAvatar ()
     {
         if (!dir.mkpath (avatarDir))
         {
-            qDebug () << "Failed to create avatar directory:" << avatarDir;
+            auto exception =
+                std::runtime_error ("Failed to create avatar directory: " +
+                                    avatarDir.toStdString ());
+            logErr ("Failed to create avatar directory", exception);
             return ChangeResult::DatabaseError;
         }
     }
@@ -220,8 +259,10 @@ ChangeResult AccountManager::changeAvatar ()
 
     if (!QFile::copy (filePath, newAvatarPath))
     {
-        qDebug () << "Failed to copy avatar file from" << filePath << "to"
-                  << newAvatarPath;
+        auto exception = std::runtime_error (
+            "Failed to copy avatar file from " + filePath.toStdString () +
+            " to " + newAvatarPath.toStdString ());
+        logErr ("Failed to copy avatar file", exception);
         return ChangeResult::DatabaseError;
     }
 
@@ -244,7 +285,9 @@ QString AccountManager::getUserUuid () const
 
     if (!UUID.has_value ())
     {
-        qWarning () << "User UUID not found for username:" << username;
+        auto exception = std::runtime_error (
+            "User UUID not found for username: " + username.toStdString ());
+        logErr ("User UUID not found", exception);
         return QString ();
     }
 

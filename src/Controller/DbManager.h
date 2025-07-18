@@ -53,4 +53,13 @@ private:
     DbManager &operator= (const DbManager &) = delete;
     DbManager (DbManager &&) = delete;
     DbManager &operator= (DbManager &&) = delete;
+
+    mutable std::string m_lastError;
+    template <typename ExceptionT>
+    void logErr (const std::string &errMsg, const ExceptionT &e)
+    {
+        qCritical () << "[DbManager]" << QString::fromStdString (errMsg)
+                     << "Exception:" << e.what ();
+        m_lastError = errMsg + " Exception:" + std::string (e.what ());
+    }
 };

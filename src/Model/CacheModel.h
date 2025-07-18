@@ -1,10 +1,12 @@
 #pragma once
 #include "Utility/CacheEntry.h"
+#include <QCoreApplication>
 #include <chrono>
 #include <list>
 #include <tuple>
 #include <unordered_map>
 #include <utility>
+
 
 template <typename T>
 
@@ -185,4 +187,14 @@ private:
 
     mutable std::size_t hitCount = 0;
     mutable std::size_t missCount = 0;
+
+    mutable std::string m_lastError;
+
+    template <typename ExceptionT>
+    void logErr (const std::string &errMsg, const ExceptionT &e) const
+    {
+        qCritical () << "[CacheModel]" << QString::fromStdString (errMsg)
+                     << "Exception:" << e.what ();
+        m_lastError = errMsg + " Exception:" + std::string (e.what ());
+    }
 };
