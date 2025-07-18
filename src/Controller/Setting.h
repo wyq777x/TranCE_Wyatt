@@ -13,10 +13,11 @@ public:
         return instance;
     }
 
-    ChangeResult setHistorySearchEnabled (bool enabled)
+    ChangeResult setHistorySearchEnabled (bool enabled);
+
+    bool isHistorySearchEnabled () const
     {
-        // Building...
-        return ChangeResult::Success;
+        return AppSettingModel::getInstance ().isHistoryListEnabled ();
     }
 
 private:

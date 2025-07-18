@@ -6,6 +6,7 @@
 #include "Utility/WordEntry.h"
 #include <qdebug.h>
 #include <qhashfunctions.h>
+#include <qlogging.h>
 #include <quuid.h>
 #include <stdexcept>
 
@@ -37,6 +38,8 @@ bool DbModel::userExists (const QString &username) const
 {
     if (!isUserDbOpen ())
     {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
         return false;
     }
 
@@ -170,6 +173,8 @@ void DbModel::deleteUser (const QString &username)
 {
     if (!isUserDbOpen ())
     {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
         return;
     }
 
@@ -423,11 +428,14 @@ std::optional<QString> DbModel::getUserId (const QString &username) const
 {
     if (!isUserDbOpen ())
     {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
         return std::nullopt;
     }
 
     if (username.isEmpty ())
     {
+        logErr ("Username is empty", std::runtime_error ("Invalid input"));
         return std::nullopt;
     }
 
@@ -466,11 +474,14 @@ std::optional<QString> DbModel::getUserName (const QString &userId) const
 {
     if (!isUserDbOpen ())
     {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
         return std::nullopt;
     }
 
     if (userId.isEmpty ())
     {
+        logErr ("User ID is empty", std::runtime_error ("Invalid input"));
         return std::nullopt;
     }
 
@@ -509,11 +520,14 @@ QString DbModel::getUserEmail (const QString &username) const
 {
     if (!isUserDbOpen ())
     {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
         return QString ();
     }
 
     if (username.isEmpty ())
     {
+        logErr ("Username is empty", std::runtime_error ("Invalid input"));
         return QString ();
     }
 
@@ -558,11 +572,14 @@ QString DbModel::getUserAvatarPath (const QString &username) const
 {
     if (!isUserDbOpen ())
     {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
         return QString (":/image/DefaultUser.png");
     }
 
     if (username.isEmpty ())
     {
+        logErr ("Username is empty", std::runtime_error ("Invalid input"));
         return QString (":/image/DefaultUser.png");
     }
 
@@ -606,6 +623,8 @@ AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
 {
     if (!isDictDbOpen ())
     {
+        logErr ("Dictionary database is not open",
+                std::runtime_error ("Database connection is not established"));
         co_return;
     }
 
@@ -681,6 +700,8 @@ DbModel::importWordEntriesAsync (const std::vector<WordEntry> &wordEntries)
 {
     if (!isDictDbOpen () || wordEntries.empty ())
     {
+        logErr ("Dictionary database is not open or no word entries provided",
+                std::runtime_error ("Database connection is not established"));
         co_return;
     }
 
@@ -727,6 +748,8 @@ DbModel::importFromFileAsync (const QString &filePath,
 {
     if (!isDictDbOpen ())
     {
+        logErr ("Dictionary database is not open",
+                std::runtime_error ("Database connection is not established"));
         co_return;
     }
 
@@ -832,6 +855,8 @@ void DbModel::importFromFileSync (
 {
     if (!isDictDbOpen ())
     {
+        logErr ("Dictionary database is not open",
+                std::runtime_error ("Database connection is not established"));
         return;
     }
 
@@ -928,7 +953,10 @@ void DbModel::importFromFileSync (
 void DbModel::insertWordBatchSync (const std::vector<WordEntry> &batch)
 {
     if (batch.empty ())
+    {
+        logErr ("Batch is empty", std::runtime_error ("No words to insert"));
         return;
+    }
 
     try
     {
@@ -987,7 +1015,10 @@ void DbModel::insertWordBatchSync (const std::vector<WordEntry> &batch)
 AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
 {
     if (batch.empty ())
+    {
+        logErr ("Batch is empty", std::runtime_error ("No words to insert"));
         co_return;
+    }
 
     try
     {
@@ -1051,15 +1082,22 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
 {
     if (!isDictDbOpen ())
     {
+        logErr ("Dictionary database is not open",
+                std::runtime_error ("Database connection is not established"));
         return std::nullopt;
     }
 
     if (word.isEmpty () || srcLang.isEmpty ())
     {
+        logErr ("Word or source language is empty",
+                std::runtime_error ("Invalid input"));
         return std::nullopt; // Invalid input
     }
     if (srcLang != "en" && srcLang != "zh")
     {
+        logErr ("Unsupported source language", std::runtime_error ("Invalid "
+                                                                   "source "
+                                                                   "language"));
         return std::nullopt; // Unsupported language
     }
     try
@@ -1154,10 +1192,14 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
 {
     if (!isDictDbOpen ())
     {
+        logErr ("Dictionary database is not open",
+                std::runtime_error ("Database connection is not established"));
         return std::vector<WordEntry> ();
     }
     if (pattern.isEmpty () || srcLang.isEmpty ())
     {
+        logErr ("Pattern or source language is empty",
+                std::runtime_error ("Invalid input"));
         return std::vector<WordEntry> (); // Invalid input
     }
 
@@ -1349,6 +1391,8 @@ std::optional<WordEntry> DbModel::getRandomWord ()
 {
     if (!isDictDbOpen ())
     {
+        logErr ("Dictionary database is not open",
+                std::runtime_error ("Database connection is not established"));
         return std::nullopt;
     }
 
