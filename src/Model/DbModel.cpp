@@ -1319,19 +1319,21 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
 
 void DbModel::addToUserVocabulary (const QString &userId, const QString &word)
 {
+    // Building...
     return;
 }
 
 void DbModel::removeFromUserVocabulary (const QString &userId,
                                         const QString &word)
 {
-
+    // Building...
     return;
 }
 
 void DbModel::updateWordStatus (const QString &userId, const QString &word,
                                 int status)
 {
+    // Building...
     // status: -1= never learned,0=learning, 1=mastered
     return;
 }
@@ -1339,7 +1341,7 @@ void DbModel::updateWordStatus (const QString &userId, const QString &word,
 std::vector<WordEntry> DbModel::getUserVocabulary (const QString &userId,
                                                    int status) // -1 means all
 {
-
+    // Building...
     return std::vector<WordEntry> ();
 }
 
@@ -1530,6 +1532,15 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
         catch (const SQLite::Exception &e)
         {
             logErr ("Error checking/importing dictionary", e);
+        }
+        catch (const std::exception &e)
+        {
+            logErr ("Unknown error checking/importing dictionary", e);
+        }
+        catch (...)
+        {
+            logErr ("Unknown error checking/importing dictionary",
+                    std::runtime_error ("Unknown exception"));
         }
 
         m_needsDictImport = false;

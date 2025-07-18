@@ -53,6 +53,12 @@ UserAuthResult AccountManager::login (const QString &username,
         logErr ("Error during login process", e);
         return UserAuthResult::UnknownError;
     }
+    catch (...)
+    {
+        logErr ("Unknown error during login process",
+                std::runtime_error ("Unknown exception"));
+        return UserAuthResult::UnknownError;
+    }
 }
 
 RegisterUserResult AccountManager::registerUser (const QString &username,
@@ -85,6 +91,12 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
     catch (const std::exception &e)
     {
         logErr ("Error registering user", e);
+        return RegisterUserResult::UnknownError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error registering user",
+                std::runtime_error ("Unknown exception"));
         return RegisterUserResult::UnknownError;
     }
 }
@@ -136,6 +148,12 @@ ChangeResult AccountManager::changeUsername (const QString &newUsername)
         logErr ("Error changing username", e);
         return ChangeResult::DatabaseError;
     }
+    catch (...)
+    {
+        logErr ("Unknown error changing username",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::UnknownError;
+    }
 }
 
 ChangeResult AccountManager::changePassword (const QString &oldPasswordHash,
@@ -158,6 +176,12 @@ ChangeResult AccountManager::changePassword (const QString &oldPasswordHash,
         logErr ("Error changing password", e);
         return ChangeResult::DatabaseError;
     }
+    catch (...)
+    {
+        logErr ("Unknown error changing password",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::UnknownError;
+    }
 }
 
 ChangeResult AccountManager::changeEmail (const QString &newEmail)
@@ -178,6 +202,12 @@ ChangeResult AccountManager::changeEmail (const QString &newEmail)
     {
         logErr ("Error changing email", e);
         return ChangeResult::DatabaseError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error changing email",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::UnknownError;
     }
 }
 

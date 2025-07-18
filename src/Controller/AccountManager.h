@@ -36,6 +36,12 @@ public:
             logErr ("Error setting UserModel", e);
             throw;
         }
+        catch (...)
+        {
+            logErr ("Unknown error setting UserModel",
+                    std::runtime_error ("Unknown exception"));
+            throw;
+        }
     }
     UserAuthResult login (const QString &username, const QString &password);
 
