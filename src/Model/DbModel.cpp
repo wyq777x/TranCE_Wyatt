@@ -1203,6 +1203,21 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
         return std::vector<WordEntry> (); // Invalid input
     }
 
+    if (srcLang != "en" && srcLang != "zh")
+    {
+        logErr ("Unsupported source language", std::runtime_error ("Invalid "
+                                                                   "source "
+                                                                   "language"));
+        return std::vector<WordEntry> (); // Unsupported language
+    }
+
+    if (limit <= 0)
+    {
+        logErr ("Limit must be greater than 0",
+                std::runtime_error ("Invalid limit value"));
+        return std::vector<WordEntry> (); // Invalid limit
+    }
+
     try
     {
 

@@ -1,4 +1,5 @@
 #include "TempPage.h"
+#include <qnamespace.h>
 
 TempPage::TempPage (QWidget *parent) : ElaScrollPage (parent)
 {
@@ -14,8 +15,11 @@ void TempPage::showDialog (const QString &title, const QString &message)
     QDialog *Dialog = new QDialog (this);
 
     Dialog->setWindowTitle (title);
+    Dialog->setWindowFlag (Qt::WindowStaysOnTopHint, true);
     Dialog->setWindowModality (Qt::ApplicationModal);
     Dialog->setModal (true);
+    Dialog->setStyleSheet ("QDialog { background-color: #f0f0f0; "
+                           "border-radius: 20px; }");
 
     Dialog->setMinimumSize (400, 250);
     Dialog->setMaximumSize (400, 250);

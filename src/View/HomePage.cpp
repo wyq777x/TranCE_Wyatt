@@ -257,16 +257,6 @@ Online)");
                     return;
                 }
 
-                // map language to code
-                auto mapLang = [] (const QString &lang) -> QString
-                {
-                    if (lang == "Chinese" || lang == "中文" || lang == "汉语")
-                        return "zh";
-                    if (lang == "English" || lang == "英语" || lang == "英文")
-                        return "en";
-                    return lang;
-                };
-
                 if (LangComboBox_left->currentText () == "English" &&
                     LangComboBox_right->currentText () == "Chinese")
                 {
@@ -356,6 +346,66 @@ Online)");
             }
         });
 
+    connect (lineEdit, &ElaLineEdit::returnPressed,
+             [=, this] ()
+             {
+                 if (searchOnline->getIsToggled ())
+                 {
+                     if (lineEdit->text ().isEmpty ())
+                     {
+                         return;
+                     }
+                     QDesktopServices::openUrl (
+                         QUrl (QString ("https://www.bing.com/search?q=%1")
+                                   .arg (lineEdit->text ())));
+                     return;
+                 }
+                 else
+                 {
+                     if (searchMode_precise->isChecked ())
+                     {
+                         auto wordEntry = DbManager::getInstance ().lookupWord (
+                             lineEdit->text (),
+                             mapLang (LangComboBox_left->currentText ()));
+
+                         if (wordEntry.has_value ())
+                         {
+                             auto wordCard = WordCard::getInstance ();
+                             wordCard->setWordEntry (wordEntry.value ());
+                             wordCard->show ();
+                         }
+                         else
+                         {
+                             showDialog ("Error Loading Word Card",
+                                         "The word you entered can't be "
+                                         "loaded from the database. ");
+                         }
+                     }
+
+                     if (searchMode_fuzzy->isChecked ())
+                     {
+                         auto firstWordEntry =
+                             DbManager::getInstance ().searchWords (
+                                 lineEdit->text (),
+                                 mapLang (LangComboBox_left->currentText ()),
+                                 1);
+
+                         if (!firstWordEntry.empty ())
+                         {
+                             auto wordCard = WordCard::getInstance ();
+                             wordCard->setWordEntry (firstWordEntry[0]);
+                             wordCard->show ();
+                         }
+                         else
+                         {
+                             showDialog ("Error Loading Word Card",
+                                         "The word you entered can't be "
+                                         "loaded from the database. ");
+                         }
+                     }
+                 }
+             });
+
     connect (suggestionsList, &ElaListView::clicked, this,
              [=, this] (const QModelIndex &index)
              {
@@ -381,64 +431,6 @@ Online)");
                      wordCard->setWordEntry (wordEntry.value ());
 
                      wordCard->show ();
-                 }
-             });
-    connect (lineEdit, &ElaLineEdit::returnPressed,
-             [=, this] ()
-             {
-                 if (searchOnline->getIsToggled ())
-                 {
-                     if (lineEdit->text ().isEmpty ())
-                     {
-                         return;
-                     }
-                     QDesktopServices::openUrl (
-                         QUrl (QString ("https://www.bing.com/search?q=%1")
-                                   .arg (lineEdit->text ())));
-                     return;
-                 }
-                 else
-                 {
-                     if (searchMode_precise->isChecked ())
-                     {
-                         auto wordEntry = DbManager::getInstance ().lookupWord (
-                             lineEdit->text (),
-                             LangComboBox_left->currentText ());
-
-                         if (wordEntry.has_value ())
-                         {
-                             auto wordCard = WordCard::getInstance ();
-                             wordCard->setWordEntry (wordEntry.value ());
-                             wordCard->show ();
-                         }
-                         else
-                         {
-                             showDialog ("Error Loading Word Card",
-                                         "The word you entered can't be "
-                                         "loaded from the database. ");
-                         }
-                     }
-
-                     if (searchMode_fuzzy->isChecked ())
-                     {
-                         auto firstWordEntry =
-                             DbManager::getInstance ().searchWords (
-                                 lineEdit->text (),
-                                 LangComboBox_left->currentText (), 1);
-
-                         if (!firstWordEntry.empty ())
-                         {
-                             auto wordCard = WordCard::getInstance ();
-                             wordCard->setWordEntry (firstWordEntry[0]);
-                             wordCard->show ();
-                         }
-                         else
-                         {
-                             showDialog ("Error Loading Word Card",
-                                         "The word you entered can't be "
-                                         "loaded from the database. ");
-                         }
-                     }
                  }
              });
 
