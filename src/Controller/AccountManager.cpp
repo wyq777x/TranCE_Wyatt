@@ -85,6 +85,13 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
             auto exception = std::runtime_error (errorMsg);
             logErr ("User registration failed", exception);
         }
+        else
+        {
+            // invoke UserModel to save user profile and settings
+            UserModel::getInstance ().saveUserData (
+                "profile_" + AccountManager::getInstance ().getUserUuid () +
+                ".json");
+        }
 
         return result;
     }

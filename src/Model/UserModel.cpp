@@ -80,11 +80,47 @@ void UserModel::saveUserData (const QString &filename)
 
         userData["userAccount"] = userAccount;
 
-        QJsonObject appConfig;
-        appConfig["language"] = AccountManager::getInstance ().getLanguage ();
-        appConfig["HistoryListEnabled"] =
+        QJsonObject appSettings;
+        appSettings["language"] = AccountManager::getInstance ().getLanguage ();
+        appSettings["HistoryListEnabled"] =
             AppSettingModel::getInstance ().isHistoryListEnabled ();
-        userData["appConfig"] = appConfig;
+        userData["appSettings"] = appSettings;
+
+        if (m_userProfileDir.isEmpty ())
+        {
+            auto exception =
+                std::runtime_error ("User profile directory is not set");
+            getInstance ().logErr ("User profile directory not set", exception);
+            throw exception;
+        }
+
+        QDir dir (m_userProfileDir);
+        if (!dir.exists ())
+        {
+            if (!dir.mkpath ("."))
+            {
+                auto exception = std::runtime_error (
+                    "Failed to create user profile directory: " +
+                    m_userProfileDir.toStdString ());
+                getInstance ().logErr ("Directory creation failed", exception);
+                throw exception;
+            }
+        }
+
+        QFile file (dir.filePath (filename));
+
+        if (!file.open (QIODevice::WriteOnly))
+        {
+            auto exception = std::runtime_error (
+                "Failed to open file for writing: " + filename.toStdString ());
+            getInstance ().logErr ("File open error", exception);
+            throw exception;
+        }
+
+        QJsonDocument doc (userData);
+        file.write (doc.toJson ());
+        file.close ();
+        qDebug () << "User data saved to" << filename;
     }
 
     catch (const std::exception &e)

@@ -2,7 +2,6 @@
 
 ChangeResult Setting::setHistorySearchEnabled (bool enabled)
 {
-    // Building...
     auto result =
         AppSettingModel::getInstance ().setHistorySearchListEnabled (enabled);
 

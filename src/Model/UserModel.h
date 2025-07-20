@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Utility/Result.h"
+#include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -10,15 +12,18 @@
 #include <QString>
 #include <qjsonobject.h>
 #include <qtmetamacros.h>
+
 class UserModel
 {
 public:
     static UserModel &getInstance ()
     {
-        static UserModel instance;
+        static UserModel instance (QCoreApplication::applicationDirPath () +
+                                   "/Utility/UserProfiles");
         return instance;
     }
 
+    UserModel () = delete;
     UserModel (const UserModel &) = delete;
     UserModel &operator= (const UserModel &) = delete;
     UserModel (UserModel &&) = delete;
@@ -51,15 +56,25 @@ public:
     }
     static ValidationResult validateUserData (const QJsonObject &userData);
 
-private:
-    UserModel () = default;
-
     static void loadUserData (const QJsonObject &userData);
-    static void saveUserData (const QString &filename);
+
+    void saveUserData (const QString &filename);
+
+private:
+    explicit UserModel (const QString &userProfilePath)
+        : m_userProfileDir (userProfilePath)
+    {
+        QDir dir (m_userProfileDir);
+        if (!dir.exists ())
+        {
+            dir.mkpath (".");
+        }
+    }
+
+    QString m_userProfileDir;
 
     bool loggedIn = false;
     bool loginExpired = true;
-    inline static const QString storageFile = "users.json";
 
     mutable std::string m_lastError;
     template <typename ExceptionT>
