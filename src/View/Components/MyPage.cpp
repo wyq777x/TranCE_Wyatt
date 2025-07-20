@@ -1,5 +1,6 @@
 #include "View/Components/MyPage.h"
 #include "AccountManager.h"
+#include "Constants.h"
 #include "DbManager.h"
 #include "ElaLineEdit.h"
 #include "ElaPushButton.h"
@@ -8,13 +9,13 @@
 
 MyPage::MyPage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle ("My Page");
+    setWindowTitle (tr ("My Page"));
     setMinimumSize (800, 600);
     setMaximumSize (800, 600);
     setStyleSheet (
         "background-color: #f0f0f0; font-family: 'Noto Sans', sans-serif;");
     auto *centralWidget = new QWidget (this);
-    centralWidget->setWindowTitle ("My Page");
+    centralWidget->setWindowTitle (tr ("My Page"));
 
     QVBoxLayout *userProfileLayout = new QVBoxLayout (centralWidget);
     userProfileLayout->setAlignment (Qt::AlignCenter | Qt::AlignTop);
@@ -22,29 +23,36 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     userProfileLayout->setContentsMargins (5, 20, 5, 20);
 
     QHBoxLayout *avatarLayout = new QHBoxLayout (centralWidget);
-    QLabel *avatarTextLabel = new QLabel ("User Avatar: ", centralWidget);
+    QLabel *avatarTextLabel = new QLabel (tr ("User Avatar: "), centralWidget);
     avatarTextLabel->setStyleSheet (
-        "font-size: 20px; font-weight: normal; color: #333;");
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
 
-    avatarTextLabel->setFont (QFont ("Noto Sans", 24));
+    avatarTextLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                     Constants::Settings::SUBTITLE_FONT_SIZE,
+                                     QFont::Normal));
 
     avatarLayout->addWidget (avatarTextLabel);
 
     avatarLabel = new QLabel (centralWidget);
 
     avatarLabel->setFixedSize (100, 100);
-    avatarLabel->setPixmap (QPixmap (":/image/DefaultUser.png"));
+    avatarLabel->setPixmap (
+        QPixmap (Constants::Resources::DEFAULT_USER_AVATAR));
     avatarLabel->setScaledContents (true);
 
     avatarLayout->addWidget (avatarLabel);
 
     ElaPushButton *changeAvatarButton =
-        new ElaPushButton ("Change Avatar", centralWidget);
+        new ElaPushButton (tr ("Change Avatar"), centralWidget);
     changeAvatarButton->setFixedSize (150, 40);
     changeAvatarButton->setStyleSheet (
-        "background-color: #4CAF50; color: white; font-size: 16px; "
-        "border-radius: 5px; padding: 10px;");
-    changeAvatarButton->setFont (QFont ("Noto Sans", 16));
+        QString ("background-color: #4CAF50; color: white; font-size: %1px; "
+                 "border-radius: 5px; padding: 10px;")
+            .arg (Constants::Settings::DEFAULT_FONT_SIZE));
+    changeAvatarButton->setFont (
+        QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+               Constants::Settings::DEFAULT_FONT_SIZE, QFont::Normal));
 
     avatarLayout->addWidget (changeAvatarButton);
 
@@ -60,22 +68,28 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
 
     QLabel *usernameTextLabel = new QLabel ();
 
-    usernameTextLabel->setText (QString ("Username: "));
+    usernameTextLabel->setText (tr ("Username: "));
 
     usernameTextLabel->setStyleSheet (
-        "font-size: 20px; font-weight: normal; color: #333;");
-    usernameTextLabel->setFont (QFont ("Noto Sans", 24));
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
+    usernameTextLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                       Constants::Settings::SUBTITLE_FONT_SIZE,
+                                       QFont::Normal));
 
     usernameLayout->addWidget (usernameTextLabel);
 
     usernameLineEdit = new ElaLineEdit (centralWidget);
 
-    usernameLineEdit->setPlaceholderText ("Enter your username");
+    usernameLineEdit->setPlaceholderText (tr ("Enter your username"));
 
     usernameLineEdit->setStyleSheet (
-        "font-size: 15px; color: #333; padding: 5px; "
-        "border: 1px solid #ccc; border-radius: 5px;");
-    usernameLineEdit->setFont (QFont ("Noto Sans", 24));
+        QString ("font-size: %1px; color: #333; padding: 5px; "
+                 "border: 1px solid #ccc; border-radius: 5px;")
+            .arg (Constants::Settings::DEFAULT_FONT_SIZE));
+    usernameLineEdit->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                      Constants::Settings::SUBTITLE_FONT_SIZE,
+                                      QFont::Normal));
 
     usernameLineEdit->setText (AccountManager::getInstance ().getUsername ());
 
@@ -84,43 +98,49 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     usernameLayout->addWidget (usernameLineEdit);
 
     ElaPushButton *changeUsernameButton =
-        new ElaPushButton ("Change Username", centralWidget);
+        new ElaPushButton (tr ("Change Username"), centralWidget);
 
     usernameLayout->addWidget (changeUsernameButton);
 
     userProfileLayout->addLayout (usernameLayout);
 
     QHBoxLayout *passwordLayout = new QHBoxLayout (centralWidget);
-    QLabel *passwordTextLabel = new QLabel ("Password: ******", centralWidget);
+    QLabel *passwordTextLabel =
+        new QLabel (tr ("Password: ******"), centralWidget);
     passwordTextLabel->setStyleSheet (
-        "font-size: 20px; font-weight: normal; color: #333;");
-    passwordTextLabel->setFont (QFont ("Noto Sans", 24));
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
+    passwordTextLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                       Constants::Settings::SUBTITLE_FONT_SIZE,
+                                       QFont::Normal));
     passwordLayout->addWidget (passwordTextLabel);
 
     ElaPushButton *changePasswordButton =
-        new ElaPushButton ("Change Password", centralWidget);
+        new ElaPushButton (tr ("Change Password"), centralWidget);
 
     passwordLayout->addWidget (changePasswordButton);
     userProfileLayout->addLayout (passwordLayout);
 
     QHBoxLayout *emailLayout = new QHBoxLayout (centralWidget);
 
-    QLabel *emailTextLabel = new QLabel ("Email: ", centralWidget);
+    QLabel *emailTextLabel = new QLabel (tr ("Email: "), centralWidget);
 
     emailTextLabel->setStyleSheet (
         "font-size: 20px; font-weight: normal; color: #333;");
-    emailTextLabel->setFont (QFont ("Noto Sans", 24));
+    emailTextLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                    Constants::Settings::TITLE_FONT_SIZE));
 
     emailLayout->addWidget (emailTextLabel);
 
     emailLineEdit = new ElaLineEdit (centralWidget);
 
-    emailLineEdit->setPlaceholderText ("Enter your email");
+    emailLineEdit->setPlaceholderText (tr ("Enter your email"));
 
     emailLineEdit->setStyleSheet (
         "font-size: 15px; color: #333; padding: 5px; "
         "border: 1px solid #ccc; border-radius: 5px;");
-    emailLineEdit->setFont (QFont ("Noto Sans", 24));
+    emailLineEdit->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                   Constants::Settings::TITLE_FONT_SIZE));
 
     emailLineEdit->setText (AccountManager::getInstance ().getEmail ());
 
@@ -129,7 +149,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     emailLayout->addWidget (emailLineEdit);
 
     ElaPushButton *changeEmailButton =
-        new ElaPushButton ("Change Email", centralWidget);
+        new ElaPushButton (tr ("Change Email"), centralWidget);
     emailLayout->addWidget (changeEmailButton);
     userProfileLayout->addLayout (emailLayout);
 
@@ -141,7 +161,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     userProfileLayout->addWidget (splitLine2);
 
     QHBoxLayout *logoutLayout = new QHBoxLayout (centralWidget);
-    QPushButton *logoutButton = new QPushButton ("Logout", centralWidget);
+    QPushButton *logoutButton = new QPushButton (tr ("Logout"), centralWidget);
     logoutButton->setStyleSheet ("QPushButton { "
                                  "color: #F44336; "
                                  "font-size: 16px; "
@@ -152,7 +172,8 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                                  "QPushButton:hover { "
                                  "border-color: #0078d7; "
                                  "color: #0078d7; }");
-    logoutButton->setFont (QFont ("Noto Sans", 16));
+    logoutButton->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                  Constants::Settings::DEFAULT_FONT_SIZE));
     logoutLayout->addWidget (logoutButton);
     userProfileLayout->addLayout (logoutLayout);
 
@@ -162,7 +183,8 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                  auto result = AccountManager::getInstance ().changeAvatar ();
                  if (result == ChangeResult::Success)
                  {
-                     showDialog ("Success", "Avatar changed successfully.");
+                     showDialog (tr ("Success"),
+                                 tr ("Avatar changed successfully."));
                  }
                  else
                  {
@@ -170,50 +192,52 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                      QString errorMsg =
                          it != ChangeResultMessage.end ()
                              ? QString::fromStdString (it->second)
-                             : "Unknown error";
-                     showDialog ("Change Avatar Error", errorMsg);
+                             : tr ("Unknown error");
+                     showDialog (tr ("Change Avatar Error"), errorMsg);
                  }
              });
 
-    connect (changeUsernameButton, &ElaPushButton::clicked, this,
-             [this] ()
-             {
-                 if (usernameLineEdit->text ().isEmpty ())
-                 {
-                     showDialog ("Error", "Username cannot be empty.");
-                     return;
-                 }
+    connect (
+        changeUsernameButton, &ElaPushButton::clicked, this,
+        [this] ()
+        {
+            if (usernameLineEdit->text ().isEmpty ())
+            {
+                showDialog (tr ("Error"), tr ("Username cannot be empty."));
+                return;
+            }
 
-                 auto result = AccountManager::getInstance ().changeUsername (
-                     usernameLineEdit->text ());
+            auto result = AccountManager::getInstance ().changeUsername (
+                usernameLineEdit->text ());
 
-                 if (result == ChangeResult::Success)
-                 {
-                     showDialog ("Success", "Username changed successfully.");
-                     emit usernameChanged (usernameLineEdit->text ());
-                 }
-                 else
-                 {
-                     auto it = ChangeResultMessage.find (result);
-                     QString errorMsg =
-                         it != ChangeResultMessage.end ()
-                             ? QString::fromStdString (it->second)
-                             : "Unknown error";
-                     showDialog ("Change Username Error", errorMsg);
-                 }
-             });
+            if (result == ChangeResult::Success)
+            {
+                showDialog (tr ("Success"),
+                            tr ("Username changed successfully."));
+                emit usernameChanged (usernameLineEdit->text ());
+            }
+            else
+            {
+                auto it = ChangeResultMessage.find (result);
+                QString errorMsg = it != ChangeResultMessage.end ()
+                                       ? QString::fromStdString (it->second)
+                                       : tr ("Unknown error");
+                showDialog (tr ("Change Username Error"), errorMsg);
+            }
+        });
 
     connect (changePasswordButton, &ElaPushButton::clicked, this,
              [this] ()
              {
                  showDialog (
-                     "Change Password",
+                     tr ("Change Password"),
                      [this] ()
                      {
                          if (oldPasswordLineEdit->text ().isEmpty () ||
                              newPasswordLineEdit->text ().isEmpty ())
                          {
-                             showDialog ("Error", "Fields cannot be empty.");
+                             showDialog (tr ("Error"),
+                                         tr ("Fields cannot be empty."));
                              return;
                          }
 
@@ -229,8 +253,8 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
 
                          if (result == ChangeResult::Success)
                          {
-                             showDialog ("Success",
-                                         "Password changed successfully.");
+                             showDialog (tr ("Success"),
+                                         tr ("Password changed successfully."));
                          }
                          else
                          {
@@ -238,51 +262,52 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                              QString errorMsg =
                                  it != ChangeResultMessage.end ()
                                      ? QString::fromStdString (it->second)
-                                     : "Unknown error";
-                             showDialog ("Change Password Error", errorMsg);
+                                     : tr ("Unknown error");
+                             showDialog (tr ("Change Password Error"),
+                                         errorMsg);
                          }
                      });
              });
 
-    connect (changeEmailButton, &ElaPushButton::clicked, this,
-             [this] ()
-             {
-                 if (emailLineEdit->text ().isEmpty ())
-                 {
-                     showDialog ("Error", "Email cannot be empty.");
-                     return;
-                 }
+    connect (
+        changeEmailButton, &ElaPushButton::clicked, this,
+        [this] ()
+        {
+            if (emailLineEdit->text ().isEmpty ())
+            {
+                showDialog (tr ("Error"), tr ("Email cannot be empty."));
+                return;
+            }
 
-                 if (!emailLineEdit->text ().contains ("@"))
-                 {
-                     showDialog ("Error", "Invalid email format.");
-                     return;
-                 }
+            if (!emailLineEdit->text ().contains ("@"))
+            {
+                showDialog (tr ("Error"), tr ("Invalid email format."));
+                return;
+            }
 
-                 auto result = AccountManager::getInstance ().changeEmail (
-                     emailLineEdit->text ());
-                 if (result == ChangeResult::Success)
-                 {
-                     showDialog ("Success", "Email changed successfully.");
-                     emit emailChanged (emailLineEdit->text ());
-                 }
-                 else
-                 {
-                     auto it = ChangeResultMessage.find (result);
-                     QString errorMsg =
-                         it != ChangeResultMessage.end ()
-                             ? QString::fromStdString (it->second)
-                             : "Unknown error";
-                     showDialog ("Change Email Error", errorMsg);
-                 }
-             });
+            auto result = AccountManager::getInstance ().changeEmail (
+                emailLineEdit->text ());
+            if (result == ChangeResult::Success)
+            {
+                showDialog (tr ("Success"), tr ("Email changed successfully."));
+                emit emailChanged (emailLineEdit->text ());
+            }
+            else
+            {
+                auto it = ChangeResultMessage.find (result);
+                QString errorMsg = it != ChangeResultMessage.end ()
+                                       ? QString::fromStdString (it->second)
+                                       : tr ("Unknown error");
+                showDialog (tr ("Change Email Error"), errorMsg);
+            }
+        });
 
     connect (
         logoutButton, &QPushButton::clicked, this,
         [this] ()
         {
             showDialog (
-                "Confirm Logout", "Are you sure you want to logout?",
+                tr ("Confirm Logout"), tr ("Are you sure you want to logout?"),
                 [this] ()
                 {
                     AccountManager::getInstance ().logout ();

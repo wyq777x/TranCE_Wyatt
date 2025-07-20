@@ -34,8 +34,8 @@ public:
                     std::runtime_error ("No change needed"));
             return ChangeResult::StillSame;
         }
-        if (lang != "en_US" || lang != "en_GB" || lang != "zh_CN" ||
-            lang != "zh_TW" || lang != "zh_HK")
+        if (lang != "en_US" && lang != "en_GB" && lang != "zh_CN" &&
+            lang != "zh_TW" && lang != "zh_HK")
         {
             logErr ("Unsupported/Invalid language code: " + lang.toStdString (),
                     std::runtime_error ("Invalid language code"));

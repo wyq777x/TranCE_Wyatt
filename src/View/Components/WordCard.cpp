@@ -1,4 +1,5 @@
 #include "Components/WordCard.h"
+#include "Constants.h"
 #include "Def.h"
 #include "ElaIconButton.h"
 #include <qboxlayout.h>
@@ -12,7 +13,7 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
     //   -------------------
     //   TRANSLATION
 
-    setWindowTitle ("Word Card");
+    setWindowTitle (tr ("Word Card"));
 
     setFixedSize (400, 400);
     setStyleSheet (
@@ -26,28 +27,32 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
 
     wordLabel = new QLabel ();
     wordLabel->setAlignment (Qt::AlignCenter);
-    wordLabel->setStyleSheet ("QLabel {"
-                              "font-size: 24px;"
-                              "font-weight: bold;"
-                              "color: #2c3e50;"
-                              "padding: 10px;"
-                              "}");
+    wordLabel->setStyleSheet (QString ("QLabel {"
+                                       "font-size: %1px;"
+                                       "font-weight: bold;"
+                                       "color: #2c3e50;"
+                                       "padding: 10px;"
+                                       "}")
+                                  .arg (Constants::Settings::TITLE_FONT_SIZE));
 
     headerLayout->addStretch ();
     headerLayout->addWidget (wordLabel);
     headerLayout->addStretch ();
 
-    add2FavoritesButton->setFixedSize (32, 32);
+    add2FavoritesButton->setFixedSize (Constants::UI::ICON_SIZE,
+                                       Constants::UI::ICON_SIZE);
     headerLayout->addWidget (add2FavoritesButton);
 
     pronunciationLabel = new QLabel ();
     pronunciationLabel->setAlignment (Qt::AlignCenter);
-    pronunciationLabel->setStyleSheet ("QLabel {"
-                                       "font-size: 14px;"
-                                       "color: #7f8c8d;"
-                                       "font-style: italic;"
-                                       "padding: 5px;"
-                                       "}");
+    pronunciationLabel->setStyleSheet (
+        QString ("QLabel {"
+                 "font-size: %1px;"
+                 "color: #7f8c8d;"
+                 "font-style: italic;"
+                 "padding: 5px;"
+                 "}")
+            .arg (Constants::Settings::SMALL_FONT_SIZE));
 
     separatorLine = new QFrame ();
     separatorLine->setFrameShape (QFrame::HLine);
@@ -61,14 +66,16 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
     translationLabel->setAlignment (Qt::AlignLeft | Qt::AlignTop);
     translationLabel->setMinimumHeight (100);
     translationLabel->setWordWrap (true);
-    translationLabel->setStyleSheet ("QLabel {"
-                                     "font-size: 16px;"
-                                     "color: #34495e;"
-                                     "padding: 15px;"
-                                     "background-color: #ffffff;"
-                                     "border: 1px solid #ecf0f1;"
-                                     "border-radius: 8px;"
-                                     "}");
+    translationLabel->setStyleSheet (
+        QString ("QLabel {"
+                 "font-size: %1px;"
+                 "color: #34495e;"
+                 "padding: 15px;"
+                 "background-color: #ffffff;"
+                 "border: 1px solid #ecf0f1;"
+                 "border-radius: 8px;"
+                 "}")
+            .arg (Constants::Settings::DEFAULT_FONT_SIZE));
 
     mainLayout->addLayout (headerLayout);
     mainLayout->addWidget (pronunciationLabel);
@@ -78,7 +85,7 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
 
     QWidget *container = new QWidget ();
     container->setLayout (mainLayout);
-    container->setWindowTitle ("Word Card");
+    container->setWindowTitle (tr ("Word Card"));
     addCentralWidget (container);
 
     connect (add2FavoritesButton, &ElaIconButton::clicked, this,

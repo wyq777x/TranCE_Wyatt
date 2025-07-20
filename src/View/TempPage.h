@@ -1,4 +1,5 @@
 #pragma once
+#include "Constants.h"
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
 #include <ElaComboBox.h>
@@ -29,6 +30,7 @@
 #include <QStringListModel>
 #include <QVBoxLayout>
 #include <functional>
+
 class TempPage : public ElaScrollPage
 {
     Q_OBJECT

@@ -1,4 +1,5 @@
 #include "SettingPage.h"
+#include "Constants.h"
 #include "Utility/Result.h"
 
 #include <QPropertyAnimation>
@@ -7,10 +8,10 @@
 
 SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle ("Setting Page");
+    setWindowTitle (tr ("Setting Page"));
 
     auto *centralWidget = new QWidget (this);
-    centralWidget->setWindowTitle ("Setting Page");
+    centralWidget->setWindowTitle (tr ("Setting Page"));
 
     QVBoxLayout *settingPageLayout = new QVBoxLayout (centralWidget);
     settingPageLayout->setSpacing (20);
@@ -22,16 +23,20 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     QLabel *enableHistorySearchLabel =
         new QLabel (HISTORY_SEARCH_TEXT, centralWidget);
     enableHistorySearchLabel->setStyleSheet (
-        "font-size: 20px; font-weight: normal; color: #333;");
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
     enableHistorySearchLabel->setSizePolicy (QSizePolicy::Expanding,
                                              QSizePolicy::Preferred);
-    enableHistorySearchLabel->setFont (QFont ("Noto Sans", 24));
+    enableHistorySearchLabel->setFont (
+        QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+               Constants::Settings::SUBTITLE_FONT_SIZE, QFont::Normal));
 
     enableHistorySearchLayout->addWidget (enableHistorySearchLabel);
 
     m_statusLabel = new QLabel (STATUS_ON, centralWidget);
     m_statusLabel->setStyleSheet (
-        "font-size: 16px; font-weight: bold; color: #4CAF50;");
+        QString ("font-size: %1px; font-weight: bold; color: #4CAF50;")
+            .arg (Constants::Settings::DEFAULT_FONT_SIZE));
     m_statusLabel->setAlignment (Qt::AlignCenter);
     m_statusLabel->setMinimumWidth (40);
     enableHistorySearchLayout->addWidget (m_statusLabel);
@@ -53,10 +58,13 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 
     QLabel *languageLabel = new QLabel (LANGUAGE_SETTING_TEXT, centralWidget);
     languageLabel->setStyleSheet (
-        "font-size: 20px; font-weight: normal; color: #333;");
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
     languageLabel->setSizePolicy (QSizePolicy::Expanding,
                                   QSizePolicy::Preferred);
-    languageLabel->setFont (QFont ("Noto Sans", 24));
+    languageLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                   Constants::Settings::SUBTITLE_FONT_SIZE,
+                                   QFont::Normal));
 
     languageLayout->addWidget (languageLabel);
 
@@ -65,7 +73,9 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     m_languageComboBox->setStyleSheet (
         "QComboBox {"
         "    color: black;" // set default text color as black
-        "    font-family: 'Noto Sans';"
+        "    font-family: '" +
+        Constants::Settings::DEFAULT_FONT_FAMILY +
+        "';"
         "}"
         "QComboBox QAbstractItemView {"
         "    color: black;" // set text color of dropdown list as black
@@ -86,15 +96,18 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     QHBoxLayout *clearCacheLayout = new QHBoxLayout (centralWidget);
 
     QLabel *clearCacheLabel =
-        new QLabel (QString ("Clear Cache: %1 MB").arg (0), centralWidget);
+        new QLabel (tr ("Clear Cache: %1 MB").arg (0), centralWidget);
     clearCacheLabel->setStyleSheet (
-        "font-size: 20px; font-weight: normal; color: #333;");
-    clearCacheLabel->setFont (QFont ("Noto Sans", 24));
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
+    clearCacheLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                     Constants::Settings::SUBTITLE_FONT_SIZE,
+                                     QFont::Normal));
 
     clearCacheLayout->addWidget (clearCacheLabel);
 
     ElaPushButton *clearCacheButton =
-        new ElaPushButton ("Clear Cache", centralWidget);
+        new ElaPushButton (tr ("Clear Cache"), centralWidget);
     clearCacheButton->setMinimumWidth (150);
     clearCacheButton->setMaximumWidth (150);
 

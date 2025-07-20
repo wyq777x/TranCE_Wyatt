@@ -3,7 +3,7 @@
 
 TempPage::TempPage (QWidget *parent) : ElaScrollPage (parent)
 {
-    setWindowIcon (QIcon (":/image/learnENG.ico"));
+    setWindowIcon (QIcon (Constants::Resources::APP_ICON));
 };
 
 TempPage::~TempPage () {}
@@ -57,7 +57,7 @@ void TempPage::showDialog (const QString &title, const QString &message)
                  QWidget *parentWidget = Dialog->parentWidget ();
                  if (parentWidget)
                  {
-                     if (!title.contains ("Error", Qt::CaseInsensitive))
+                     if (!title.contains (tr ("Error"), Qt::CaseInsensitive))
                      {
                          parentWidget->close ();
                      }
@@ -98,7 +98,7 @@ void TempPage::showDialog (const QString &title, const QString &message,
     buttonLayout->setAlignment (Qt::AlignCenter);
     buttonLayout->setSpacing (20);
 
-    ElaPushButton *yesButton = new ElaPushButton ("Yes", confirmDialog);
+    ElaPushButton *yesButton = new ElaPushButton (tr ("Yes"), confirmDialog);
     yesButton->setMinimumHeight (50);
     yesButton->setMaximumHeight (50);
     yesButton->setMinimumWidth (120);
@@ -110,7 +110,7 @@ void TempPage::showDialog (const QString &title, const QString &message,
         "border-radius: 20px; padding: 10px;");
     yesButton->setFont (QFont ("Noto Sans", 16));
 
-    ElaPushButton *noButton = new ElaPushButton ("No", confirmDialog);
+    ElaPushButton *noButton = new ElaPushButton (tr ("No"), confirmDialog);
     noButton->setMinimumHeight (50);
     noButton->setMaximumHeight (50);
     noButton->setMinimumWidth (120);
@@ -192,7 +192,7 @@ void TempPage::showDialog (const QString &title,
 
     // Old password input
     oldPasswordLineEdit = new ElaLineEdit (changePasswordDialog);
-    oldPasswordLineEdit->setPlaceholderText ("Old Password");
+    oldPasswordLineEdit->setPlaceholderText (tr ("Old Password"));
     oldPasswordLineEdit->setMinimumHeight (50);
     oldPasswordLineEdit->setMaximumHeight (50);
     oldPasswordLineEdit->setMinimumWidth (350);
@@ -203,7 +203,7 @@ void TempPage::showDialog (const QString &title,
 
     // New password input
     newPasswordLineEdit = new ElaLineEdit (changePasswordDialog);
-    newPasswordLineEdit->setPlaceholderText ("New Password");
+    newPasswordLineEdit->setPlaceholderText (tr ("New Password"));
     newPasswordLineEdit->setMinimumHeight (50);
     newPasswordLineEdit->setMaximumHeight (50);
     newPasswordLineEdit->setMinimumWidth (350);
@@ -218,7 +218,7 @@ void TempPage::showDialog (const QString &title,
     buttonLayout->setSpacing (20);
 
     ElaPushButton *confirmButton =
-        new ElaPushButton ("Modify", changePasswordDialog);
+        new ElaPushButton (tr ("Modify"), changePasswordDialog);
     confirmButton->setMinimumHeight (50);
     confirmButton->setMaximumHeight (50);
     confirmButton->setMinimumWidth (120);
@@ -231,7 +231,7 @@ void TempPage::showDialog (const QString &title,
     confirmButton->setFont (QFont ("Noto Sans", 16));
 
     ElaPushButton *cancelButton =
-        new ElaPushButton ("Cancel", changePasswordDialog);
+        new ElaPushButton (tr ("Cancel"), changePasswordDialog);
     cancelButton->setMinimumHeight (50);
     cancelButton->setMaximumHeight (50);
     cancelButton->setMinimumWidth (120);

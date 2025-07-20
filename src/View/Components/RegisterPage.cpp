@@ -1,16 +1,17 @@
 #include "View/Components/RegisterPage.h"
+#include "Constants.h"
 #include "ElaLineEdit.h"
 #include <qdialogbuttonbox.h>
 #include <qlabel.h>
 
 RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle ("Register");
+    setWindowTitle (tr ("Register"));
     setWindowFlag (Qt::Window, true);
     setWindowModality (Qt::ApplicationModal);
 
     auto *centralWidget = new QWidget (nullptr);
-    centralWidget->setWindowTitle ("Register");
+    centralWidget->setWindowTitle (tr ("Register"));
     resize (858, 600);
     setMinimumSize (644, 450);
     setMaximumSize (644, 450);
@@ -20,43 +21,51 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
     registerPageLayout->setSpacing (20);
     registerPageLayout->setContentsMargins (15, 40, 15, 40);
 
-    QLabel *titleLabel = new QLabel ("RegisterUser", centralWidget);
+    QLabel *titleLabel = new QLabel (tr ("Register User"), centralWidget);
     titleLabel->setAlignment (Qt::AlignHCenter);
     titleLabel->setStyleSheet (
-        "font-size: 24px; font-weight: bold; color: #333;");
-    titleLabel->setFont (QFont ("Noto Sans", 24, QFont::Bold));
+        QString ("font-size: %1px; font-weight: bold; color: #333;")
+            .arg (Constants::Settings::TITLE_FONT_SIZE));
+    titleLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                Constants::Settings::TITLE_FONT_SIZE,
+                                QFont::Bold));
 
     registerPageLayout->addWidget (titleLabel);
 
     ElaLineEdit *usernameLineEdit = new ElaLineEdit (centralWidget);
-    usernameLineEdit->setPlaceholderText ("Username");
-    usernameLineEdit->setMinimumHeight (50);
-    usernameLineEdit->setMaximumHeight (50);
-    usernameLineEdit->setMinimumWidth (450);
-    usernameLineEdit->setMaximumWidth (450);
-    usernameLineEdit->setBorderRadius (20);
+    usernameLineEdit->setPlaceholderText (tr ("Username"));
+    usernameLineEdit->setMinimumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
+    usernameLineEdit->setMaximumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
+    usernameLineEdit->setMinimumWidth (Constants::UI::DEFAULT_INPUT_WIDTH);
+    usernameLineEdit->setMaximumWidth (Constants::UI::DEFAULT_INPUT_WIDTH);
+    usernameLineEdit->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     registerPageLayout->addWidget (usernameLineEdit);
 
     ElaLineEdit *passwordLineEdit = new ElaLineEdit (centralWidget);
 
-    passwordLineEdit->setPlaceholderText ("Password");
-    passwordLineEdit->setMinimumHeight (50);
-    passwordLineEdit->setMaximumHeight (50);
-    passwordLineEdit->setMinimumWidth (450);
-    passwordLineEdit->setMaximumWidth (450);
-    passwordLineEdit->setBorderRadius (20);
+    passwordLineEdit->setPlaceholderText (tr ("Password"));
+    passwordLineEdit->setMinimumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
+    passwordLineEdit->setMaximumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
+    passwordLineEdit->setMinimumWidth (Constants::UI::DEFAULT_INPUT_WIDTH);
+    passwordLineEdit->setMaximumWidth (Constants::UI::DEFAULT_INPUT_WIDTH);
+    passwordLineEdit->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
     passwordLineEdit->setEchoMode (ElaLineEdit::Password);
 
     registerPageLayout->addWidget (passwordLineEdit);
 
     ElaLineEdit *confirmPasswordLineEdit = new ElaLineEdit (centralWidget);
-    confirmPasswordLineEdit->setPlaceholderText ("Confirm Password");
-    confirmPasswordLineEdit->setMinimumHeight (50);
-    confirmPasswordLineEdit->setMaximumHeight (50);
-    confirmPasswordLineEdit->setMinimumWidth (450);
-    confirmPasswordLineEdit->setMaximumWidth (450);
-    confirmPasswordLineEdit->setBorderRadius (20);
+    confirmPasswordLineEdit->setPlaceholderText (tr ("Confirm Password"));
+    confirmPasswordLineEdit->setMinimumHeight (
+        Constants::UI::DEFAULT_INPUT_HEIGHT);
+    confirmPasswordLineEdit->setMaximumHeight (
+        Constants::UI::DEFAULT_INPUT_HEIGHT);
+    confirmPasswordLineEdit->setMinimumWidth (
+        Constants::UI::DEFAULT_INPUT_WIDTH);
+    confirmPasswordLineEdit->setMaximumWidth (
+        Constants::UI::DEFAULT_INPUT_WIDTH);
+    confirmPasswordLineEdit->setBorderRadius (
+        Constants::UI::DEFAULT_BORDER_RADIUS);
     confirmPasswordLineEdit->setEchoMode (ElaLineEdit::Password);
 
     registerPageLayout->addWidget (confirmPasswordLineEdit);
@@ -66,22 +75,22 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
     registerButtonLayout->setSpacing (20);
 
     ElaPushButton *registerButton = new ElaPushButton (centralWidget);
-    registerButton->setText ("Register");
-    registerButton->setMinimumHeight (50);
-    registerButton->setMaximumHeight (50);
+    registerButton->setText (tr ("Register"));
+    registerButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
+    registerButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     registerButton->setMinimumWidth (200);
     registerButton->setMaximumWidth (200);
-    registerButton->setBorderRadius (20);
+    registerButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     registerButtonLayout->addWidget (registerButton);
 
     ElaPushButton *cancelButton = new ElaPushButton (centralWidget);
-    cancelButton->setText ("Cancel");
-    cancelButton->setMinimumHeight (50);
-    cancelButton->setMaximumHeight (50);
+    cancelButton->setText (tr ("Cancel"));
+    cancelButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
+    cancelButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     cancelButton->setMinimumWidth (200);
     cancelButton->setMaximumWidth (200);
-    cancelButton->setBorderRadius (20);
+    cancelButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     registerButtonLayout->addWidget (cancelButton);
 
@@ -100,15 +109,16 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
             if (username.isEmpty () || password.isEmpty ())
             {
                 showDialog ("Register Error",
-                            "Username or password cannot be empty.\n\n"
-                            "Please enter your username/password.");
+                            tr ("Username or password cannot be empty.\n\n"
+                                "Please enter your username/password."));
                 return;
             }
 
             if (password != confirmPassword)
             {
-                showDialog ("Register Error", "Passwords do not match.\n\n"
-                                              "Please confirm your password.");
+                showDialog ("Register Error",
+                            tr ("Passwords do not match.\n\n"
+                                "Please confirm your password."));
                 return;
             }
 
@@ -172,21 +182,21 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
                     catch (...)
                     {
                         rollbackReason +=
-                            "\nFailed to roll back user registration.";
+                            "\n" +
+                            tr ("Failed to roll back user registration.");
                     }
 
                     showDialog (
-                        "Register Error",
-                        "Registration failed during profile creation:\n" +
-                            rollbackReason +
-                            "\n\nRegistration has been rolled back.");
+                        tr ("Register Error"),
+                        tr ("Registration failed during profile creation:") +
+                            "\n" + rollbackReason + "\n\n" +
+                            tr ("Registration has been rolled back."));
                     return;
                 }
 
-                showDialog (
-                    "Register Success",
-                    "User registered successfully.\n\n"
-                    "You can now log in with your username and password.");
+                showDialog (tr ("Register Success"),
+                            tr ("User registered successfully.\n\nYou can now "
+                                "log in with your username and password."));
             }
         });
 

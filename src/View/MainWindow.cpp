@@ -1,20 +1,21 @@
 #include "MainWindow.h"
 #include "AccountManager.h"
+#include "Constants.h"
 MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
 {
-    setWindowTitle ("TranCE_Wyatt");
-    setWindowIcon (QIcon (":/image/learnENG.ico"));
+    setWindowTitle (tr ("TranCE_Wyatt"));
+    setWindowIcon (QIcon (Constants::Resources::APP_ICON));
 
     initPages ();
     moveToCenter ();
 
-    setUserInfoCardTitle ("User");
+    setUserInfoCardTitle (tr ("User"));
     setUserInfoCardSubTitle (
         QString ("%1").arg (AccountManager::getInstance ().isLoggedIn ()
                                 ? AccountManager::getInstance ().getEmail ()
-                                : "Click to login"));
+                                : tr ("Click to login")));
 
-    setUserInfoCardPixmap (QPixmap (":/image/DefaultUser.png"));
+    setUserInfoCardPixmap (QPixmap (Constants::Resources::DEFAULT_USER_AVATAR));
 
     connect (this, &ElaWindow::userInfoCardClicked, this,
              [this] ()
@@ -57,27 +58,27 @@ void MainWindow::initPages ()
 {
     // PageNodes
     homePage = new HomePage ();
-    addPageNode ("Home", homePage, ElaIconType::House);
+    addPageNode (tr ("Home"), homePage, ElaIconType::House);
 
     recitePage = new RecitePage ();
-    addPageNode ("Recite", recitePage, ElaIconType::Book);
+    addPageNode (tr ("Recite"), recitePage, ElaIconType::Book);
 
     historyPage = new HistoryPage ();
-    addPageNode ("History", historyPage, ElaIconType::ClockRotateLeft);
+    addPageNode (tr ("History"), historyPage, ElaIconType::ClockRotateLeft);
 
     statisticsPage = new StatisticsPage ();
-    addPageNode ("Statistics", statisticsPage, ElaIconType::ChartBar);
+    addPageNode (tr ("Statistics"), statisticsPage, ElaIconType::ChartBar);
 
     // FooterNodes
 
     settingPage = new SettingPage ();
     QString settingPageKey;
-    addFooterNode ("Settings", settingPage, settingPageKey, 0,
+    addFooterNode (tr ("Settings"), settingPage, settingPageKey, 0,
                    ElaIconType::Gear);
 
     aboutPage = new AboutPage ();
     QString aboutPageKey;
-    addFooterNode ("About", aboutPage, aboutPageKey, 0,
+    addFooterNode (tr ("About"), aboutPage, aboutPageKey, 0,
                    ElaIconType::CircleInfo);
 
     loginPage = new LoginPage ();
@@ -109,10 +110,10 @@ void MainWindow::onLoginSuccessful (const QString &username)
 
 void MainWindow::onLogoutSuccessful ()
 {
-    setUserInfoCardTitle ("User");
-    setUserInfoCardSubTitle ("Click to login");
+    setUserInfoCardTitle (tr ("User"));
+    setUserInfoCardSubTitle (tr ("Click to login"));
 
-    setUserInfoCardPixmap (QPixmap (":/image/DefaultUser.png"));
+    setUserInfoCardPixmap (QPixmap (Constants::Resources::DEFAULT_USER_AVATAR));
 
     myPage->setEnabled (false);
 

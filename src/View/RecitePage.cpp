@@ -1,4 +1,5 @@
 #include "RecitePage.h"
+#include "Constants.h"
 #include "ElaFlowLayout.h"
 #include "ElaPushButton.h"
 #include <qboxlayout.h>
@@ -6,10 +7,10 @@
 
 RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle ("Recite Page");
+    setWindowTitle (tr ("Recite Page"));
 
     auto *centralWidget = new QWidget (this);
-    centralWidget->setWindowTitle ("Recite");
+    centralWidget->setWindowTitle (tr ("Recite"));
 
     QVBoxLayout *recitePageLayout = new QVBoxLayout (centralWidget);
     recitePageLayout->setAlignment (Qt::AlignHCenter | Qt::AlignTop);
@@ -36,23 +37,27 @@ RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
     reciteWidgetLayout->setAlignment (Qt::AlignCenter);
 
     QLabel *progressLabel = new QLabel (reciteContentWidget);
-    progressLabel->setText (QString ("Progress: %1/%2")
+    progressLabel->setText (tr ("Progress: %1/%2")
                                 .arg (getProgress ().first)
                                 .arg (getProgress ().second));
     progressLabel->setAlignment (Qt::AlignCenter);
     progressLabel->setStyleSheet (
-        "font-size: 20px; font-weight: bold; color: #333;");
-    progressLabel->setFont (QFont ("Noto Sans", 16, QFont::Normal));
+        QString ("font-size: %1px; font-weight: bold; color: #333;")
+            .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
+    progressLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                   Constants::Settings::DEFAULT_FONT_SIZE,
+                                   QFont::Normal));
     reciteWidgetLayout->addWidget (progressLabel);
 
     ElaPushButton *reciteButton =
-        new ElaPushButton ("Start Reciting", reciteContentWidget);
+        new ElaPushButton (tr ("Start Reciting"), reciteContentWidget);
     reciteButton->setFixedSize (180, 40);
     reciteButton->setStyleSheet (
         "QPushButton { background-color: #4CAF50; color: white; "
         "border-radius: 5px; }"
         "QPushButton:hover { background-color: #45a049; }");
-    reciteButton->setFont (QFont ("Noto Sans", 12, QFont::Normal));
+    reciteButton->setFont (
+        QFont (Constants::Settings::DEFAULT_FONT_FAMILY, 12, QFont::Normal));
     reciteWidgetLayout->addWidget (reciteButton);
 
     containerLayout->addWidget (reciteBgWidget, 0, 0);
@@ -70,8 +75,10 @@ RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
     favoritesWidget->setFixedSize (600, 200);
 
     QLabel *favoritesLabel = new QLabel (favoritesWidget);
-    favoritesLabel->setText ("Favorites");
-    favoritesLabel->setStyleSheet ("font-size: 20px; color: #333;");
+    favoritesLabel->setText (tr ("Favorites"));
+    favoritesLabel->setStyleSheet (
+        QString ("font-size: %1px; color: #333;")
+            .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
     QVBoxLayout *favoritesLayout = new QVBoxLayout (favoritesWidget);
     favoritesLayout->addWidget (favoritesLabel);
     favoritesLayout->addStretch ();
@@ -81,8 +88,10 @@ RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
         "background-color: #E0FFE0; border-radius: 8px;");
     masteredWidget->setFixedSize (600, 200);
     QLabel *masteredLabel = new QLabel (masteredWidget);
-    masteredLabel->setText ("Mastered");
-    masteredLabel->setStyleSheet ("font-size: 20px; color: #333;");
+    masteredLabel->setText (tr ("Mastered"));
+    masteredLabel->setStyleSheet (
+        QString ("font-size: %1px; color: #333;")
+            .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
 
     QVBoxLayout *masteredLayout = new QVBoxLayout (masteredWidget);
     masteredLayout->addWidget (masteredLabel);

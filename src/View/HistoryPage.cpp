@@ -5,10 +5,10 @@
 
 HistoryPage::HistoryPage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle ("History");
+    setWindowTitle (tr ("History"));
 
     auto *centralWidget = new QWidget (this);
-    centralWidget->setWindowTitle ("History");
+    centralWidget->setWindowTitle (tr ("History"));
     QVBoxLayout *layout = new QVBoxLayout (centralWidget);
     layout->setContentsMargins (3, 5, 3, 5);
     layout->setSpacing (5);

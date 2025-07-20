@@ -1,4 +1,5 @@
 #include "StatisticsPage.h"
+#include "Constants.h"
 #include "Def.h"
 #include "ElaIcon.h"
 #include "ElaScrollArea.h"
@@ -8,10 +9,10 @@
 
 StatisticsPage::StatisticsPage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle ("Statistics");
+    setWindowTitle (tr ("Statistics"));
 
     auto *centralWidget = new QWidget (this);
-    centralWidget->setWindowTitle ("Statistics");
+    centralWidget->setWindowTitle (tr ("Statistics"));
 
     QVBoxLayout *statisticsPageLayout = new QVBoxLayout (centralWidget);
 
@@ -25,23 +26,26 @@ StatisticsPage::StatisticsPage (QWidget *parent) : TempPage (parent)
     statsLayout->setSpacing (10);
     statsLayout->setContentsMargins (1, 1, 1, 1);
 
-    QLabel *titileLabel = new QLabel ("Statistics");
+    QLabel *titileLabel = new QLabel (tr ("Statistics"));
     titileLabel->setStyleSheet (
-        "font-size: 24px; font-weight: normal; color: #333;");
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::TITLE_FONT_SIZE));
     statsLayout->addWidget (titileLabel);
 
     QLabel *masteredWordsLabel = new QLabel ();
-    masteredWordsLabel->setText (QString ("Mastered Words: %1").arg (0));
+    masteredWordsLabel->setText (tr ("Mastered Words: %1").arg (0));
     masteredWordsLabel->setStyleSheet (
-        "font-size: 16px; font-weight: normal; color: #333;");
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::DEFAULT_FONT_SIZE));
     masteredWordsLabel->setAlignment (Qt::AlignLeft);
 
     statsLayout->addWidget (masteredWordsLabel);
 
     QLabel *learningWordsLabel = new QLabel ();
-    learningWordsLabel->setText (QString ("Learning Words: %1").arg (0));
+    learningWordsLabel->setText (tr ("Learning Words: %1").arg (0));
     learningWordsLabel->setStyleSheet (
-        "font-size: 16px; font-weight: normal; color: #333;");
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::DEFAULT_FONT_SIZE));
     learningWordsLabel->setAlignment (Qt::AlignLeft);
     statsLayout->addWidget (learningWordsLabel);
 
@@ -50,7 +54,7 @@ StatisticsPage::StatisticsPage (QWidget *parent) : TempPage (parent)
     ElaIconButton *refreshButton =
         new ElaIconButton (ElaIconType::ArrowRotateLeft);
 
-    refreshButton->setToolTip ("Refresh Statistics");
+    refreshButton->setToolTip (tr ("Refresh Statistics"));
 
     refreshButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
     refreshButton->setMinimumHeight (40);
@@ -68,9 +72,10 @@ StatisticsPage::StatisticsPage (QWidget *parent) : TempPage (parent)
     masteredWordsLayout->setSpacing (10);
     masteredWordsLayout->setContentsMargins (1, 1, 1, 1);
 
-    QLabel *masteredWordsListLabel = new QLabel ("Mastered Words List");
+    QLabel *masteredWordsListLabel = new QLabel (tr ("Mastered Words List"));
     masteredWordsListLabel->setStyleSheet (
-        "font-size: 24px; font-weight: normal; color: #333;");
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::TITLE_FONT_SIZE));
     masteredWordsLayout->addWidget (masteredWordsListLabel);
     masteredWordsListLabel->setAlignment (Qt::AlignLeft);
 

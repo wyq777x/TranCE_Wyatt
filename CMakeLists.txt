@@ -15,7 +15,7 @@ include_directories(${CMAKE_SOURCE_DIR}/3rdpart/Ela/ElaWidgetTools/include)
 
 project(TranCE_Wyatt LANGUAGES CXX)
 
-find_package(Qt6 COMPONENTS Core Widgets Quick QuickControls2 REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets Quick QuickControls2 LinguistTools REQUIRED)
 
 file(GLOB_RECURSE PROJECT_SOURCES
 
@@ -26,6 +26,17 @@ file(GLOB_RECURSE PROJECT_SOURCES
 qt_add_executable(TranCE_Wyatt
     ${PROJECT_SOURCES}
     res/res.qrc
+)
+
+# Add translation support
+set(TS_FILES
+    translations/TranCE_Wyatt_zh_CN.ts
+    translations/TranCE_Wyatt_en_US.ts
+)
+
+qt_add_translations(TranCE_Wyatt
+    TS_FILES ${TS_FILES}
+    QM_FILES_OUTPUT_VARIABLE qm_files
 )
 
 add_subdirectory(3rdpart/Ela)

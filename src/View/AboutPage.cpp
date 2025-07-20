@@ -1,4 +1,6 @@
 #include "AboutPage.h"
+
+#include "Constants.h"
 #include "ElaFlowLayout.h"
 #include "ElaPushButton.h"
 #include "ElaScrollArea.h"
@@ -11,10 +13,10 @@
 
 AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle ("About");
+    setWindowTitle (tr ("About"));
 
     auto *centralWidget = new QWidget (this);
-    centralWidget->setWindowTitle ("About");
+    centralWidget->setWindowTitle (tr ("About"));
     QVBoxLayout *aboutPageLayout = new QVBoxLayout (centralWidget);
     aboutPageLayout->setAlignment (Qt::AlignHCenter | Qt::AlignTop);
     aboutPageLayout->setSpacing (20);
@@ -25,16 +27,19 @@ AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
     titleLayout->setSpacing (5);
 
     QLabel *logoLabel = new QLabel (centralWidget);
-    logoLabel->setPixmap (QPixmap (":/image/learnENG.ico"));
+    logoLabel->setPixmap (QPixmap (Constants::Resources::APP_ICON));
     logoLabel->setFixedSize (50, 50);
     logoLabel->setScaledContents (true);
 
     titleLayout->addWidget (logoLabel);
 
-    QLabel *titleLabel = new QLabel ("TranCE_Wyatt", centralWidget);
+    QLabel *titleLabel = new QLabel (tr ("TranCE_Wyatt"), centralWidget);
     titleLabel->setStyleSheet (
-        "font-size: 24px; font-weight: bold; color: #333;");
-    titleLabel->setFont (QFont ("Noto Sans", 24, QFont::Bold));
+        QString ("font-size: %1px; font-weight: bold; color: #333;")
+            .arg (Constants::Settings::TITLE_FONT_SIZE));
+    titleLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                Constants::Settings::TITLE_FONT_SIZE,
+                                QFont::Bold));
     titleLabel->setFixedHeight (50);
 
     titleLayout->addWidget (titleLabel);
@@ -42,11 +47,16 @@ AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
     aboutPageLayout->addLayout (titleLayout);
 
     QLabel *descriptionLabel = new QLabel (
-        R"(TranCE_Wyatt is a tool for learning English vocabulary.
-It provides a simple and efficient way to learn and memorize English words.)",
+        tr ("TranCE_Wyatt is a tool for learning English vocabulary.\nIt "
+            "provides a simple and efficient way to learn and memorize English "
+            "words."),
         centralWidget);
-    descriptionLabel->setStyleSheet ("font-size: 16px; color: #333;");
-    descriptionLabel->setFont (QFont ("Noto Sans", 16, QFont::Normal));
+    descriptionLabel->setStyleSheet (
+        QString ("font-size: %1px; color: #333;")
+            .arg (Constants::Settings::DEFAULT_FONT_SIZE));
+    descriptionLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                      Constants::Settings::DEFAULT_FONT_SIZE,
+                                      QFont::Normal));
     descriptionLabel->setWordWrap (true);
     descriptionLabel->setAlignment (Qt::AlignHCenter);
     aboutPageLayout->addWidget (descriptionLabel);
@@ -57,19 +67,17 @@ It provides a simple and efficient way to learn and memorize English words.)",
     detailsLayout->setContentsMargins (5, 0, 5, 0);
 
     ElaPushButton *repoButton =
-        new ElaPushButton ("GitHub Repository", centralWidget);
+        new ElaPushButton (tr ("GitHub Repository"), centralWidget);
     repoButton->setMinimumWidth (600);
     repoButton->setMaximumWidth (600);
-    connect (repoButton, &ElaPushButton::clicked, this,
-             [] ()
-             {
-                 QDesktopServices::openUrl (
-                     QUrl ("https://github.com/wyq777x/TranCE_Wyatt"));
-             });
+    connect (
+        repoButton, &ElaPushButton::clicked, this, [] ()
+        { QDesktopServices::openUrl (QUrl (Constants::Urls::GITHUB_REPO)); });
 
     detailsLayout->addWidget (repoButton);
 
-    ElaPushButton *licenseButton = new ElaPushButton ("License", centralWidget);
+    ElaPushButton *licenseButton =
+        new ElaPushButton (tr ("License"), centralWidget);
     licenseButton->setMinimumWidth (600);
     licenseButton->setMaximumWidth (600);
     connect (
@@ -78,7 +86,7 @@ It provides a simple and efficient way to learn and memorize English words.)",
         {
             ElaWidget *licensePage = new ElaWidget ();
 
-            licensePage->setWindowTitle ("MIT License");
+            licensePage->setWindowTitle (tr ("MIT License"));
             licensePage->setMinimumSize (800, 600);
             licensePage->setMaximumSize (800, 600);
             licensePage->setStyleSheet ("QWidget { background-color: "
@@ -90,11 +98,14 @@ It provides a simple and efficient way to learn and memorize English words.)",
             licenseLayout->setContentsMargins (15, 40, 15, 40);
 
             QLabel *licenseLabel = new QLabel (licensePage);
-            licenseLabel->setText ("MIT License");
+            licenseLabel->setText (tr ("MIT License"));
             licenseLabel->setAlignment (Qt::AlignHCenter);
             licenseLabel->setStyleSheet (
-                "font-size: 16px; font-weight: bold; color: #333;");
-            licenseLabel->setFont (QFont ("Noto Sans", 16, QFont::Bold));
+                QString ("font-size: %1px; font-weight: bold; color: #333;")
+                    .arg (Constants::Settings::DEFAULT_FONT_SIZE));
+            licenseLabel->setFont (
+                QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                       Constants::Settings::DEFAULT_FONT_SIZE, QFont::Bold));
             licenseLabel->setWordWrap (true);
 
             licenseLayout->addWidget (licenseLabel);
@@ -130,7 +141,9 @@ It provides a simple and efficient way to learn and memorize English words.)",
                 "SOFTWARE.");
             licenseTextLabel->setAlignment (Qt::AlignHCenter);
             licenseTextLabel->setStyleSheet ("font-size: 16px; color: #333;");
-            licenseTextLabel->setFont (QFont ("Noto Sans", 16, QFont::Normal));
+            licenseTextLabel->setFont (
+                QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                       Constants::Settings::DEFAULT_FONT_SIZE, QFont::Normal));
             licenseTextLabel->setWordWrap (true);
 
             ElaScrollArea *licenseTextScrollArea =

@@ -1,18 +1,20 @@
 #include "View/Components/LoginPage.h"
+#include "Constants.h"
 #include "ElaContentDialog.h"
 #include "Utility/Result.h"
 #include <qboxlayout.h>
 #include <qlabel.h>
 #include <qlogging.h>
 #include <qnamespace.h>
+
 LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle ("Login&Register");
+    setWindowTitle (tr ("Login&Register"));
     setWindowFlag (Qt::WindowStaysOnTopHint, true);
     setWindowModality (Qt::ApplicationModal);
 
     auto *centralWidget = new QWidget (this);
-    centralWidget->setWindowTitle ("Login");
+    centralWidget->setWindowTitle (tr ("Login"));
     resize (858, 600);
     setMinimumSize (644, 450);
     setMaximumSize (644, 450);
@@ -22,30 +24,34 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
     loginPageLayout->setSpacing (20);
     loginPageLayout->setContentsMargins (15, 40, 15, 40);
 
-    QLabel *titleLabel = new QLabel ("Welcome to TranCE_Wyatt", centralWidget);
+    QLabel *titleLabel =
+        new QLabel (tr ("Welcome to TranCE_Wyatt"), centralWidget);
     titleLabel->setAlignment (Qt::AlignHCenter);
     titleLabel->setStyleSheet (
-        "font-size: 24px; font-weight: bold; color: #333;");
-    titleLabel->setFont (QFont ("Noto Sans", 24, QFont::Bold));
+        QString ("font-size: %1px; font-weight: bold; color: #333;")
+            .arg (Constants::Settings::TITLE_FONT_SIZE));
+    titleLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                Constants::Settings::TITLE_FONT_SIZE,
+                                QFont::Bold));
 
     loginPageLayout->addWidget (titleLabel);
     ElaLineEdit *usernameLineEdit = new ElaLineEdit (centralWidget);
-    usernameLineEdit->setPlaceholderText ("Username");
-    usernameLineEdit->setMinimumHeight (50);
-    usernameLineEdit->setMaximumHeight (50);
-    usernameLineEdit->setMinimumWidth (450);
-    usernameLineEdit->setMaximumWidth (450);
-    usernameLineEdit->setBorderRadius (20);
+    usernameLineEdit->setPlaceholderText (tr ("Username"));
+    usernameLineEdit->setMinimumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
+    usernameLineEdit->setMaximumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
+    usernameLineEdit->setMinimumWidth (Constants::UI::DEFAULT_INPUT_WIDTH);
+    usernameLineEdit->setMaximumWidth (Constants::UI::DEFAULT_INPUT_WIDTH);
+    usernameLineEdit->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     loginPageLayout->addWidget (usernameLineEdit);
 
     ElaLineEdit *passwordLineEdit = new ElaLineEdit (centralWidget);
-    passwordLineEdit->setPlaceholderText ("Password");
-    passwordLineEdit->setMinimumHeight (50);
-    passwordLineEdit->setMaximumHeight (50);
-    passwordLineEdit->setMinimumWidth (450);
-    passwordLineEdit->setMaximumWidth (450);
-    passwordLineEdit->setBorderRadius (20);
+    passwordLineEdit->setPlaceholderText (tr ("Password"));
+    passwordLineEdit->setMinimumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
+    passwordLineEdit->setMaximumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
+    passwordLineEdit->setMinimumWidth (Constants::UI::DEFAULT_INPUT_WIDTH);
+    passwordLineEdit->setMaximumWidth (Constants::UI::DEFAULT_INPUT_WIDTH);
+    passwordLineEdit->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
     passwordLineEdit->setEchoMode (ElaLineEdit::Password);
 
     loginPageLayout->addWidget (passwordLineEdit);
@@ -55,21 +61,21 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
     loginButtonLayout->setSpacing (20);
 
     ElaPushButton *loginButton = new ElaPushButton (centralWidget);
-    loginButton->setText ("Login");
-    loginButton->setMinimumHeight (50);
-    loginButton->setMaximumHeight (50);
+    loginButton->setText (tr ("Login"));
+    loginButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
+    loginButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     loginButton->setMinimumWidth (200);
     loginButton->setMaximumWidth (200);
-    loginButton->setBorderRadius (20);
+    loginButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
     loginButtonLayout->addWidget (loginButton);
 
     ElaPushButton *registerButton = new ElaPushButton (centralWidget);
-    registerButton->setText ("Register");
-    registerButton->setMinimumHeight (50);
-    registerButton->setMaximumHeight (50);
+    registerButton->setText (tr ("Register"));
+    registerButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
+    registerButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     registerButton->setMinimumWidth (200);
     registerButton->setMaximumWidth (200);
-    registerButton->setBorderRadius (20);
+    registerButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     loginButtonLayout->addWidget (registerButton);
 
@@ -84,9 +90,9 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 
                  if (username.isEmpty () || password.isEmpty ())
                  {
-                     showDialog ("Login Error",
-                                 "Username or password cannot be empty.\n\n"
-                                 "Please enter your username/password.");
+                     showDialog (tr ("Login Error"),
+                                 tr ("Username or password cannot be empty.\n\n"
+                                     "Please enter your username/password."));
                      return;
                  }
 
@@ -101,15 +107,15 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
                          QString errorMsg =
                              it != UserAuthResultMessage.end ()
                                  ? QString::fromStdString (it->second)
-                                 : "Unknown error";
-                         showDialog ("Login Error", errorMsg);
+                                 : tr ("Unknown error");
+                         showDialog (tr ("Login Error"), errorMsg);
 
                          return;
                      }
                      else
                      {
-                         showDialog ("Login Success",
-                                     "Welcome back, " + username + "!");
+                         showDialog (tr ("Login Success"),
+                                     tr ("Welcome back, %1!").arg (username));
                      }
                  }
                  catch (const std::exception &e)

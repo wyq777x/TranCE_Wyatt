@@ -1,4 +1,5 @@
 #include "HomePage.h"
+#include "Constants.h"
 #include "DbManager.h"
 #include "Def.h"
 #include "ElaComboBox.h"
@@ -13,10 +14,10 @@
 
 HomePage::HomePage (QWidget *parent) : TempPage (parent)
 {
-    setWindowTitle ("Home");
+    setWindowTitle (tr ("Home"));
 
     auto *centralWidget = new QWidget (this);
-    centralWidget->setWindowTitle ("Home");
+    centralWidget->setWindowTitle (tr ("Home"));
 
     QVBoxLayout *homePageLayout = new QVBoxLayout (centralWidget);
     homePageLayout->setAlignment (Qt::AlignHCenter | Qt::AlignTop);
@@ -24,16 +25,18 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
 
     ElaComboBox *LangComboBox_left = new ElaComboBox (centralWidget);
 
-    LangComboBox_left->setToolTip ("Select Source Language");
+    LangComboBox_left->setToolTip (tr ("Select Source Language"));
 
     ElaComboBox *LangComboBox_right = new ElaComboBox (centralWidget);
 
-    LangComboBox_right->setToolTip ("Select Target Language");
+    LangComboBox_right->setToolTip (tr ("Select Target Language"));
 
     LangComboBox_left->setStyleSheet (
         "QComboBox {"
         "    color: black;" // set default text color as black
-        "    font-family: 'Noto Sans';"
+        "    font-family: '" +
+        Constants::Settings::DEFAULT_FONT_FAMILY +
+        "';"
         "}"
         "QComboBox QAbstractItemView {"
         "    color: black;" // set text color of dropdown list as black
@@ -42,7 +45,9 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     LangComboBox_right->setStyleSheet (
         "QComboBox {"
         "    color: black;" // set default text color as black
-        "    font-family: 'Noto Sans';"
+        "    font-family: '" +
+        Constants::Settings::DEFAULT_FONT_FAMILY +
+        "';"
         "}"
         "QComboBox QAbstractItemView {"
         "    color: black;" // set text color of dropdown list as black
@@ -50,8 +55,8 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
 
     ElaIconButton *swapButton =
         new ElaIconButton (ElaIconType::SwapArrows, centralWidget);
-    swapButton->setBorderRadius (3);
-    swapButton->setToolTip ("Swap Languages");
+    swapButton->setBorderRadius (Constants::UI::SMALL_BORDER_RADIUS);
+    swapButton->setToolTip (tr ("Swap Languages"));
 
     QHBoxLayout *langLayout = new QHBoxLayout (centralWidget);
     langLayout->setAlignment (Qt::AlignHCenter);
@@ -63,29 +68,28 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     homePageLayout->addLayout (langLayout);
     homePageLayout->setAlignment (langLayout, Qt::AlignHCenter);
 
-    LangComboBox_left->addItem ("English");
-    LangComboBox_left->addItem ("Chinese");
+    LangComboBox_left->addItem (tr ("English"));
+    LangComboBox_left->addItem (tr ("Chinese"));
 
-    LangComboBox_right->addItem ("Chinese");
-    LangComboBox_right->addItem ("English");
+    LangComboBox_right->addItem (tr ("Chinese"));
+    LangComboBox_right->addItem (tr ("English"));
 
     ElaToggleButton *searchOnline = new ElaToggleButton (centralWidget);
 
-    searchOnline->setToolTip ("Search Online by Bing");
+    searchOnline->setToolTip (tr ("Search Online by Bing"));
 
-    searchOnline->setText (R"(Search
-Online)");
+    searchOnline->setText (tr ("Search\nOnline"));
     searchOnline->setMinimumHeight (60);
     searchOnline->setMaximumHeight (60);
-    searchOnline->setBorderRadius (6);
+    searchOnline->setBorderRadius (Constants::UI::SMALL_BORDER_RADIUS);
     searchOnline->setIsToggled (false); // default is false
 
     ElaLineEdit *lineEdit = new ElaLineEdit (centralWidget);
-    lineEdit->setPlaceholderText ("Search...");
+    lineEdit->setPlaceholderText (tr ("Search..."));
     lineEdit->setMinimumHeight (70);
     lineEdit->setMaximumHeight (70);
     lineEdit->setMinimumWidth (550);
-    lineEdit->setBorderRadius (20);
+    lineEdit->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     ElaListView *suggestionsList = new ElaListView (centralWidget);
 
@@ -101,12 +105,12 @@ Online)");
     QAction *searchAction = lineEdit->addAction (
         ElaIcon::getInstance ()->getElaIcon (ElaIconType::MagnifyingGlass, 512),
         QLineEdit::LeadingPosition);
-    searchAction->setToolTip ("Search");
+    searchAction->setToolTip (tr ("Search"));
 
     QAction *clearAction = lineEdit->addAction (
         ElaIcon::getInstance ()->getElaIcon (ElaIconType::Xmark, 512),
         QLineEdit::TrailingPosition);
-    clearAction->setToolTip ("Clear");
+    clearAction->setToolTip (tr ("Clear"));
     clearAction->setVisible (false);
 
     QHBoxLayout *searchLayout = new QHBoxLayout (centralWidget);
@@ -121,12 +125,12 @@ Online)");
     searchModeLayout->setAlignment (Qt::AlignHCenter);
     searchModeLayout->setSpacing (20);
     ElaRadioButton *searchMode_precise =
-        new ElaRadioButton ("Precise Search", centralWidget);
-    searchMode_precise->setToolTip ("Precise Search Mode");
+        new ElaRadioButton (tr ("Precise Search"), centralWidget);
+    searchMode_precise->setToolTip (tr ("Precise Search Mode"));
 
     ElaRadioButton *searchMode_fuzzy =
-        new ElaRadioButton ("Fuzzy Search", centralWidget);
-    searchMode_fuzzy->setToolTip ("Fuzzy Search Mode");
+        new ElaRadioButton (tr ("Fuzzy Search"), centralWidget);
+    searchMode_fuzzy->setToolTip (tr ("Fuzzy Search Mode"));
     searchMode_fuzzy->setChecked (true);
 
     searchModeLayout->addWidget (searchMode_precise);
@@ -137,7 +141,7 @@ Online)");
     homePageLayout->addWidget (suggestionsList);
 
     QLabel *randomRecommendationLabel =
-        new QLabel ("Random Recommendation:", centralWidget);
+        new QLabel (tr ("Random Recommendation:"), centralWidget);
     randomRecommendationLabel->setStyleSheet (
         "font-size: 20px; font-weight: normal; color: #333;");
     randomRecommendationLabel->setFont (QFont ("Noto Sans", 24));
@@ -150,11 +154,11 @@ Online)");
     randomRecommendationLayout->setSpacing (20);
 
     ElaPushButton *recommendWordButton =
-        new ElaPushButton ("Recommend Word", centralWidget);
+        new ElaPushButton (tr ("Recommend Word"), centralWidget);
     recommendWordButton->setMinimumHeight (50);
     recommendWordButton->setMinimumWidth (600);
     recommendWordButton->setBorderRadius (8);
-    recommendWordButton->setToolTip ("Get a random word recommendation");
+    recommendWordButton->setToolTip (tr ("Get a random word recommendation"));
 
     randomRecommendationLayout->addWidget (recommendWordButton);
 
@@ -190,9 +194,8 @@ Online)");
              {
                  if (searchOnline->getIsToggled ())
                  {
-                     QDesktopServices::openUrl (
-                         QUrl (QString ("https://www.bing.com/search?q=%1")
-                                   .arg (lineEdit->text ())));
+                     QDesktopServices::openUrl (QUrl (
+                         Constants::Urls::BING_SEARCH.arg (lineEdit->text ())));
                      return;
                  }
              });
@@ -257,8 +260,8 @@ Online)");
                     return;
                 }
 
-                if (LangComboBox_left->currentText () == "English" &&
-                    LangComboBox_right->currentText () == "Chinese")
+                if (LangComboBox_left->currentText () == tr ("English") &&
+                    LangComboBox_right->currentText () == tr ("Chinese"))
                 {
                     if (searchMode_precise->isChecked ())
                     {
@@ -297,8 +300,8 @@ Online)");
                         suggestionsList->setModel (suggestionModel);
                     }
                 }
-                else if (LangComboBox_left->currentText () == "Chinese" &&
-                         LangComboBox_right->currentText () == "English")
+                else if (LangComboBox_left->currentText () == tr ("Chinese") &&
+                         LangComboBox_right->currentText () == tr ("English"))
                 {
                     if (searchMode_precise->isChecked ())
                     {
@@ -355,9 +358,8 @@ Online)");
                      {
                          return;
                      }
-                     QDesktopServices::openUrl (
-                         QUrl (QString ("https://www.bing.com/search?q=%1")
-                                   .arg (lineEdit->text ())));
+                     QDesktopServices::openUrl (QUrl (
+                         Constants::Urls::BING_SEARCH.arg (lineEdit->text ())));
                      return;
                  }
                  else
@@ -376,9 +378,9 @@ Online)");
                          }
                          else
                          {
-                             showDialog ("Error Loading Word Card",
-                                         "The word you entered can't be "
-                                         "loaded from the database. ");
+                             showDialog (tr ("Error Loading Word Card"),
+                                         tr ("The word you entered can't be "
+                                             "loaded from the database. "));
                          }
                      }
 
@@ -398,9 +400,9 @@ Online)");
                          }
                          else
                          {
-                             showDialog ("Error Loading Word Card",
-                                         "The word you entered can't be "
-                                         "loaded from the database. ");
+                             showDialog (tr ("Error Loading Word Card"),
+                                         tr ("The word you entered can't be "
+                                             "loaded from the database. "));
                          }
                      }
                  }
@@ -412,17 +414,18 @@ Online)");
                  if (searchOnline->getIsToggled ())
                  {
                      QDesktopServices::openUrl (
-                         QUrl (QString ("https://www.bing.com/search?q=%1")
-                                   .arg (index.data ().toString ())));
+                         QUrl (Constants::Urls::BING_SEARCH.arg (
+                             index.data ().toString ())));
                      return;
                  }
                  auto wordEntry = DbManager::getInstance ().lookupWord (
                      index.data ().toString (), "en");
                  if (!wordEntry.has_value ())
                  {
-                     showDialog ("Error Loading Word Card",
-                                 "The word you selected can't be loaded from "
-                                 "the database. ");
+                     showDialog (
+                         tr ("Error Loading Word Card"),
+                         tr ("The word you selected can't be loaded from "
+                             "the database. "));
                  }
                  else
                  {
