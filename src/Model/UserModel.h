@@ -57,9 +57,10 @@ public:
     }
     static ValidationResult validateUserData (const QJsonObject &userData);
 
-    static void loadUserData (const QJsonObject &userData);
+    static UserDataResult loadUserData (const QString &userProfilePath);
 
-    void createUserData (const QString &filename, const QString &username);
+    UserDataResult createUserData (const QString &filename,
+                                   const QString &username);
 
 private:
     explicit UserModel (const QString &userProfilePath)
@@ -78,6 +79,7 @@ private:
     bool loginExpired = true;
 
     mutable std::string m_lastError;
+
     template <typename ExceptionT>
     void logErr (const std::string &errMsg, const ExceptionT &e)
     {

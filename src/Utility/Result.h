@@ -43,6 +43,37 @@ static const std::unordered_map<RegisterUserResult, std::string>
 
 };
 
+enum class UserDataResult
+{
+    Success,
+    EmptyPath,
+    DirectoryCreateError,
+    DirectoryNotFound,
+    FileOpenError,
+    FileReadError,
+    FileWriteError,
+    FileDeleteError,
+    FileNotFound,
+    InvalidData,
+    UnknownError
+};
+
+static const std::unordered_map<UserDataResult, std::string>
+    UserDataResultMessage = {
+        {UserDataResult::Success, "Operation successful."},
+        {UserDataResult::EmptyPath, "Path cannot be empty."},
+        {UserDataResult::DirectoryCreateError, "Error creating directory."},
+        {UserDataResult::DirectoryNotFound, "Directory not found."},
+        {UserDataResult::FileOpenError, "Error opening file."},
+        {UserDataResult::FileReadError, "Error reading file."},
+        {UserDataResult::FileWriteError, "Error writing to file."},
+        {UserDataResult::FileDeleteError, "Error deleting file."},
+        {UserDataResult::FileNotFound, "File not found."},
+        {UserDataResult::InvalidData, "Invalid data provided."},
+        {UserDataResult::UnknownError, "Unknown error occurred."}
+
+};
+
 struct ValidationResult
 {
     bool isValid;

@@ -126,12 +126,62 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
             }
             else
             {
-                // invoke UserModel to create user profile and settings
-                UserModel::getInstance ().createUserData (
-                    "profile_" +
-                        AccountManager::getInstance ().getUserUuid (username) +
-                        ".json",
-                    username);
+                bool needRollback = false;
+                QString rollbackReason;
+
+                try
+                {
+                    // invoke UserModel to create user profile and settings
+                    auto userDataResult =
+                        UserModel::getInstance ().createUserData (
+                            "profile_" +
+                                AccountManager::getInstance ().getUserUuid (
+                                    username) +
+                                ".json",
+                            username);
+
+                    if (userDataResult != UserDataResult::Success)
+                    {
+                        needRollback = true;
+                        auto it = UserDataResultMessage.find (userDataResult);
+                        rollbackReason =
+                            it != UserDataResultMessage.end ()
+                                ? QString::fromStdString (it->second)
+                                : "Unknown error creating user profile";
+                    }
+                }
+                catch (const std::exception &e)
+                {
+                    needRollback = true;
+                    rollbackReason = "Unexpected error: " +
+                                     QString::fromStdString (e.what ());
+                }
+                catch (...)
+                {
+                    needRollback = true;
+                    rollbackReason = "Unknown unexpected error occurred";
+                }
+
+                if (needRollback)
+                {
+
+                    try
+                    {
+                        DbModel::getInstance ().deleteUser (username);
+                    }
+                    catch (...)
+                    {
+                        rollbackReason +=
+                            "\nFailed to roll back user registration.";
+                    }
+
+                    showDialog (
+                        "Register Error",
+                        "Registration failed during profile creation:\n" +
+                            rollbackReason +
+                            "\n\nRegistration has been rolled back.");
+                    return;
+                }
 
                 showDialog (
                     "Register Success",

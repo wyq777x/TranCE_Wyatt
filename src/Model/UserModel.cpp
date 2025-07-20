@@ -160,26 +160,92 @@ ValidationResult UserModel::validateUserData (const QJsonObject &userData)
     return result;
 }
 
-void UserModel::loadUserData (const QJsonObject &userData)
+UserDataResult UserModel::loadUserData (const QString &userProfilePath)
 {
-    // Building...
-    auto validationResult = validateUserData (userData);
-    if (!validationResult.isValid)
+    try
     {
-        std::string errorMsg =
-            "User data is invalid: " +
-            validationResult.ErrMessages.join (", ").toStdString ();
-        auto exception = std::runtime_error (errorMsg);
-        getInstance ().logErr ("User data validation failed", exception);
-        throw exception;
+        // Building...
+        if (userProfilePath.isEmpty ())
+        {
+            getInstance ().logErr (
+                "User profile path not set",
+                std::runtime_error ("User profile path is not set or empty"));
+            return UserDataResult::EmptyPath;
+        }
+
+        if (!QDir (userProfilePath).exists ())
+        {
+            getInstance ().logErr (
+                "User profile directory not found",
+                std::runtime_error ("User profile directory does not exist: " +
+                                    userProfilePath.toStdString ()));
+            return UserDataResult::DirectoryNotFound;
+        }
+
+        QFile userProfileFile (userProfilePath);
+        if (!userProfileFile.open (QIODevice::ReadOnly))
+        {
+            getInstance ().logErr (
+                "User profile file open error",
+                std::runtime_error ("Failed to open user profile file: " +
+                                    userProfilePath.toStdString ()));
+            return UserDataResult::FileOpenError;
+        }
+
+        QByteArray fileData = userProfileFile.readAll ();
+        userProfileFile.close ();
+
+        if (fileData.isEmpty ())
+        {
+            getInstance ().logErr (
+                "User profile file read error",
+                std::runtime_error (
+                    "Failed to read user profile file or file is empty: " +
+                    userProfilePath.toStdString ()));
+            return UserDataResult::FileReadError;
+        }
+
+        QJsonDocument userDataDoc = QJsonDocument::fromJson (fileData);
+        if (userDataDoc.isNull ())
+        {
+            getInstance ().logErr (
+                "User profile file parse error",
+                std::runtime_error (
+                    "Failed to parse JSON from user profile file: " +
+                    userProfilePath.toStdString ()));
+            return UserDataResult::InvalidData;
+        }
+
+        QJsonObject userData = userDataDoc.object ();
+
+        auto validationResult = validateUserData (userData);
+        if (!validationResult.isValid)
+        {
+            std::string errorMsg =
+                "User data is invalid: " +
+                validationResult.ErrMessages.join (", ").toStdString ();
+            getInstance ().logErr ("User data validation failed",
+                                   std::runtime_error (errorMsg));
+            return UserDataResult::InvalidData;
+        }
+
+        return UserDataResult::Success;
     }
-    else
+    catch (const std::exception &e)
     {
+        getInstance ().logErr ("Error loading user data", e);
+        return UserDataResult::UnknownError;
+    }
+    catch (...)
+    {
+        getInstance ().logErr ("Unknown error occurred while loading user data",
+                               std::runtime_error ("Unknown exception"));
+        return UserDataResult::UnknownError;
     }
 }
 
-void UserModel::createUserData (const QString &filename,
-                                const QString &username)
+UserDataResult UserModel::createUserData (const QString &filename,
+                                          const QString &username)
 {
     try
     {
@@ -200,10 +266,10 @@ void UserModel::createUserData (const QString &filename,
 
         if (m_userProfileDir.isEmpty ())
         {
-            auto exception =
-                std::runtime_error ("User profile directory is not set");
-            getInstance ().logErr ("User profile directory not set", exception);
-            throw exception;
+            getInstance ().logErr (
+                "User profile directory not set",
+                std::runtime_error ("User profile directory is not set"));
+            return UserDataResult::EmptyPath;
         }
 
         QDir dir (m_userProfileDir);
@@ -211,11 +277,12 @@ void UserModel::createUserData (const QString &filename,
         {
             if (!dir.mkpath ("."))
             {
-                auto exception = std::runtime_error (
-                    "Failed to create user profile directory: " +
-                    m_userProfileDir.toStdString ());
-                getInstance ().logErr ("Directory creation failed", exception);
-                throw exception;
+                getInstance ().logErr (
+                    "Directory creation failed",
+                    std::runtime_error (
+                        "Failed to create user profile directory: " +
+                        m_userProfileDir.toStdString ()));
+                return UserDataResult::DirectoryCreateError;
             }
         }
 
@@ -223,24 +290,37 @@ void UserModel::createUserData (const QString &filename,
 
         if (!file.open (QIODevice::WriteOnly))
         {
-            auto exception = std::runtime_error (
-                "Failed to open file for writing: " + filename.toStdString ());
-            getInstance ().logErr ("File open error", exception);
-            throw exception;
+            getInstance ().logErr (
+                "File open error",
+                std::runtime_error ("Failed to open file for writing: " +
+                                    filename.toStdString ()));
+            return UserDataResult::FileOpenError;
         }
 
         QJsonDocument doc (userData);
-        file.write (doc.toJson ());
+        if (file.write (doc.toJson ()) == -1)
+        {
+            file.close ();
+            getInstance ().logErr (
+                "File write error",
+                std::runtime_error ("Failed to write data to file: " +
+                                    filename.toStdString ()));
+            return UserDataResult::FileWriteError;
+        }
         file.close ();
         qDebug () << "User data saved to" << filename;
+        return UserDataResult::Success;
     }
     catch (const std::exception &e)
     {
-        getInstance ().logErr ("Error loading user data", e);
+        getInstance ().logErr ("Error creating user data", e);
+        return UserDataResult::UnknownError;
     }
     catch (...)
     {
-        getInstance ().logErr ("Unknown error occurred while loading user data",
-                               std::runtime_error ("Unknown exception"));
+        getInstance ().logErr (
+            "Unknown error occurred while creating user data",
+            std::runtime_error ("Unknown exception"));
+        return UserDataResult::UnknownError;
     }
 }
