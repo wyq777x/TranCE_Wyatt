@@ -58,7 +58,7 @@ public:
 
     static void loadUserData (const QJsonObject &userData);
 
-    void saveUserData (const QString &filename);
+    void saveUserData (const QString &filename, const QString &username);
 
 private:
     explicit UserModel (const QString &userProfilePath)

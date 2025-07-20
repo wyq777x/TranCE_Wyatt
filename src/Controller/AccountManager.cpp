@@ -85,13 +85,6 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
             auto exception = std::runtime_error (errorMsg);
             logErr ("User registration failed", exception);
         }
-        else
-        {
-            // invoke UserModel to save user profile and settings
-            UserModel::getInstance ().saveUserData (
-                "profile_" + AccountManager::getInstance ().getUserUuid () +
-                ".json");
-        }
 
         return result;
     }
@@ -316,7 +309,7 @@ ChangeResult AccountManager::changeAvatar ()
     return result;
 }
 
-QString AccountManager::getUserUuid () const
+QString AccountManager::getUserUuid (const QString &username) const
 {
     auto UUID = DbManager::getInstance ().getUserId (username);
 

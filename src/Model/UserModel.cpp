@@ -54,19 +54,19 @@ ValidationResult UserModel::validateUserData (const QJsonObject &userData)
 void UserModel::loadUserData (const QJsonObject &userData)
 {
     // Building...
-    auto validation = validateUserData (userData);
-    if (!validation.isValid)
+    auto validationResult = validateUserData (userData);
+    if (!validationResult.isValid)
     {
         std::string errorMsg =
             "User data is invalid: " +
-            validation.ErrMessages.join (", ").toStdString ();
+            validationResult.ErrMessages.join (", ").toStdString ();
         auto exception = std::runtime_error (errorMsg);
         getInstance ().logErr ("User data validation failed", exception);
         throw exception;
     }
 }
 
-void UserModel::saveUserData (const QString &filename)
+void UserModel::saveUserData (const QString &filename, const QString &username)
 {
     // Building...
     try
@@ -74,9 +74,9 @@ void UserModel::saveUserData (const QString &filename)
         QJsonObject userData;
 
         QJsonObject userAccount;
-        userAccount["username"] = AccountManager::getInstance ().getUsername ();
+        userAccount["username"] = username;
         userAccount["user_uuid"] =
-            AccountManager::getInstance ().getUserUuid ();
+            AccountManager::getInstance ().getUserUuid (username);
 
         userData["userAccount"] = userAccount;
 

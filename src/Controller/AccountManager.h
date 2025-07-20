@@ -65,7 +65,7 @@ public:
     ChangeResult changeEmail (const QString &newEmail);
     ChangeResult changeAvatar ();
 
-    QString getUserUuid () const;
+    QString getUserUuid (const QString &username) const;
     QString getUsername () const;
     QString getHashedPassword () const;
     QString getEmail () const;
