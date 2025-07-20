@@ -25,10 +25,6 @@ UserAuthResult UserModel::login (const QString &username,
     {
         instance.setLoggedIn (true);
         instance.setLoginExpired (false);
-
-        // Load user data then
-
-        // loadUserData (DbModel::getInstance ().getUserData (username));
     }
 
     return result;
@@ -48,9 +44,122 @@ void UserModel::logout ()
 
 ValidationResult UserModel::validateUserData (const QJsonObject &userData)
 {
-    ValidationResult result{true, {}};
+    ValidationResult result;
+
+    if (userData.isEmpty ())
+    {
+        result.isValid = false;
+        result.ErrMessages.append ("User data is empty");
+
+        return result;
+    }
+
+    if (!userData.contains ("userAccount"))
+    {
+        result.isValid = false;
+        result.ErrMessages.append ("User account data is missing");
+
+        return result;
+    }
+    else
+    {
+        if (!userData["userAccount"].isObject ())
+        {
+            result.isValid = false;
+            result.ErrMessages.append ("User account data is not an object");
+
+            return result;
+        }
+
+        if (!userData["userAccount"].toObject ().contains ("username"))
+        {
+            result.isValid = false;
+            result.ErrMessages.append (
+                "Username is missing in user account data");
+
+            return result;
+        }
+
+        if (!userData["userAccount"].toObject ().contains ("user_uuid"))
+        {
+            result.isValid = false;
+            result.ErrMessages.append (
+                "User UUID is missing in user account data");
+
+            return result;
+        }
+
+        if (!userData["userAccount"].toObject ()["username"].isString ())
+        {
+            result.isValid = false;
+            result.ErrMessages.append (
+                "Username is not a string in user account data");
+
+            return result;
+        }
+
+        if (!userData["userAccount"].toObject ()["user_uuid"].isString ())
+        {
+            result.isValid = false;
+            result.ErrMessages.append (
+                "User UUID is not a string in user account data");
+
+            return result;
+        }
+    }
+
+    if (!userData.contains ("appSettings"))
+    {
+        result.isValid = false;
+        result.ErrMessages.append ("App settings data is missing");
+
+        return result;
+    }
+    else
+    {
+        if (!userData["appSettings"].isObject ())
+        {
+            result.isValid = false;
+            result.ErrMessages.append ("App settings data is not an object");
+
+            return result;
+        }
+
+        if (!userData["appSettings"].toObject ().contains ("language"))
+        {
+            result.isValid = false;
+            result.ErrMessages.append (
+                "Language setting is missing in app settings data");
+
+            return result;
+        }
+
+        if (!userData["appSettings"].toObject ().contains (
+                "HistoryListEnabled"))
+        {
+            result.isValid = false;
+            result.ErrMessages.append (
+                "History list enabled setting is missing in app settings data");
+
+            return result;
+        }
+        if (!userData["appSettings"]
+                 .toObject ()["HistoryListEnabled"]
+                 .isBool ())
+        {
+            result.isValid = false;
+            result.ErrMessages.append ("History list enabled setting is not a "
+                                       "boolean in app settings data");
+
+            return result;
+        }
+    }
+
+    result.isValid = true;
+    result.ErrMessages.clear ();
     return result;
 }
+
 void UserModel::loadUserData (const QJsonObject &userData)
 {
     // Building...
@@ -64,11 +173,14 @@ void UserModel::loadUserData (const QJsonObject &userData)
         getInstance ().logErr ("User data validation failed", exception);
         throw exception;
     }
+    else
+    {
+    }
 }
 
-void UserModel::saveUserData (const QString &filename, const QString &username)
+void UserModel::createUserData (const QString &filename,
+                                const QString &username)
 {
-    // Building...
     try
     {
         QJsonObject userData;
@@ -122,7 +234,6 @@ void UserModel::saveUserData (const QString &filename, const QString &username)
         file.close ();
         qDebug () << "User data saved to" << filename;
     }
-
     catch (const std::exception &e)
     {
         getInstance ().logErr ("Error loading user data", e);

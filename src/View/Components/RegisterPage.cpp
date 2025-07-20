@@ -126,8 +126,8 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
             }
             else
             {
-                // invoke UserModel to save user profile and settings
-                UserModel::getInstance ().saveUserData (
+                // invoke UserModel to create user profile and settings
+                UserModel::getInstance ().createUserData (
                     "profile_" +
                         AccountManager::getInstance ().getUserUuid (username) +
                         ".json",

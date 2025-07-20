@@ -13,8 +13,9 @@
 #include <qjsonobject.h>
 #include <qtmetamacros.h>
 
-class UserModel
+class UserModel : public QObject
 {
+    Q_OBJECT
 public:
     static UserModel &getInstance ()
     {
@@ -58,7 +59,7 @@ public:
 
     static void loadUserData (const QJsonObject &userData);
 
-    void saveUserData (const QString &filename, const QString &username);
+    void createUserData (const QString &filename, const QString &username);
 
 private:
     explicit UserModel (const QString &userProfilePath)

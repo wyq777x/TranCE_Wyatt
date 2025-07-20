@@ -134,7 +134,7 @@ public:
 
                 user_db->exec (
                     "CREATE TABLE IF NOT EXISTS user_search_history("
-                    "serach_history_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    "search_history_id INTEGER PRIMARY KEY AUTOINCREMENT,"
                     "user_id TEXT NOT NULL,"
                     "search_word TEXT NOT NULL,"
                     "FOREIGN KEY(user_id) REFERENCES users(user_id) "
