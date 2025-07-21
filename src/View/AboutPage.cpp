@@ -1,15 +1,15 @@
 #include "AboutPage.h"
 
-#include "Constants.h"
-#include "ElaFlowLayout.h"
 #include "ElaPushButton.h"
 #include "ElaScrollArea.h"
 #include "ElaWidget.h"
+#include "Utility/Constants.h"
 #include <qboxlayout.h>
 #include <qdesktopservices.h>
 #include <qgridlayout.h>
 #include <qlabel.h>
 #include <qobject.h>
+
 
 AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
 {

@@ -35,7 +35,9 @@ void TempPage::showDialog (const QString &title, const QString &message)
     Label->setStyleSheet ("font-size: 16px; font-weight: bold; color: #333;");
     Label->setWordWrap (true);
     Label->setAlignment (Qt::AlignCenter);
-    Label->setFont (QFont ("Noto Sans", 16, QFont::Bold));
+    Label->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                           Constants::Settings::DEFAULT_FONT_SIZE,
+                           QFont::Bold));
 
     QDialogButtonBox *okButtonBox =
         new QDialogButtonBox (QDialogButtonBox::Ok, Dialog);
@@ -90,7 +92,9 @@ void TempPage::showDialog (const QString &title, const QString &message,
     confirmLabel->setAlignment (Qt::AlignCenter);
     confirmLabel->setStyleSheet (
         "font-size: 16px; color: #333; font-weight: bold;");
-    confirmLabel->setFont (QFont ("Noto Sans", 16, QFont::Bold));
+    confirmLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                  Constants::Settings::DEFAULT_FONT_SIZE,
+                                  QFont::Bold));
     confirmLabel->setWordWrap (true);
     dialogLayout->addWidget (confirmLabel);
 
@@ -108,7 +112,8 @@ void TempPage::showDialog (const QString &title, const QString &message,
         "background-color: #4CAF50; color: white; font-size: "
         "16px; "
         "border-radius: 20px; padding: 10px;");
-    yesButton->setFont (QFont ("Noto Sans", 16));
+    yesButton->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                               Constants::Settings::DEFAULT_FONT_SIZE));
 
     ElaPushButton *noButton = new ElaPushButton (tr ("No"), confirmDialog);
     noButton->setMinimumHeight (50);
@@ -120,7 +125,8 @@ void TempPage::showDialog (const QString &title, const QString &message,
         "background-color: #F44336; color: white; font-size: "
         "16px; "
         "border-radius: 20px; padding: 10px;");
-    noButton->setFont (QFont ("Noto Sans", 16));
+    noButton->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                              Constants::Settings::DEFAULT_FONT_SIZE));
 
     buttonLayout->addWidget (yesButton);
     buttonLayout->addWidget (noButton);
@@ -187,7 +193,9 @@ void TempPage::showDialog (const QString &title,
     titleLabel->setAlignment (Qt::AlignCenter);
     titleLabel->setStyleSheet (
         "font-size: 20px; color: #333; font-weight: bold;");
-    titleLabel->setFont (QFont ("Noto Sans", 20, QFont::Bold));
+    titleLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                Constants::Settings::SUBTITLE_FONT_SIZE,
+                                QFont::Bold));
     dialogLayout->addWidget (titleLabel);
 
     // Old password input
@@ -228,7 +236,8 @@ void TempPage::showDialog (const QString &title,
         "background-color: #4CAF50; color: white; font-size: "
         "16px; "
         "border-radius: 20px; padding: 10px;");
-    confirmButton->setFont (QFont ("Noto Sans", 16));
+    confirmButton->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                   Constants::Settings::DEFAULT_FONT_SIZE));
 
     ElaPushButton *cancelButton =
         new ElaPushButton (tr ("Cancel"), changePasswordDialog);
@@ -241,7 +250,8 @@ void TempPage::showDialog (const QString &title,
         "background-color: #F44336; color: white; font-size: "
         "16px; "
         "border-radius: 20px; padding: 10px;");
-    cancelButton->setFont (QFont ("Noto Sans", 16));
+    cancelButton->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                  Constants::Settings::DEFAULT_FONT_SIZE));
 
     buttonLayout->addWidget (confirmButton);
     buttonLayout->addWidget (cancelButton);

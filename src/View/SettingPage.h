@@ -1,16 +1,10 @@
 #pragma once
 #include "TempPage.h"
+#include "Utility/Constants.h"
 #include <Controller/Setting.h>
 #include <QLabel>
 #include <QPropertyAnimation>
 
-namespace
-{
-const QString HISTORY_SEARCH_TEXT = "Enable History Search List";
-const QString LANGUAGE_SETTING_TEXT = "Software Language";
-const QString STATUS_ON = "ON";
-const QString STATUS_OFF = "OFF";
-} // namespace
 
 class SettingPage : public TempPage
 {
@@ -20,8 +14,9 @@ public:
 
     QString createHistorySearchText (bool enabled)
     {
-        return QString ("%1: %2").arg (HISTORY_SEARCH_TEXT,
-                                       enabled ? STATUS_ON : STATUS_OFF);
+        return QString ("%1: %2").arg (Constants::UI::HISTORY_SEARCH_TEXT,
+                                       enabled ? Constants::UI::STATUS_ON
+                                               : Constants::UI::STATUS_OFF);
     }
 
 private slots:

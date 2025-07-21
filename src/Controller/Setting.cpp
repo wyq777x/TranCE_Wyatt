@@ -7,3 +7,10 @@ ChangeResult Setting::setHistorySearchEnabled (bool enabled)
 
     return result;
 }
+
+ChangeResult Setting::setLanguage (const QString &lang)
+{
+    auto result = AppSettingModel::getInstance ().setLanguage (lang);
+
+    return result;
+}

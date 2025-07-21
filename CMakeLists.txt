@@ -28,17 +28,6 @@ qt_add_executable(TranCE_Wyatt
     res/res.qrc
 )
 
-# Add translation support
-set(TS_FILES
-    translations/TranCE_Wyatt_zh_CN.ts
-    translations/TranCE_Wyatt_en_US.ts
-)
-
-qt_add_translations(TranCE_Wyatt
-    TS_FILES ${TS_FILES}
-    QM_FILES_OUTPUT_VARIABLE qm_files
-)
-
 add_subdirectory(3rdpart/Ela)
 
 add_subdirectory(3rdpart/SQLiteCpp)

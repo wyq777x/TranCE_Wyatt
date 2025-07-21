@@ -1,5 +1,4 @@
 #include "HomePage.h"
-#include "Constants.h"
 #include "DbManager.h"
 #include "Def.h"
 #include "ElaComboBox.h"
@@ -8,9 +7,11 @@
 #include "ElaLineEdit.h"
 #include "ElaPushButton.h"
 #include "ElaToggleButton.h"
+#include "Utility/Constants.h"
 #include <qboxlayout.h>
 #include <qhashfunctions.h>
 #include <qnamespace.h>
+
 
 HomePage::HomePage (QWidget *parent) : TempPage (parent)
 {
@@ -144,7 +145,9 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
         new QLabel (tr ("Random Recommendation:"), centralWidget);
     randomRecommendationLabel->setStyleSheet (
         "font-size: 20px; font-weight: normal; color: #333;");
-    randomRecommendationLabel->setFont (QFont ("Noto Sans", 24));
+    randomRecommendationLabel->setFont (
+        QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+               Constants::Settings::TITLE_FONT_SIZE));
 
     homePageLayout->addWidget (randomRecommendationLabel);
 

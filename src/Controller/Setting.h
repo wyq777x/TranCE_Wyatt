@@ -13,12 +13,19 @@ public:
         return instance;
     }
 
-    ChangeResult setHistorySearchEnabled (bool enabled);
-
     bool isHistorySearchEnabled () const
     {
         return AppSettingModel::getInstance ().isHistoryListEnabled ();
     }
+
+    ChangeResult setHistorySearchEnabled (bool enabled);
+
+    QString getLanguage () const
+    {
+        return AppSettingModel::getInstance ().getLanguage ();
+    }
+
+    ChangeResult setLanguage (const QString &lang);
 
 private:
     Setting () = default;

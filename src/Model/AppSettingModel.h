@@ -72,6 +72,7 @@ private:
     AppSettingModel () = default;
 
     bool historySearchEnabled = true;
+
     QString language = "en_US";
     // en_US : English
     // zh_CN : Chinese

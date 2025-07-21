@@ -229,6 +229,27 @@ UserDataResult UserModel::loadUserData (const QString &userProfilePath)
             return UserDataResult::InvalidData;
         }
 
+        // Load user data
+
+        QJsonObject appSettings = userData["appSettings"].toObject ();
+        QString language = appSettings["language"].toString ();
+        bool historyListEnabled =
+            appSettings["HistoryListEnabled"].toBool (true);
+        if (language.isEmpty ())
+        {
+            getInstance ().logErr (
+                "App settings data is incomplete",
+                std::runtime_error (
+                    "Language setting is missing in app settings data"));
+            return UserDataResult::InvalidData;
+        }
+
+        // Set loaded data
+
+        // setLanguage
+
+        // setHistorySearchListEnabled
+
         return UserDataResult::Success;
     }
     catch (const std::exception &e)

@@ -1,5 +1,5 @@
 #include "SettingPage.h"
-#include "Constants.h"
+#include "Utility/Constants.h"
 #include "Utility/Result.h"
 
 #include <QPropertyAnimation>
@@ -21,7 +21,7 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     QHBoxLayout *enableHistorySearchLayout = new QHBoxLayout (centralWidget);
 
     QLabel *enableHistorySearchLabel =
-        new QLabel (HISTORY_SEARCH_TEXT, centralWidget);
+        new QLabel (Constants::UI::HISTORY_SEARCH_TEXT, centralWidget);
     enableHistorySearchLabel->setStyleSheet (
         QString ("font-size: %1px; font-weight: normal; color: #333;")
             .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
@@ -33,7 +33,7 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 
     enableHistorySearchLayout->addWidget (enableHistorySearchLabel);
 
-    m_statusLabel = new QLabel (STATUS_ON, centralWidget);
+    m_statusLabel = new QLabel (Constants::UI::STATUS_ON, centralWidget);
     m_statusLabel->setStyleSheet (
         QString ("font-size: %1px; font-weight: bold; color: #4CAF50;")
             .arg (Constants::Settings::DEFAULT_FONT_SIZE));
@@ -56,7 +56,8 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     // Language setting layout
     QHBoxLayout *languageLayout = new QHBoxLayout (centralWidget);
 
-    QLabel *languageLabel = new QLabel (LANGUAGE_SETTING_TEXT, centralWidget);
+    QLabel *languageLabel =
+        new QLabel (Constants::UI::LANGUAGE_SETTING_TEXT, centralWidget);
     languageLabel->setStyleSheet (
         QString ("font-size: %1px; font-weight: normal; color: #333;")
             .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
@@ -126,7 +127,8 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 void SettingPage::onHistorySearchToggled (bool enabled)
 {
 
-    m_statusLabel->setText (enabled ? STATUS_ON : STATUS_OFF);
+    m_statusLabel->setText (enabled ? Constants::UI::STATUS_ON
+                                    : Constants::UI::STATUS_OFF);
     m_statusLabel->setStyleSheet (
         QString ("font-size: 16px; font-weight: bold; color: %1;")
             .arg (enabled ? "#4CAF50" : "#F44336"));

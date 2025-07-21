@@ -1,11 +1,12 @@
 #include "View/Components/MyPage.h"
 #include "AccountManager.h"
-#include "Constants.h"
 #include "DbManager.h"
 #include "ElaLineEdit.h"
 #include "ElaPushButton.h"
+#include "Utility/Constants.h"
 #include "Utility/Result.h"
 #include <qnamespace.h>
+
 
 MyPage::MyPage (QWidget *parent) : TempPage (parent)
 {

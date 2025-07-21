@@ -86,6 +86,12 @@ const int DIALOG_MIN_WIDTH = 400;
 const int DIALOG_MIN_HEIGHT = 250;
 const int DIALOG_MAX_WIDTH = 450;
 const int DIALOG_MAX_HEIGHT = 350;
+
+const QString HISTORY_SEARCH_TEXT = "Enable History Search List";
+const QString LANGUAGE_SETTING_TEXT = "Software Language";
+const QString STATUS_ON = "ON";
+const QString STATUS_OFF = "OFF";
+
 } // namespace UI
 
 // Languages

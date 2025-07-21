@@ -1,6 +1,6 @@
 #include "MainWindow.h"
 #include "AccountManager.h"
-#include "Constants.h"
+#include "Utility/Constants.h"
 MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
 {
     setWindowTitle (tr ("TranCE_Wyatt"));
