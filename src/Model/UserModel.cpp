@@ -1,6 +1,6 @@
-#include "UserModel.h"
-#include "AccountManager.h"
-#include "AppSettingModel.h"
+#include "Model/UserModel.h"
+#include "Controller/AccountManager.h"
+#include "Model/AppSettingModel.h"
 #include "Utility/Result.h"
 #include <qcontainerfwd.h>
 #include <qcryptographichash.h>
@@ -248,8 +248,12 @@ UserDataResult UserModel::loadUserData (const QString &userProfilePath)
 
         // setLanguage
 
+        auto setLangResult = Setting::getInstance ().setLanguage (language);
         // setHistorySearchListEnabled
 
+        auto setHistoryResult =
+            Setting::getInstance ().setHistorySearchEnabled (
+                historyListEnabled);
         return UserDataResult::Success;
     }
     catch (const std::exception &e)

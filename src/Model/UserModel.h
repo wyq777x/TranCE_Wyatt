@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Controller/Setting.h"
 #include "Utility/Result.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -12,6 +13,7 @@
 #include <QString>
 #include <qjsonobject.h>
 #include <qtmetamacros.h>
+
 
 class UserModel : public QObject
 {
