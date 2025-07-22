@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ElaTheme.h>
 #include <ElaWindow.h>
 
 class AboutPage;
@@ -18,10 +17,13 @@ class MainWindow : public ElaWindow
 
 public:
     explicit MainWindow (QWidget *parent = nullptr);
-    void initPages ();
     ~MainWindow () {};
 
 private:
+    void initPages ();
+    void initConnections ();
+
+    // UI components/pages
     AboutPage *aboutPage;
     HistoryPage *historyPage;
     HomePage *homePage;
@@ -30,6 +32,7 @@ private:
     RecitePage *recitePage;
     SettingPage *settingPage;
     StatisticsPage *statisticsPage;
+
 private slots:
     void onLoginSuccessful (const QString &username);
     void onLogoutSuccessful ();

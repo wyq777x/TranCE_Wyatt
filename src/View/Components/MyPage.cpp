@@ -1,7 +1,5 @@
 #include "MyPage.h"
 #include "Controller/AccountManager.h"
-#include "ElaLineEdit.h"
-#include "ElaPushButton.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
 
@@ -12,10 +10,17 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     setMaximumSize (800, 600);
     setStyleSheet (
         "background-color: #f0f0f0; font-family: 'Noto Sans', sans-serif;");
-    auto *centralWidget = new QWidget (this);
+
+    initUI ();
+    initConnections ();
+}
+
+void MyPage::initUI ()
+{
+    centralWidget = new QWidget (this);
     centralWidget->setWindowTitle (tr ("My Page"));
 
-    QVBoxLayout *userProfileLayout = new QVBoxLayout (centralWidget);
+    userProfileLayout = new QVBoxLayout (centralWidget);
     userProfileLayout->setAlignment (Qt::AlignCenter | Qt::AlignTop);
     userProfileLayout->setSpacing (20);
     userProfileLayout->setContentsMargins (5, 20, 5, 20);
@@ -41,7 +46,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
 
     avatarLayout->addWidget (avatarLabel);
 
-    ElaPushButton *changeAvatarButton =
+    changeAvatarButton =
         new ElaPushButton (tr ("Change Avatar"), centralWidget);
     changeAvatarButton->setFixedSize (150, 40);
     changeAvatarButton->setStyleSheet (
@@ -95,7 +100,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
 
     usernameLayout->addWidget (usernameLineEdit);
 
-    ElaPushButton *changeUsernameButton =
+    changeUsernameButton =
         new ElaPushButton (tr ("Change Username"), centralWidget);
 
     usernameLayout->addWidget (changeUsernameButton);
@@ -113,7 +118,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                                        QFont::Normal));
     passwordLayout->addWidget (passwordTextLabel);
 
-    ElaPushButton *changePasswordButton =
+    changePasswordButton =
         new ElaPushButton (tr ("Change Password"), centralWidget);
 
     passwordLayout->addWidget (changePasswordButton);
@@ -146,8 +151,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
 
     emailLayout->addWidget (emailLineEdit);
 
-    ElaPushButton *changeEmailButton =
-        new ElaPushButton (tr ("Change Email"), centralWidget);
+    changeEmailButton = new ElaPushButton (tr ("Change Email"), centralWidget);
     emailLayout->addWidget (changeEmailButton);
     userProfileLayout->addLayout (emailLayout);
 
@@ -159,7 +163,7 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     userProfileLayout->addWidget (splitLine2);
 
     QHBoxLayout *logoutLayout = new QHBoxLayout (centralWidget);
-    QPushButton *logoutButton = new QPushButton (tr ("Logout"), centralWidget);
+    logoutButton = new QPushButton (tr ("Logout"), centralWidget);
     logoutButton->setStyleSheet ("QPushButton { "
                                  "color: #F44336; "
                                  "font-size: 16px; "
@@ -175,6 +179,11 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
     logoutLayout->addWidget (logoutButton);
     userProfileLayout->addLayout (logoutLayout);
 
+    addCentralWidget (centralWidget, true, true, 0);
+}
+
+void MyPage::initConnections ()
+{
     connect (changeAvatarButton, &ElaPushButton::clicked, this,
              [this] ()
              {
@@ -312,6 +321,4 @@ MyPage::MyPage (QWidget *parent) : TempPage (parent)
                     emit AccountManager::getInstance ().logoutSuccessful ();
                 });
         });
-
-    addCentralWidget (centralWidget, true, true, 0);
 }

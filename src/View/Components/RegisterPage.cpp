@@ -1,6 +1,5 @@
 #include "RegisterPage.h"
 #include "Controller/AccountManager.h"
-#include "ElaLineEdit.h"
 #include "Model/DbModel.h"
 #include "Utility/Constants.h"
 
@@ -9,19 +8,25 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
     setWindowTitle (tr ("Register"));
     setWindowFlag (Qt::Window, true);
     setWindowModality (Qt::ApplicationModal);
-
-    auto *centralWidget = new QWidget (nullptr);
-    centralWidget->setWindowTitle (tr ("Register"));
     resize (858, 600);
     setMinimumSize (644, 450);
     setMaximumSize (644, 450);
 
-    QVBoxLayout *registerPageLayout = new QVBoxLayout (centralWidget);
+    initUI ();
+    initConnections ();
+}
+
+void RegisterPage::initUI ()
+{
+    centralWidget = new QWidget (nullptr);
+    centralWidget->setWindowTitle (tr ("Register"));
+
+    registerPageLayout = new QVBoxLayout (centralWidget);
     registerPageLayout->setAlignment (Qt::AlignHCenter | Qt::AlignTop);
     registerPageLayout->setSpacing (20);
     registerPageLayout->setContentsMargins (15, 40, 15, 40);
 
-    QLabel *titleLabel = new QLabel (tr ("Register User"), centralWidget);
+    titleLabel = new QLabel (tr ("Register User"), centralWidget);
     titleLabel->setAlignment (Qt::AlignHCenter);
     titleLabel->setStyleSheet (
         QString ("font-size: %1px; font-weight: bold; color: #333;")
@@ -32,7 +37,7 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 
     registerPageLayout->addWidget (titleLabel);
 
-    ElaLineEdit *usernameLineEdit = new ElaLineEdit (centralWidget);
+    usernameLineEdit = new ElaLineEdit (centralWidget);
     usernameLineEdit->setPlaceholderText (tr ("Username"));
     usernameLineEdit->setMinimumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
     usernameLineEdit->setMaximumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
@@ -42,7 +47,7 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 
     registerPageLayout->addWidget (usernameLineEdit);
 
-    ElaLineEdit *passwordLineEdit = new ElaLineEdit (centralWidget);
+    passwordLineEdit = new ElaLineEdit (centralWidget);
 
     passwordLineEdit->setPlaceholderText (tr ("Password"));
     passwordLineEdit->setMinimumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
@@ -54,7 +59,7 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 
     registerPageLayout->addWidget (passwordLineEdit);
 
-    ElaLineEdit *confirmPasswordLineEdit = new ElaLineEdit (centralWidget);
+    confirmPasswordLineEdit = new ElaLineEdit (centralWidget);
     confirmPasswordLineEdit->setPlaceholderText (tr ("Confirm Password"));
     confirmPasswordLineEdit->setMinimumHeight (
         Constants::UI::DEFAULT_INPUT_HEIGHT);
@@ -70,11 +75,11 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 
     registerPageLayout->addWidget (confirmPasswordLineEdit);
 
-    QHBoxLayout *registerButtonLayout = new QHBoxLayout (centralWidget);
+    registerButtonLayout = new QHBoxLayout (centralWidget);
     registerButtonLayout->setAlignment (Qt::AlignHCenter);
     registerButtonLayout->setSpacing (20);
 
-    ElaPushButton *registerButton = new ElaPushButton (centralWidget);
+    registerButton = new ElaPushButton (centralWidget);
     registerButton->setText (tr ("Register"));
     registerButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     registerButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
@@ -84,7 +89,7 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 
     registerButtonLayout->addWidget (registerButton);
 
-    ElaPushButton *cancelButton = new ElaPushButton (centralWidget);
+    cancelButton = new ElaPushButton (centralWidget);
     cancelButton->setText (tr ("Cancel"));
     cancelButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     cancelButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
@@ -97,7 +102,10 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
     registerPageLayout->addLayout (registerButtonLayout);
 
     addCentralWidget (centralWidget, true, true, 0);
+}
 
+void RegisterPage::initConnections ()
+{
     connect (
         registerButton, &ElaPushButton::clicked,
         [=, this] ()
@@ -202,6 +210,7 @@ RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 
     connect (cancelButton, &ElaPushButton::clicked, [=, this] () { close (); });
 }
+
 void RegisterPage::paintEvent (QPaintEvent *event)
 {
     Q_UNUSED (event);

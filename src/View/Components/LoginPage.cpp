@@ -1,7 +1,5 @@
 #include "LoginPage.h"
 #include "Controller/AccountManager.h"
-#include "ElaLineEdit.h"
-#include "ElaPushButton.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
 
@@ -10,20 +8,25 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
     setWindowTitle (tr ("Login&Register"));
     setWindowFlag (Qt::WindowStaysOnTopHint, true);
     setWindowModality (Qt::ApplicationModal);
-
-    auto *centralWidget = new QWidget (this);
-    centralWidget->setWindowTitle (tr ("Login"));
     resize (858, 600);
     setMinimumSize (644, 450);
     setMaximumSize (644, 450);
 
-    QVBoxLayout *loginPageLayout = new QVBoxLayout (centralWidget);
+    initUI ();
+    initConnections ();
+}
+
+void LoginPage::initUI ()
+{
+    centralWidget = new QWidget (this);
+    centralWidget->setWindowTitle (tr ("Login"));
+
+    loginPageLayout = new QVBoxLayout (centralWidget);
     loginPageLayout->setAlignment (Qt::AlignHCenter | Qt::AlignTop);
     loginPageLayout->setSpacing (20);
     loginPageLayout->setContentsMargins (15, 40, 15, 40);
 
-    QLabel *titleLabel =
-        new QLabel (tr ("Welcome to TranCE_Wyatt"), centralWidget);
+    titleLabel = new QLabel (tr ("Welcome to TranCE_Wyatt"), centralWidget);
     titleLabel->setAlignment (Qt::AlignHCenter);
     titleLabel->setStyleSheet (
         QString ("font-size: %1px; font-weight: bold; color: #333;")
@@ -33,7 +36,8 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
                                 QFont::Bold));
 
     loginPageLayout->addWidget (titleLabel);
-    ElaLineEdit *usernameLineEdit = new ElaLineEdit (centralWidget);
+
+    usernameLineEdit = new ElaLineEdit (centralWidget);
     usernameLineEdit->setPlaceholderText (tr ("Username"));
     usernameLineEdit->setMinimumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
     usernameLineEdit->setMaximumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
@@ -43,7 +47,7 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 
     loginPageLayout->addWidget (usernameLineEdit);
 
-    ElaLineEdit *passwordLineEdit = new ElaLineEdit (centralWidget);
+    passwordLineEdit = new ElaLineEdit (centralWidget);
     passwordLineEdit->setPlaceholderText (tr ("Password"));
     passwordLineEdit->setMinimumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
     passwordLineEdit->setMaximumHeight (Constants::UI::DEFAULT_INPUT_HEIGHT);
@@ -54,11 +58,11 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 
     loginPageLayout->addWidget (passwordLineEdit);
 
-    QHBoxLayout *loginButtonLayout = new QHBoxLayout (centralWidget);
+    loginButtonLayout = new QHBoxLayout (centralWidget);
     loginButtonLayout->setAlignment (Qt::AlignHCenter);
     loginButtonLayout->setSpacing (20);
 
-    ElaPushButton *loginButton = new ElaPushButton (centralWidget);
+    loginButton = new ElaPushButton (centralWidget);
     loginButton->setText (tr ("Login"));
     loginButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     loginButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
@@ -67,7 +71,7 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
     loginButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
     loginButtonLayout->addWidget (loginButton);
 
-    ElaPushButton *registerButton = new ElaPushButton (centralWidget);
+    registerButton = new ElaPushButton (centralWidget);
     registerButton->setText (tr ("Register"));
     registerButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     registerButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
@@ -79,6 +83,10 @@ LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 
     loginPageLayout->addLayout (loginButtonLayout);
     addCentralWidget (centralWidget, true, true, 0);
+}
+
+void LoginPage::initConnections ()
+{
 
     connect (loginButton, &ElaPushButton::clicked,
              [=, this] ()

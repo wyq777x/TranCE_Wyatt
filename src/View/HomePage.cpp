@@ -1,11 +1,5 @@
 #include "HomePage.h"
 #include "Controller/DbManager.h"
-#include "Def.h"
-#include "ElaComboBox.h"
-#include "ElaIcon.h"
-#include "ElaLineEdit.h"
-#include "ElaPushButton.h"
-#include "ElaToggleButton.h"
 #include "Utility/Constants.h"
 #include "View/Components/WordCard.h"
 
@@ -13,19 +7,23 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
 {
     setWindowTitle (tr ("Home"));
 
-    auto *centralWidget = new QWidget (this);
+    initUI ();
+    initConnections ();
+}
+
+void HomePage::initUI ()
+{
+    centralWidget = new QWidget (this);
     centralWidget->setWindowTitle (tr ("Home"));
 
-    QVBoxLayout *homePageLayout = new QVBoxLayout (centralWidget);
+    homePageLayout = new QVBoxLayout (centralWidget);
     homePageLayout->setAlignment (Qt::AlignHCenter | Qt::AlignTop);
     homePageLayout->setSpacing (20);
 
-    ElaComboBox *LangComboBox_left = new ElaComboBox (centralWidget);
-
+    LangComboBox_left = new ElaComboBox (centralWidget);
     LangComboBox_left->setToolTip (tr ("Select Source Language"));
 
-    ElaComboBox *LangComboBox_right = new ElaComboBox (centralWidget);
-
+    LangComboBox_right = new ElaComboBox (centralWidget);
     LangComboBox_right->setToolTip (tr ("Select Target Language"));
 
     LangComboBox_left->setStyleSheet (
@@ -50,12 +48,11 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
         "    color: black;" // set text color of dropdown list as black
         "}");
 
-    ElaIconButton *swapButton =
-        new ElaIconButton (ElaIconType::SwapArrows, centralWidget);
+    swapButton = new ElaIconButton (ElaIconType::SwapArrows, centralWidget);
     swapButton->setBorderRadius (Constants::UI::SMALL_BORDER_RADIUS);
     swapButton->setToolTip (tr ("Swap Languages"));
 
-    QHBoxLayout *langLayout = new QHBoxLayout (centralWidget);
+    langLayout = new QHBoxLayout (centralWidget);
     langLayout->setAlignment (Qt::AlignHCenter);
     langLayout->setSpacing (20);
     langLayout->addWidget (LangComboBox_left);
@@ -71,46 +68,42 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     LangComboBox_right->addItem (tr ("Chinese"));
     LangComboBox_right->addItem (tr ("English"));
 
-    ElaToggleButton *searchOnline = new ElaToggleButton (centralWidget);
-
+    searchOnline = new ElaToggleButton (centralWidget);
     searchOnline->setToolTip (tr ("Search Online by Bing"));
-
     searchOnline->setText (tr ("Search\nOnline"));
     searchOnline->setMinimumHeight (60);
     searchOnline->setMaximumHeight (60);
     searchOnline->setBorderRadius (Constants::UI::SMALL_BORDER_RADIUS);
     searchOnline->setIsToggled (false); // default is false
 
-    ElaLineEdit *lineEdit = new ElaLineEdit (centralWidget);
+    lineEdit = new ElaLineEdit (centralWidget);
     lineEdit->setPlaceholderText (tr ("Search..."));
     lineEdit->setMinimumHeight (70);
     lineEdit->setMaximumHeight (70);
     lineEdit->setMinimumWidth (550);
     lineEdit->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
-    ElaListView *suggestionsList = new ElaListView (centralWidget);
-
+    suggestionsList = new ElaListView (centralWidget);
     suggestionsList->setEditTriggers (QAbstractItemView::NoEditTriggers);
     suggestionsList->setIsTransparent (true);
     suggestionsList->setFixedSize (550, 200);
-
     suggestionsList->hide ();
 
-    QStringListModel *suggestionModel = new QStringListModel (this);
+    suggestionModel = new QStringListModel (this);
     suggestionsList->setModel (suggestionModel);
 
-    QAction *searchAction = lineEdit->addAction (
+    searchAction = lineEdit->addAction (
         ElaIcon::getInstance ()->getElaIcon (ElaIconType::MagnifyingGlass, 512),
         QLineEdit::LeadingPosition);
     searchAction->setToolTip (tr ("Search"));
 
-    QAction *clearAction = lineEdit->addAction (
+    clearAction = lineEdit->addAction (
         ElaIcon::getInstance ()->getElaIcon (ElaIconType::Xmark, 512),
         QLineEdit::TrailingPosition);
     clearAction->setToolTip (tr ("Clear"));
     clearAction->setVisible (false);
 
-    QHBoxLayout *searchLayout = new QHBoxLayout (centralWidget);
+    searchLayout = new QHBoxLayout (centralWidget);
     searchLayout->setAlignment (Qt::AlignHCenter);
     searchLayout->setSpacing (20);
     searchLayout->addWidget (lineEdit);
@@ -118,15 +111,15 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
 
     homePageLayout->addLayout (searchLayout);
 
-    QHBoxLayout *searchModeLayout = new QHBoxLayout (centralWidget);
+    searchModeLayout = new QHBoxLayout (centralWidget);
     searchModeLayout->setAlignment (Qt::AlignHCenter);
     searchModeLayout->setSpacing (20);
-    ElaRadioButton *searchMode_precise =
+
+    searchMode_precise =
         new ElaRadioButton (tr ("Precise Search"), centralWidget);
     searchMode_precise->setToolTip (tr ("Precise Search Mode"));
 
-    ElaRadioButton *searchMode_fuzzy =
-        new ElaRadioButton (tr ("Fuzzy Search"), centralWidget);
+    searchMode_fuzzy = new ElaRadioButton (tr ("Fuzzy Search"), centralWidget);
     searchMode_fuzzy->setToolTip (tr ("Fuzzy Search Mode"));
     searchMode_fuzzy->setChecked (true);
 
@@ -137,7 +130,7 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
 
     homePageLayout->addWidget (suggestionsList);
 
-    QLabel *randomRecommendationLabel =
+    randomRecommendationLabel =
         new QLabel (tr ("Random Recommendation:"), centralWidget);
     randomRecommendationLabel->setStyleSheet (
         "font-size: 20px; font-weight: normal; color: #333;");
@@ -148,11 +141,11 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
     homePageLayout->addWidget (randomRecommendationLabel);
 
     // Random Recommendation Layout
-    QHBoxLayout *randomRecommendationLayout = new QHBoxLayout (centralWidget);
+    randomRecommendationLayout = new QHBoxLayout (centralWidget);
     randomRecommendationLayout->setAlignment (Qt::AlignHCenter);
     randomRecommendationLayout->setSpacing (20);
 
-    ElaPushButton *recommendWordButton =
+    recommendWordButton =
         new ElaPushButton (tr ("Recommend Word"), centralWidget);
     recommendWordButton->setMinimumHeight (50);
     recommendWordButton->setMinimumWidth (600);
@@ -163,8 +156,13 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
 
     homePageLayout->addLayout (randomRecommendationLayout);
 
+    addCentralWidget (centralWidget, true, true, 0);
+}
+
+void HomePage::initConnections ()
+{
     connect (swapButton, &ElaIconButton::clicked,
-             [=] ()
+             [=, this] ()
              {
                  QString leftText = LangComboBox_left->currentText ();
                  QString rightText = LangComboBox_right->currentText ();
@@ -189,7 +187,7 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
              });
 
     connect (searchAction, &QAction::triggered,
-             [=] ()
+             [=, this] ()
              {
                  if (searchOnline->getIsToggled ())
                  {
@@ -200,7 +198,7 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
              });
 
     connect (clearAction, &QAction::triggered,
-             [=] ()
+             [=, this] ()
              {
                  lineEdit->clear ();
 
@@ -447,6 +445,4 @@ HomePage::HomePage (QWidget *parent) : TempPage (parent)
                      wordCard->show ();
                  }
              });
-
-    addCentralWidget (centralWidget, true, true, 0);
 }

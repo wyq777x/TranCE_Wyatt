@@ -1,9 +1,18 @@
 #include "WordCard.h"
-#include "Def.h"
-#include "ElaIconButton.h"
 #include "Utility/Constants.h"
 
 WordCard::WordCard (QWidget *parent) : TempPage (parent)
+{
+    setWindowTitle (tr ("Word Card"));
+    setFixedSize (400, 400);
+    setStyleSheet (
+        "background-color: #f0f0f0; font-family: 'Noto Sans', sans-serif;");
+
+    initUI ();
+    initConnections ();
+}
+
+void WordCard::initUI ()
 {
     // UI Layout:
     //   BIG WORD     ADD2FAVORITES_BUTTON
@@ -11,17 +20,14 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
     //   -------------------
     //   TRANSLATION
 
-    setWindowTitle (tr ("Word Card"));
+    centralWidget = new QWidget (this);
+    centralWidget->setWindowTitle (tr ("Word Card"));
 
-    setFixedSize (400, 400);
-    setStyleSheet (
-        "background-color: #f0f0f0; font-family: 'Noto Sans', sans-serif;");
-
-    QVBoxLayout *mainLayout = new QVBoxLayout (this);
+    mainLayout = new QVBoxLayout (centralWidget);
     mainLayout->setContentsMargins (20, 20, 20, 20);
     mainLayout->setSpacing (10);
 
-    QHBoxLayout *headerLayout = new QHBoxLayout ();
+    headerLayout = new QHBoxLayout ();
 
     wordLabel = new QLabel ();
     wordLabel->setAlignment (Qt::AlignCenter);
@@ -81,11 +87,11 @@ WordCard::WordCard (QWidget *parent) : TempPage (parent)
     mainLayout->addWidget (translationLabel);
     mainLayout->addStretch ();
 
-    QWidget *container = new QWidget ();
-    container->setLayout (mainLayout);
-    container->setWindowTitle (tr ("Word Card"));
-    addCentralWidget (container);
+    addCentralWidget (centralWidget);
+}
 
+void WordCard::initConnections ()
+{
     connect (add2FavoritesButton, &ElaIconButton::clicked, this,
              [this] ()
              {

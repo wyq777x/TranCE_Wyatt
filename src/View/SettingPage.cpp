@@ -1,23 +1,27 @@
 #include "SettingPage.h"
-#include "Utility/Constants.h"
 #include "Utility/Result.h"
-#include <QPropertyAnimation>
 
 SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 {
     setWindowTitle (tr ("Setting Page"));
 
-    auto *centralWidget = new QWidget (this);
+    initUI ();
+    initConnections ();
+}
+
+void SettingPage::initUI ()
+{
+    centralWidget = new QWidget (this);
     centralWidget->setWindowTitle (tr ("Setting Page"));
 
-    QVBoxLayout *settingPageLayout = new QVBoxLayout (centralWidget);
+    settingPageLayout = new QVBoxLayout (centralWidget);
     settingPageLayout->setSpacing (20);
     settingPageLayout->setContentsMargins (0, 50, 0, 10);
     settingPageLayout->setAlignment (Qt::AlignTop);
 
-    QHBoxLayout *enableHistorySearchLayout = new QHBoxLayout (centralWidget);
+    enableHistorySearchLayout = new QHBoxLayout (centralWidget);
 
-    QLabel *enableHistorySearchLabel =
+    enableHistorySearchLabel =
         new QLabel (Constants::UI::HISTORY_SEARCH_TEXT, centralWidget);
     enableHistorySearchLabel->setStyleSheet (
         QString ("font-size: %1px; font-weight: normal; color: #333;")
@@ -27,7 +31,6 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     enableHistorySearchLabel->setFont (
         QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
                Constants::Settings::SUBTITLE_FONT_SIZE, QFont::Normal));
-
     enableHistorySearchLayout->addWidget (enableHistorySearchLabel);
 
     m_statusLabel = new QLabel (Constants::UI::STATUS_ON, centralWidget);
@@ -45,15 +48,15 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 
     settingPageLayout->addLayout (enableHistorySearchLayout);
 
-    auto *splitLine1 = new QFrame (centralWidget);
+    splitLine1 = new QFrame (centralWidget);
     splitLine1->setFrameShape (QFrame::HLine);
     splitLine1->setFrameShadow (QFrame::Sunken);
     settingPageLayout->addWidget (splitLine1);
 
     // Language setting layout
-    QHBoxLayout *languageLayout = new QHBoxLayout (centralWidget);
+    languageLayout = new QHBoxLayout (centralWidget);
 
-    QLabel *languageLabel =
+    languageLabel =
         new QLabel (Constants::UI::LANGUAGE_SETTING_TEXT, centralWidget);
     languageLabel->setStyleSheet (
         QString ("font-size: %1px; font-weight: normal; color: #333;")
@@ -63,11 +66,9 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     languageLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
                                    Constants::Settings::SUBTITLE_FONT_SIZE,
                                    QFont::Normal));
-
     languageLayout->addWidget (languageLabel);
 
     m_languageComboBox = new ElaComboBox (centralWidget);
-
     m_languageComboBox->setStyleSheet (
         "QComboBox {"
         "    color: black;" // set default text color as black
@@ -81,19 +82,18 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     m_languageComboBox->addItem ("中文");
     m_languageComboBox->addItem ("English");
     m_languageComboBox->setCurrentIndex (1); // Default to English
-
     languageLayout->addWidget (m_languageComboBox);
 
     settingPageLayout->addLayout (languageLayout);
 
-    auto *splitLine2 = new QFrame (centralWidget);
+    splitLine2 = new QFrame (centralWidget);
     splitLine2->setFrameShape (QFrame::HLine);
     splitLine2->setFrameShadow (QFrame::Sunken);
     settingPageLayout->addWidget (splitLine2);
 
-    QHBoxLayout *clearCacheLayout = new QHBoxLayout (centralWidget);
+    clearCacheLayout = new QHBoxLayout (centralWidget);
 
-    QLabel *clearCacheLabel =
+    clearCacheLabel =
         new QLabel (tr ("Clear Cache: %1 MB").arg (0), centralWidget);
     clearCacheLabel->setStyleSheet (
         QString ("font-size: %1px; font-weight: normal; color: #333;")
@@ -101,19 +101,20 @@ SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
     clearCacheLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
                                      Constants::Settings::SUBTITLE_FONT_SIZE,
                                      QFont::Normal));
-
     clearCacheLayout->addWidget (clearCacheLabel);
 
-    ElaPushButton *clearCacheButton =
-        new ElaPushButton (tr ("Clear Cache"), centralWidget);
+    clearCacheButton = new ElaPushButton (tr ("Clear Cache"), centralWidget);
     clearCacheButton->setMinimumWidth (150);
     clearCacheButton->setMaximumWidth (150);
-
     clearCacheLayout->addWidget (clearCacheButton);
 
     settingPageLayout->addLayout (clearCacheLayout);
 
     addCentralWidget (centralWidget, true, true, 0);
+}
+
+void SettingPage::initConnections ()
+{
     connect (m_historySearchSwitch, &ElaToggleSwitch::toggled, this,
              &SettingPage::onHistorySearchToggled);
     connect (m_languageComboBox,

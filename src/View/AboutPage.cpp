@@ -1,33 +1,35 @@
 #include "AboutPage.h"
-
-#include "ElaPushButton.h"
-#include "ElaScrollArea.h"
-#include "ElaWidget.h"
 #include "Utility/Constants.h"
 
 AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
 {
     setWindowTitle (tr ("About"));
 
-    auto *centralWidget = new QWidget (this);
+    initUI ();
+    initConnections ();
+}
+
+void AboutPage::initUI ()
+{
+    centralWidget = new QWidget (this);
     centralWidget->setWindowTitle (tr ("About"));
-    QVBoxLayout *aboutPageLayout = new QVBoxLayout (centralWidget);
+
+    aboutPageLayout = new QVBoxLayout (centralWidget);
     aboutPageLayout->setAlignment (Qt::AlignHCenter | Qt::AlignTop);
     aboutPageLayout->setSpacing (20);
     aboutPageLayout->setContentsMargins (5, 20, 5, 20);
 
-    QHBoxLayout *titleLayout = new QHBoxLayout (centralWidget);
+    titleLayout = new QHBoxLayout (centralWidget);
     titleLayout->setAlignment (Qt::AlignHCenter);
     titleLayout->setSpacing (5);
 
-    QLabel *logoLabel = new QLabel (centralWidget);
+    logoLabel = new QLabel (centralWidget);
     logoLabel->setPixmap (QPixmap (Constants::Resources::APP_ICON));
     logoLabel->setFixedSize (50, 50);
     logoLabel->setScaledContents (true);
-
     titleLayout->addWidget (logoLabel);
 
-    QLabel *titleLabel = new QLabel (tr ("TranCE_Wyatt"), centralWidget);
+    titleLabel = new QLabel (tr ("TranCE_Wyatt"), centralWidget);
     titleLabel->setStyleSheet (
         QString ("font-size: %1px; font-weight: bold; color: #333;")
             .arg (Constants::Settings::TITLE_FONT_SIZE));
@@ -35,12 +37,11 @@ AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
                                 Constants::Settings::TITLE_FONT_SIZE,
                                 QFont::Bold));
     titleLabel->setFixedHeight (50);
-
     titleLayout->addWidget (titleLabel);
 
     aboutPageLayout->addLayout (titleLayout);
 
-    QLabel *descriptionLabel = new QLabel (
+    descriptionLabel = new QLabel (
         tr ("TranCE_Wyatt is a tool for learning English vocabulary.\nIt "
             "provides a simple and efficient way to learn and memorize English "
             "words."),
@@ -55,25 +56,31 @@ AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
     descriptionLabel->setAlignment (Qt::AlignHCenter);
     aboutPageLayout->addWidget (descriptionLabel);
 
-    QVBoxLayout *detailsLayout = new QVBoxLayout (centralWidget);
+    detailsLayout = new QVBoxLayout (centralWidget);
     detailsLayout->setAlignment (Qt::AlignVCenter);
     detailsLayout->setSpacing (2);
     detailsLayout->setContentsMargins (5, 0, 5, 0);
 
-    ElaPushButton *repoButton =
-        new ElaPushButton (tr ("GitHub Repository"), centralWidget);
+    repoButton = new ElaPushButton (tr ("GitHub Repository"), centralWidget);
     repoButton->setMinimumWidth (600);
     repoButton->setMaximumWidth (600);
+    detailsLayout->addWidget (repoButton);
+
+    licenseButton = new ElaPushButton (tr ("License"), centralWidget);
+    licenseButton->setMinimumWidth (600);
+    licenseButton->setMaximumWidth (600);
+    detailsLayout->addWidget (licenseButton);
+
+    aboutPageLayout->addLayout (detailsLayout);
+    addCentralWidget (centralWidget, true, true, 0);
+}
+
+void AboutPage::initConnections ()
+{
     connect (
         repoButton, &ElaPushButton::clicked, this, [] ()
         { QDesktopServices::openUrl (QUrl (Constants::Urls::GITHUB_REPO)); });
 
-    detailsLayout->addWidget (repoButton);
-
-    ElaPushButton *licenseButton =
-        new ElaPushButton (tr ("License"), centralWidget);
-    licenseButton->setMinimumWidth (600);
-    licenseButton->setMaximumWidth (600);
     connect (
         licenseButton, &ElaPushButton::clicked, this,
         [] ()
@@ -149,8 +156,4 @@ AboutPage::AboutPage (QWidget *parent) : TempPage (parent)
             licensePage->setLayout (licenseLayout);
             licensePage->show ();
         });
-    detailsLayout->addWidget (licenseButton);
-
-    aboutPageLayout->addLayout (detailsLayout);
-    addCentralWidget (centralWidget, true, true, 0);
 }

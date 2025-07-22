@@ -3,9 +3,6 @@
 #include "Utility/Constants.h"
 #include "View/TempPage.h"
 #include <Controller/Setting.h>
-#include <QLabel>
-#include <QPropertyAnimation>
-
 
 class SettingPage : public TempPage
 {
@@ -25,10 +22,24 @@ private slots:
     void onLanguageChanged (int index);
 
 private:
+    void initUI ();
+    void initConnections ();
     void updateStatusWithAnimation (bool enabled);
     void saveHistorySearchSetting (bool enabled);
 
+    // UI components
+    QWidget *centralWidget;
+    QVBoxLayout *settingPageLayout;
+    QHBoxLayout *enableHistorySearchLayout;
+    QLabel *enableHistorySearchLabel;
     QLabel *m_statusLabel;
     ElaToggleSwitch *m_historySearchSwitch;
+    QFrame *splitLine1;
+    QFrame *splitLine2;
+    QHBoxLayout *languageLayout;
+    QLabel *languageLabel;
     ElaComboBox *m_languageComboBox;
+    QHBoxLayout *clearCacheLayout;
+    QLabel *clearCacheLabel;
+    ElaPushButton *clearCacheButton;
 };

@@ -14,6 +14,7 @@
 #include <ElaScrollPage.h>
 #include <ElaTableView.h>
 #include <ElaTheme.h>
+#include <ElaToggleButton.h>
 #include <ElaToggleSwitch.h>
 #include <ElaWidget.h>
 #include <QAction>
@@ -24,6 +25,7 @@
 #include <QGraphicsBlurEffect>
 #include <QLabel>
 #include <QPainter>
+#include <QPropertyAnimation>
 #include <QStackedLayout>
 #include <QStringList>
 #include <QStringListModel>

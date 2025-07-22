@@ -1,12 +1,7 @@
 #pragma once
 
-#include "ElaIcon.h"
-#include "ElaIconButton.h"
 #include "Utility/WordEntry.h"
 #include "View/TempPage.h"
-#include <QFrame>
-#include <QLabel>
-#include <QVBoxLayout>
 
 class WordCard : public TempPage
 {
@@ -27,12 +22,19 @@ private:
     WordCard (const WordCard &) = delete;
     WordCard &operator= (const WordCard &) = delete;
 
+    void initUI ();
+    void initConnections ();
+
     // UI components
+    QWidget *centralWidget;
+    QVBoxLayout *mainLayout;
+    QHBoxLayout *headerLayout;
     QLabel *wordLabel;
     QLabel *pronunciationLabel;
     QFrame *separatorLine;
     QLabel *translationLabel;
 
     ElaIconButton *add2FavoritesButton =
-        new ElaIconButton (ElaIconType::Heart); // Default unfavorited icon
+        new ElaIconButton (ElaIconType::Heart); // Default unfavortite
+    ;
 };

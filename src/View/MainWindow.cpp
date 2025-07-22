@@ -16,6 +16,7 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
     setWindowIcon (QIcon (Constants::Resources::APP_ICON));
 
     initPages ();
+    initConnections ();
     moveToCenter ();
 
     setUserInfoCardTitle (tr ("User"));
@@ -25,7 +26,44 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
                                 : tr ("Click to login")));
 
     setUserInfoCardPixmap (QPixmap (Constants::Resources::DEFAULT_USER_AVATAR));
+}
 
+void MainWindow::initPages ()
+{
+    // PageNodes
+    homePage = new HomePage ();
+    addPageNode (tr ("Home"), homePage, ElaIconType::House);
+
+    recitePage = new RecitePage ();
+    addPageNode (tr ("Recite"), recitePage, ElaIconType::Book);
+
+    historyPage = new HistoryPage ();
+    addPageNode (tr ("History"), historyPage, ElaIconType::ClockRotateLeft);
+
+    statisticsPage = new StatisticsPage ();
+    addPageNode (tr ("Statistics"), statisticsPage, ElaIconType::ChartBar);
+
+    // FooterNodes
+
+    settingPage = new SettingPage ();
+    QString settingPageKey;
+    addFooterNode (tr ("Settings"), settingPage, settingPageKey, 0,
+                   ElaIconType::Gear);
+
+    aboutPage = new AboutPage ();
+    QString aboutPageKey;
+    addFooterNode (tr ("About"), aboutPage, aboutPageKey, 0,
+                   ElaIconType::CircleInfo);
+
+    loginPage = new LoginPage ();
+    loginPage->setStyleSheet ("background-color:rgb(231, 252, 249);"
+                              "QWidget { background-color: transparent; }");
+
+    myPage = new MyPage ();
+}
+
+void MainWindow::initConnections ()
+{
     connect (this, &ElaWindow::userInfoCardClicked, this,
              [this] ()
              {
@@ -61,40 +99,6 @@ MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
                  setUserInfoCardPixmap (QPixmap (newAvatarPath));
                  myPage->setAvatar (QPixmap (newAvatarPath));
              });
-}
-
-void MainWindow::initPages ()
-{
-    // PageNodes
-    homePage = new HomePage ();
-    addPageNode (tr ("Home"), homePage, ElaIconType::House);
-
-    recitePage = new RecitePage ();
-    addPageNode (tr ("Recite"), recitePage, ElaIconType::Book);
-
-    historyPage = new HistoryPage ();
-    addPageNode (tr ("History"), historyPage, ElaIconType::ClockRotateLeft);
-
-    statisticsPage = new StatisticsPage ();
-    addPageNode (tr ("Statistics"), statisticsPage, ElaIconType::ChartBar);
-
-    // FooterNodes
-
-    settingPage = new SettingPage ();
-    QString settingPageKey;
-    addFooterNode (tr ("Settings"), settingPage, settingPageKey, 0,
-                   ElaIconType::Gear);
-
-    aboutPage = new AboutPage ();
-    QString aboutPageKey;
-    addFooterNode (tr ("About"), aboutPage, aboutPageKey, 0,
-                   ElaIconType::CircleInfo);
-
-    loginPage = new LoginPage ();
-    loginPage->setStyleSheet ("background-color:rgb(231, 252, 249);"
-                              "QWidget { background-color: transparent; }");
-
-    myPage = new MyPage ();
 }
 
 void MainWindow::onLoginSuccessful (const QString &username)

@@ -19,6 +19,28 @@ public:
     }
 
 private:
+    void initUI ();
+    void initConnections ();
+
+    // UI components
+    QWidget *centralWidget;
+    QVBoxLayout *recitePageLayout;
+    QWidget *containerWidget;
+    QGridLayout *containerLayout;
+    QWidget *reciteBgWidget;
+    QWidget *reciteContentWidget;
+    QVBoxLayout *reciteWidgetLayout;
+    QLabel *progressLabel;
+    ElaPushButton *reciteButton;
+    QWidget *flowContainer;
+    ElaFlowLayout *flowLayout;
+    QWidget *favoritesWidget;
+    QLabel *favoritesLabel;
+    QVBoxLayout *favoritesLayout;
+    QWidget *masteredWidget;
+    QLabel *masteredLabel;
+    QVBoxLayout *masteredLayout;
+
     int currentProgress = 0;
     int totalProgress = 50;
 };
