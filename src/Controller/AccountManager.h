@@ -6,6 +6,7 @@
 #include "Utility/Result.h"
 #include <QString>
 #include <stdexcept>
+
 class AccountManager : public QObject
 {
     Q_OBJECT

@@ -2,10 +2,12 @@
 
 #include "Utility/Result.h"
 #include <QCoreApplication>
+#include <QObject>
 #include <QString>
 
-class AppSettingModel
+class AppSettingModel : public QObject
 {
+    Q_OBJECT
 public:
     static AppSettingModel &getInstance ()
     {
@@ -24,6 +26,10 @@ public:
     QString getLanguage () const { return language; }
 
     bool isHistoryListEnabled () const { return historySearchEnabled; }
+
+signals:
+    void languageChanged (const QString &language);
+    void historySearchListEnabledChanged (bool enabled);
 
 private:
     AppSettingModel () = default;

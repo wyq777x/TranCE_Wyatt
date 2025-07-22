@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Model/DbModel.h"
-#include "SettingPage.h"
+#include "Model/AppSettingModel.h"
 #include "Utility/Result.h"
 
 class Setting

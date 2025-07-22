@@ -14,7 +14,6 @@
 #include <qjsonobject.h>
 #include <qtmetamacros.h>
 
-
 class UserModel : public QObject
 {
     Q_OBJECT
