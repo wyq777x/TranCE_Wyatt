@@ -1,5 +1,4 @@
 #include "TempPage.h"
-#include <qnamespace.h>
 
 TempPage::TempPage (QWidget *parent) : ElaScrollPage (parent)
 {

@@ -1,10 +1,7 @@
 #include "SettingPage.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
-
 #include <QPropertyAnimation>
-#include <qboxlayout.h>
-#include <qnamespace.h>
 
 SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 {

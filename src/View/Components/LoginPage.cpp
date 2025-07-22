@@ -4,10 +4,6 @@
 #include "ElaPushButton.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
-#include <qboxlayout.h>
-#include <qlabel.h>
-#include <qlogging.h>
-#include <qnamespace.h>
 
 LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 {

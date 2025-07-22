@@ -1,7 +1,5 @@
 #include "HistoryPage.h"
 #include "ElaListView.h"
-#include <qboxlayout.h>
-#include <qnamespace.h>
 
 HistoryPage::HistoryPage (QWidget *parent) : TempPage (parent)
 {

@@ -4,12 +4,6 @@
 #include "Model/AppSettingModel.h"
 #include "Model/DbModel.h"
 #include "Utility/Result.h"
-#include <qcontainerfwd.h>
-#include <qcryptographichash.h>
-#include <qdebug.h>
-#include <qjsonobject.h>
-#include <qlogging.h>
-#include <qnamespace.h>
 
 UserAuthResult UserModel::login (const QString &username,
                                  const QString &password)

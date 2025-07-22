@@ -7,7 +7,6 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QStandardPaths>
-#include <qcontainerfwd.h>
 
 void AccountManager::logout ()
 {

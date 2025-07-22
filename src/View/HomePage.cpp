@@ -8,9 +8,6 @@
 #include "ElaToggleButton.h"
 #include "Utility/Constants.h"
 #include "View/Components/WordCard.h"
-#include <qboxlayout.h>
-#include <qhashfunctions.h>
-#include <qnamespace.h>
 
 HomePage::HomePage (QWidget *parent) : TempPage (parent)
 {

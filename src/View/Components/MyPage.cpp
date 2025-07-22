@@ -4,7 +4,6 @@
 #include "ElaPushButton.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
-#include <qnamespace.h>
 
 MyPage::MyPage (QWidget *parent) : TempPage (parent)
 {

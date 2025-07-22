@@ -10,8 +10,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QString>
-#include <qjsonobject.h>
-#include <qtmetamacros.h>
 
 class Setting;
 

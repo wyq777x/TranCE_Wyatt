@@ -2,10 +2,6 @@
 #include "SQLiteCpp/Exception.h"
 #include "SQLiteCpp/Statement.h"
 #include "SQLiteCpp/Transaction.h"
-#include <qdebug.h>
-#include <qhashfunctions.h>
-#include <qlogging.h>
-#include <quuid.h>
 #include <stdexcept>
 
 bool DbModel::isUserDbOpen () const

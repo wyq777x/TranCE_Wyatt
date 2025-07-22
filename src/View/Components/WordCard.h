@@ -7,7 +7,6 @@
 #include <QFrame>
 #include <QLabel>
 #include <QVBoxLayout>
-#include <qevent.h>
 
 class WordCard : public TempPage
 {

@@ -11,9 +11,6 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <memory>
 #include <optional>
-#include <qcontainerfwd.h>
-#include <qcoreapplication.h>
-#include <qtmetamacros.h>
 #include <vector>
 
 class DbModel

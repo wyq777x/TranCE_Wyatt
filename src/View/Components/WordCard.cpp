@@ -2,8 +2,6 @@
 #include "Def.h"
 #include "ElaIconButton.h"
 #include "Utility/Constants.h"
-#include <qboxlayout.h>
-#include <qnamespace.h>
 
 WordCard::WordCard (QWidget *parent) : TempPage (parent)
 {

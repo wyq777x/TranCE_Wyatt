@@ -2,9 +2,6 @@
 #include "ElaFlowLayout.h"
 #include "ElaPushButton.h"
 #include "Utility/Constants.h"
-#include <qboxlayout.h>
-#include <qlabel.h>
-
 
 RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
 {
