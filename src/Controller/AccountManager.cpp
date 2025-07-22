@@ -1,6 +1,6 @@
 #include "AccountManager.h"
-#include "DbManager.h"
-#include "UserModel.h"
+#include "Controller/DbManager.h"
+#include "Model/AppSettingModel.h"
 #include "Utility/Result.h"
 #include <QDir>
 #include <QFileDialog>
@@ -14,6 +14,7 @@ void AccountManager::logout ()
 
     if (userModel)
         userModel->logout ();
+
     username.clear ();
     password_Hash.clear ();
     email.clear ();

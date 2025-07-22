@@ -1,7 +1,4 @@
 #pragma once
-#include "Controller/DbManager.h"
-#include "Model/AppSettingModel.h"
-#include "Model/DbModel.h"
 #include "Model/UserModel.h"
 #include "Utility/Result.h"
 #include <QString>

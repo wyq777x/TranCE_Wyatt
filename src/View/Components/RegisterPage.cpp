@@ -1,9 +1,10 @@
-#include "View/Components/RegisterPage.h"
+#include "RegisterPage.h"
+#include "Controller/AccountManager.h"
 #include "ElaLineEdit.h"
+#include "Model/DbModel.h"
 #include "Utility/Constants.h"
 #include <qdialogbuttonbox.h>
 #include <qlabel.h>
-
 
 RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 {

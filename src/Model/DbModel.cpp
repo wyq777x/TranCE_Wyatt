@@ -2,8 +2,6 @@
 #include "SQLiteCpp/Exception.h"
 #include "SQLiteCpp/Statement.h"
 #include "SQLiteCpp/Transaction.h"
-#include "Utility/Result.h"
-#include "Utility/WordEntry.h"
 #include <qdebug.h>
 #include <qhashfunctions.h>
 #include <qlogging.h>

@@ -1,12 +1,11 @@
+#include "Controller/AccountManager.h"
+#include "Controller/DbManager.h"
 #include "MainWindow.h"
-#include <Controller/AccountManager.h>
-#include <Controller/DbManager.h>
+#include "Model/UserModel.h"
 #include <ElaApplication.h>
-#include <Model/UserModel.h>
 #include <QApplication>
 #include <QDir>
 #include <QMainWindow>
-#include <Utility/AsyncTask.h>
 
 int main (int argc, char *argv[])
 {

@@ -1,10 +1,7 @@
 #pragma once
-#include "Controller/AccountManager.h"
-#include "ElaFlowLayout.h"
-#include "ElaLineEdit.h"
-#include "ElaPushButton.h"
-#include "TempPage.h"
+
 #include "View/Components/RegisterPage.h"
+#include "View/TempPage.h"
 
 class LoginPage : public TempPage
 {

@@ -1,16 +1,16 @@
 #pragma once
-#include "Model/UserModel.h"
-#include "View/AboutPage.h"
-#include "View/Components/LoginPage.h"
-#include "View/Components/MyPage.h"
-#include "View/HistoryPage.h"
-#include "View/HomePage.h"
-#include "View/RecitePage.h"
-#include "View/SettingPage.h"
-#include "View/StatisticsPage.h"
-#include "View/TempPage.h"
+
 #include <ElaTheme.h>
 #include <ElaWindow.h>
+
+class AboutPage;
+class HistoryPage;
+class HomePage;
+class LoginPage;
+class MyPage;
+class RecitePage;
+class SettingPage;
+class StatisticsPage;
 
 class MainWindow : public ElaWindow
 {

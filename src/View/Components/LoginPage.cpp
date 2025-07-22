@@ -1,12 +1,13 @@
-#include "View/Components/LoginPage.h"
-#include "ElaContentDialog.h"
+#include "LoginPage.h"
+#include "Controller/AccountManager.h"
+#include "ElaLineEdit.h"
+#include "ElaPushButton.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
 #include <qboxlayout.h>
 #include <qlabel.h>
 #include <qlogging.h>
 #include <qnamespace.h>
-
 
 LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 {

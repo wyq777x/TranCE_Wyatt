@@ -1,17 +1,16 @@
 #include "HomePage.h"
-#include "DbManager.h"
+#include "Controller/DbManager.h"
 #include "Def.h"
 #include "ElaComboBox.h"
-#include "ElaFlowLayout.h"
 #include "ElaIcon.h"
 #include "ElaLineEdit.h"
 #include "ElaPushButton.h"
 #include "ElaToggleButton.h"
 #include "Utility/Constants.h"
+#include "View/Components/WordCard.h"
 #include <qboxlayout.h>
 #include <qhashfunctions.h>
 #include <qnamespace.h>
-
 
 HomePage::HomePage (QWidget *parent) : TempPage (parent)
 {

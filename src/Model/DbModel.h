@@ -1,20 +1,21 @@
 #pragma once
 #include "SQLiteCpp/Database.h"
+#include "Utility/AsyncTask.h"
 #include "Utility/Result.h"
+#include "Utility/WordEntry.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QString>
 #include <QUuid>
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <Utility/AsyncTask.h>
-#include <Utility/WordEntry.h>
 #include <memory>
 #include <optional>
 #include <qcontainerfwd.h>
 #include <qcoreapplication.h>
 #include <qtmetamacros.h>
 #include <vector>
+
 class DbModel
 {
 public:

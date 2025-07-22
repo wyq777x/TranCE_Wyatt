@@ -1,6 +1,6 @@
 #pragma once
 #include "ElaLineEdit.h"
-#include "TempPage.h"
+#include "View/TempPage.h"
 
 class MyPage : public TempPage
 {

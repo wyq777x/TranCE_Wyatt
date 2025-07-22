@@ -3,14 +3,17 @@
 #include "Model/AppSettingModel.h"
 #include "Utility/Result.h"
 
-class Setting
+class Setting : public QObject
 {
+    Q_OBJECT
 public:
     static Setting &getInstance ()
     {
         static Setting instance;
         return instance;
     }
+
+    void initConnections ();
 
     bool isHistorySearchEnabled () const
     {
@@ -26,8 +29,12 @@ public:
 
     ChangeResult setLanguage (const QString &lang);
 
+private slots:
+    void onLanguageChanged (const QString &lang);
+    void onHistorySearchListEnabledChanged (bool enabled);
+
 private:
-    Setting () = default;
+    Setting () { initConnections (); }
     Setting (const Setting &) = delete;
     Setting &operator= (const Setting &) = delete;
     Setting (Setting &&) = delete;

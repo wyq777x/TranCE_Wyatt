@@ -1,6 +1,5 @@
 #pragma once
-#include "TempPage.h"
-#include "View/Components/WordCard.h"
+#include "View/TempPage.h"
 
 class HomePage : public TempPage
 {

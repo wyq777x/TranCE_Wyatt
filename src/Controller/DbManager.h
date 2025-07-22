@@ -6,8 +6,6 @@
 #include <optional>
 #include <vector>
 
-class QString;
-
 class DbManager
 {
 
@@ -55,6 +53,7 @@ private:
     DbManager &operator= (DbManager &&) = delete;
 
     mutable std::string m_lastError;
+
     template <typename ExceptionT>
     void logErr (const std::string &errMsg, const ExceptionT &e)
     {

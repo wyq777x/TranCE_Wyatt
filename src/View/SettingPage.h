@@ -1,10 +1,11 @@
 #pragma once
 
-#include "TempPage.h"
 #include "Utility/Constants.h"
+#include "View/TempPage.h"
 #include <Controller/Setting.h>
 #include <QLabel>
 #include <QPropertyAnimation>
+
 
 class SettingPage : public TempPage
 {

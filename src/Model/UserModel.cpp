@@ -1,6 +1,8 @@
 #include "Model/UserModel.h"
 #include "Controller/AccountManager.h"
+#include "Controller/Setting.h"
 #include "Model/AppSettingModel.h"
+#include "Model/DbModel.h"
 #include "Utility/Result.h"
 #include <qcontainerfwd.h>
 #include <qcryptographichash.h>

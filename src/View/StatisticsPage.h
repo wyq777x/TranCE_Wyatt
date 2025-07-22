@@ -1,5 +1,5 @@
 #pragma once
-#include "TempPage.h"
+#include "View/TempPage.h"
 
 class StatisticsPage : public TempPage
 {
