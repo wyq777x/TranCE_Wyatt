@@ -1,11 +1,9 @@
 #include "Model/UserModel.h"
 #include "Controller/AccountManager.h"
-#include "Controller/Setting.h"
+#include "Controller/SettingManager.h"
 #include "Model/AppSettingModel.h"
 #include "Model/DbModel.h"
 #include "Utility/Result.h"
-#include <qjsondocument.h>
-#include <qjsonobject.h>
 
 UserAuthResult UserModel::login (const QString &username,
                                  const QString &password)
@@ -247,11 +245,12 @@ UserDataResult UserModel::loadUserData (const QString &userProfilePath)
 
         // setLanguage
 
-        auto setLangResult = Setting::getInstance ().setLanguage (language);
+        auto setLangResult =
+            SettingManager::getInstance ().setLanguage (language);
         // setHistorySearchListEnabled
 
         auto setHistoryResult =
-            Setting::getInstance ().setHistorySearchListEnabled (
+            SettingManager::getInstance ().setHistorySearchListEnabled (
                 historyListEnabled);
         return UserDataResult::Success;
     }

@@ -1,7 +1,7 @@
 #include "SettingPage.h"
 #include "Controller/AccountManager.h"
+#include "Utility/Constants.h"
 #include "Utility/Result.h"
-
 
 SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 {
@@ -135,12 +135,30 @@ void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
 
     updateStatusWithAnimation (enabled);
 
-    auto result = changeHistorySearchListEnabled (enabled);
+    auto changeJsonResult = changeHistorySearchListEnabled_Json (
+        enabled, "profile_" +
+                     AccountManager::getInstance ().getUserUuid (
+                         AccountManager::getInstance ().getUsername ()) +
+                     ".json");
 
-    if (result != ChangeResult::Success)
+    if (changeJsonResult != ChangeResult::Success)
     {
         QString errorMsg = QString::fromStdString (
-            getErrorMessage (result, ChangeResultMessage));
+            getErrorMessage (changeJsonResult, ChangeResultMessage));
+        showDialog (tr ("Error"), errorMsg);
+    }
+    else
+    {
+        qDebug () << "History search list enabled JSON changed successfully to"
+                  << enabled;
+    }
+
+    auto changeSettingsResult = changeHistorySearchListEnabled (enabled);
+
+    if (changeSettingsResult != ChangeResult::Success)
+    {
+        QString errorMsg = QString::fromStdString (
+            getErrorMessage (changeSettingsResult, ChangeResultMessage));
         showDialog (tr ("Error"), errorMsg);
 
         // fallback to previous state
@@ -152,7 +170,7 @@ void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
     {
         // Building...
 
-        // UpdateUI()
+        // updateUI()
         qDebug () << "History search list enabled set to" << enabled;
     }
 }
@@ -172,27 +190,21 @@ void SettingPage::updateStatusWithAnimation (bool enabled)
 
 ChangeResult SettingPage::changeHistorySearchListEnabled (bool enabled)
 {
-    // interact with Controller Setting to change AppSettingModel
-
-    auto result = Setting::getInstance ().setHistorySearchListEnabled (enabled);
+    auto result =
+        SettingManager::getInstance ().setHistorySearchListEnabled (enabled);
 
     return result;
 }
 
-ChangeResult SettingPage::changeHistorySearchListEnabled_Json (bool enabled)
+ChangeResult
+SettingPage::changeHistorySearchListEnabled_Json (bool enabled,
+                                                  const QString &userProfile)
 {
-    // Building...
-
-    // interact with AccountManager to change UserJson data
-
     auto result =
         AccountManager::getInstance ().changeHistorySearchListEnabled_Json (
-            enabled, "profile_" +
-                         AccountManager::getInstance ().getUserUuid (
-                             AccountManager::getInstance ().getUsername ()) +
-                         ".json");
+            enabled, userProfile);
 
-    return ChangeResult::Success;
+    return result;
 }
 void SettingPage::onLanguageChanged (int index)
 {

@@ -11,7 +11,7 @@
 #include <QJsonObject>
 #include <QString>
 
-class Setting;
+class SettingManager;
 
 class UserModel : public QObject
 {

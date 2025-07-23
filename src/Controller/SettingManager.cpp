@@ -1,13 +1,13 @@
-#include "Setting.h"
+#include "SettingManager.h"
 #include "View/SettingPage.h"
 
-void Setting::initConnections ()
+void SettingManager::initConnections ()
 {
     connect (&AppSettingModel::getInstance (),
              &AppSettingModel::languageChanged, this,
-             &Setting::onLanguageChanged);
+             &SettingManager::onLanguageChanged);
 }
-ChangeResult Setting::setHistorySearchListEnabled (bool enabled)
+ChangeResult SettingManager::setHistorySearchListEnabled (bool enabled)
 {
     auto result =
         AppSettingModel::getInstance ().setHistorySearchListEnabled (enabled);
@@ -15,14 +15,14 @@ ChangeResult Setting::setHistorySearchListEnabled (bool enabled)
     return result;
 }
 
-ChangeResult Setting::setLanguage (const QString &lang)
+ChangeResult SettingManager::setLanguage (const QString &lang)
 {
     auto result = AppSettingModel::getInstance ().setLanguage (lang);
 
     return result;
 }
 
-void Setting::onLanguageChanged (const QString &lang)
+void SettingManager::onLanguageChanged (const QString &lang)
 {
     // Building...
 

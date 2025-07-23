@@ -2,7 +2,7 @@
 
 #include "Utility/Constants.h"
 #include "View/TempPage.h"
-#include <Controller/Setting.h>
+#include <Controller/SettingManager.h>
 
 class SettingPage : public TempPage
 {
@@ -26,11 +26,13 @@ private:
     void initConnections ();
     void updateStatusWithAnimation (bool enabled);
 
-    // change AppSettingModel through Setting controller
+    // change AppSettingModel through SettingManager controller
     ChangeResult changeHistorySearchListEnabled (bool enabled);
 
     // Change UserJson data of UserModel through the AccountManager controller
-    ChangeResult changeHistorySearchListEnabled_Json (bool enabled);
+    ChangeResult
+    changeHistorySearchListEnabled_Json (bool enabled,
+                                         const QString &userProfile);
 
     // UI components
     QWidget *centralWidget;

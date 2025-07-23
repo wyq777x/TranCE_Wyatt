@@ -3,13 +3,13 @@
 #include "Model/AppSettingModel.h"
 #include "Utility/Result.h"
 
-class Setting : public QObject
+class SettingManager : public QObject
 {
     Q_OBJECT
 public:
-    static Setting &getInstance ()
+    static SettingManager &getInstance ()
     {
-        static Setting instance;
+        static SettingManager instance;
         return instance;
     }
 
@@ -33,18 +33,18 @@ private slots:
     void onLanguageChanged (const QString &lang);
 
 private:
-    Setting () { initConnections (); }
-    Setting (const Setting &) = delete;
-    Setting &operator= (const Setting &) = delete;
-    Setting (Setting &&) = delete;
-    Setting &operator= (Setting &&) = delete;
+    SettingManager () { initConnections (); }
+    SettingManager (const SettingManager &) = delete;
+    SettingManager &operator= (const SettingManager &) = delete;
+    SettingManager (SettingManager &&) = delete;
+    SettingManager &operator= (SettingManager &&) = delete;
 
     mutable std::string m_lastError;
 
     template <typename ExceptionT>
     void logErr (const std::string &errMsg, const ExceptionT &e) const
     {
-        qCritical () << "[Setting]" << QString::fromStdString (errMsg)
+        qCritical () << "[SettingManager]" << QString::fromStdString (errMsg)
                      << "Exception:" << e.what ();
     }
 };
