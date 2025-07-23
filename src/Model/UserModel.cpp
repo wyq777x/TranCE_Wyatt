@@ -4,6 +4,8 @@
 #include "Model/AppSettingModel.h"
 #include "Model/DbModel.h"
 #include "Utility/Result.h"
+#include <qjsondocument.h>
+#include <qjsonobject.h>
 
 UserAuthResult UserModel::login (const QString &username,
                                  const QString &password)
@@ -179,6 +181,7 @@ UserDataResult UserModel::loadUserData (const QString &userProfilePath)
         }
 
         QFile userProfileFile (userProfilePath);
+
         if (!userProfileFile.open (QIODevice::ReadOnly))
         {
             getInstance ().logErr (
@@ -226,11 +229,11 @@ UserDataResult UserModel::loadUserData (const QString &userProfilePath)
         }
 
         // Load user data
-
-        QJsonObject appSettings = userData["appSettings"].toObject ();
-        QString language = appSettings["language"].toString ();
+        QJsonObject appSettings = userData.value ("appSettings").toObject ();
+        QString language = appSettings.value ("language").toString ();
         bool historyListEnabled =
-            appSettings["HistoryListEnabled"].toBool (true);
+            appSettings.value ("HistoryListEnabled").toBool ();
+
         if (language.isEmpty ())
         {
             getInstance ().logErr (
@@ -343,5 +346,93 @@ UserDataResult UserModel::createUserData (const QString &filename,
             "Unknown error occurred while creating user data",
             std::runtime_error ("Unknown exception"));
         return UserDataResult::UnknownError;
+    }
+}
+
+ChangeResult
+UserModel::changeHistorySearchListEnabled_Json (bool enabled,
+                                                const QString &userProfile)
+{
+    // Building...
+    try
+    {
+        if (userProfile.isEmpty ())
+        {
+            logErr ("User profile file path is empty",
+                    std::runtime_error ("User profile file path is empty"));
+            return ChangeResult::NullValue;
+        }
+
+        if (!QFile (userProfile).exists ())
+        {
+            logErr ("User profile file does not exist",
+                    std::runtime_error ("User profile file does not exist: " +
+                                        userProfile.toStdString ()));
+            return ChangeResult::FileNotFound;
+        }
+
+        QFile userProfileFile (userProfile);
+
+        if (!userProfileFile.open (QIODevice::ReadOnly))
+        {
+            logErr ("User profile file open error",
+                    std::runtime_error ("Failed to open user profile file: " +
+                                        userProfile.toStdString ()));
+            return ChangeResult::FileOpenError;
+        }
+
+        QByteArray fileData = userProfileFile.readAll ();
+        userProfileFile.close ();
+
+        QJsonDocument userDataDoc = QJsonDocument::fromJson (fileData);
+        if (userDataDoc.isNull () || !userDataDoc.isObject ())
+        {
+            logErr (
+                "User profile file parse error",
+                std::runtime_error ("Failed to parse JSON from user profile "
+                                    "file: " +
+                                    userProfile.toStdString ()));
+            return ChangeResult::InvalidInput;
+        }
+
+        QJsonObject userData = userDataDoc.object ();
+        QJsonObject appSettings = userData.value ("appSettings").toObject ();
+        appSettings["HistoryListEnabled"] = enabled;
+        userData["appSettings"] = appSettings;
+
+        QJsonDocument updatedDoc (userData);
+        if (!userProfileFile.open (QIODevice::WriteOnly | QIODevice::Truncate))
+        {
+            logErr ("User profile file write error",
+                    std::runtime_error ("Failed to open user profile file for "
+                                        "writing: " +
+                                        userProfile.toStdString ()));
+            return ChangeResult::FileOpenError;
+        }
+
+        if (userProfileFile.write (updatedDoc.toJson ()) == -1)
+        {
+            userProfileFile.close ();
+            logErr ("User profile file write error",
+                    std::runtime_error (
+                        "Failed to write data to user profile file: " +
+                        userProfile.toStdString ()));
+            return ChangeResult::FileWriteError;
+        }
+
+        userProfileFile.close ();
+        return ChangeResult::Success;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Error changing history search list enabled", e);
+        return ChangeResult::UnknownError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error occurred while changing history search list "
+                "enabled",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::UnknownError;
     }
 }

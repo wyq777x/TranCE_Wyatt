@@ -47,8 +47,6 @@ ChangeResult AppSettingModel::setHistorySearchListEnabled (bool enabled)
 
     historySearchEnabled = enabled;
 
-    emit historySearchListEnabledChanged (enabled);
-
     qDebug () << "History search list enabled set to" << enabled;
     return ChangeResult::Success;
 }

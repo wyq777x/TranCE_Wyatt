@@ -290,11 +290,17 @@ ChangeResult AccountManager::changeAvatar ()
     return result;
 }
 
-ChangeResult AccountManager::changeHistorySearchListEnabled_Json (bool enabled)
+ChangeResult
+AccountManager::changeHistorySearchListEnabled_Json (bool enabled,
+                                                     const QString &userProfile)
 {
     // Building...
 
-    return ChangeResult::Success;
+    auto result =
+        UserModel::getInstance ().changeHistorySearchListEnabled_Json (
+            enabled, userProfile);
+
+    return result;
 }
 
 QString AccountManager::getUserUuid (const QString &username) const

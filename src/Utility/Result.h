@@ -91,7 +91,9 @@ enum class ChangeResult
     DatabaseError,
     UnknownError,
     Password_OldIncorrect,
-    InvalidInput
+    InvalidInput,
+    FileOpenError,
+    FileWriteError
 };
 
 static const std::unordered_map<ChangeResult, std::string> ChangeResultMessage =
@@ -104,7 +106,9 @@ static const std::unordered_map<ChangeResult, std::string> ChangeResultMessage =
      {ChangeResult::DatabaseError, "Database error."},
      {ChangeResult::UnknownError, "Unknown error."},
      {ChangeResult::Password_OldIncorrect, "Old password is incorrect."},
-     {ChangeResult::InvalidInput, "Invalid input provided."}
+     {ChangeResult::InvalidInput, "Invalid input provided."},
+     {ChangeResult::FileOpenError, "Error opening file."},
+     {ChangeResult::FileWriteError, "Error writing to file."}
 
 };
 

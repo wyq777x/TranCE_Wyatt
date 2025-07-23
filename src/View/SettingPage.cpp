@@ -1,6 +1,7 @@
 #include "SettingPage.h"
-#include "Model/AppSettingModel.h"
+#include "Controller/AccountManager.h"
 #include "Utility/Result.h"
+
 
 SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 {
@@ -175,7 +176,7 @@ ChangeResult SettingPage::changeHistorySearchListEnabled (bool enabled)
 
     auto result = Setting::getInstance ().setHistorySearchListEnabled (enabled);
 
-    return ChangeResult::Success;
+    return result;
 }
 
 ChangeResult SettingPage::changeHistorySearchListEnabled_Json (bool enabled)
@@ -183,6 +184,13 @@ ChangeResult SettingPage::changeHistorySearchListEnabled_Json (bool enabled)
     // Building...
 
     // interact with AccountManager to change UserJson data
+
+    auto result =
+        AccountManager::getInstance ().changeHistorySearchListEnabled_Json (
+            enabled, "profile_" +
+                         AccountManager::getInstance ().getUserUuid (
+                             AccountManager::getInstance ().getUsername ()) +
+                         ".json");
 
     return ChangeResult::Success;
 }

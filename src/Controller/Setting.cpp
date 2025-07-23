@@ -6,10 +6,6 @@ void Setting::initConnections ()
     connect (&AppSettingModel::getInstance (),
              &AppSettingModel::languageChanged, this,
              &Setting::onLanguageChanged);
-
-    connect (&AppSettingModel::getInstance (),
-             &AppSettingModel::historySearchListEnabledChanged, this,
-             &Setting::onHistorySearchListEnabledChanged);
 }
 ChangeResult Setting::setHistorySearchListEnabled (bool enabled)
 {
@@ -33,13 +29,4 @@ void Setting::onLanguageChanged (const QString &lang)
     // change UI display
 
     qDebug () << "Language Pack" << lang << "loaded";
-}
-
-void Setting::onHistorySearchListEnabledChanged (bool enabled)
-{
-    // Building...
-
-    // change UI diaplay
-
-    qDebug () << "History search list enabled set to" << enabled;
 }

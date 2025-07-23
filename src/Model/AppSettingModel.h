@@ -28,6 +28,7 @@ public:
     bool isHistoryListEnabled () const { return historySearchEnabled; }
 
 signals:
+    // To be used
     void languageChanged (const QString &language);
     void historySearchListEnabledChanged (bool enabled);
 

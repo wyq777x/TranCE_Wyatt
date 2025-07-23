@@ -62,6 +62,10 @@ public:
     UserDataResult createUserData (const QString &filename,
                                    const QString &username);
 
+    ChangeResult
+    changeHistorySearchListEnabled_Json (bool enabled,
+                                         const QString &userProfile);
+
 private:
     explicit UserModel (const QString &userProfilePath)
         : m_userProfileDir (userProfilePath)

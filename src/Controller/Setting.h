@@ -31,7 +31,6 @@ public:
 
 private slots:
     void onLanguageChanged (const QString &lang);
-    void onHistorySearchListEnabledChanged (bool enabled);
 
 private:
     Setting () { initConnections (); }
