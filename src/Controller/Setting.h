@@ -20,7 +20,7 @@ public:
         return AppSettingModel::getInstance ().isHistoryListEnabled ();
     }
 
-    ChangeResult setHistorySearchEnabled (bool enabled);
+    ChangeResult setHistorySearchListEnabled (bool enabled);
 
     QString getLanguage () const
     {

@@ -72,16 +72,11 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
 
         if (result != RegisterUserResult::Success)
         {
-            auto it = RegisterUserResultMessage.find (result);
-            std::string errorMsg;
-            if (it != RegisterUserResultMessage.end ())
-            {
-                errorMsg = "User registration failed: " + it->second;
-            }
-            else
-            {
-                errorMsg = "User registration failed with unknown reason";
-            }
+
+            std::string errorMsg =
+                "User registration failed: " +
+                getErrorMessage (result, RegisterUserResultMessage);
+
             auto exception = std::runtime_error (errorMsg);
             logErr ("User registration failed", exception);
         }
@@ -101,20 +96,6 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
     }
 }
 
-/*
-invoke Example:
-
-auto result = AccountManager::getInstance().registerUser(username, password);
-if (result != RegisterUserResult::Success) {
-    auto it = RegisterUserResultMessage.find(result);
-    QString errorMsg = it != RegisterUserResultMessage.end()
-                      ? QString::fromStdString(it->second)
-                      : "Unknown error";
-    // 在 UI 中显示错误信息
-    showDialog(errorMsg);}
-
-
-*/
 QString AccountManager::hashPassword (const QString &password)
 {
     QByteArray byteArray = password.toUtf8 ();
@@ -307,6 +288,13 @@ ChangeResult AccountManager::changeAvatar ()
     }
 
     return result;
+}
+
+ChangeResult AccountManager::changeHistorySearchListEnabled_Json (bool enabled)
+{
+    // Building...
+
+    return ChangeResult::Success;
 }
 
 QString AccountManager::getUserUuid (const QString &username) const

@@ -107,3 +107,13 @@ static const std::unordered_map<ChangeResult, std::string> ChangeResultMessage =
      {ChangeResult::InvalidInput, "Invalid input provided."}
 
 };
+
+template <typename ResultT>
+std::string getErrorMessage (
+    ResultT result,
+    const std::unordered_map<ResultT, std::string> &ResultMessageMap)
+{
+    auto it = ResultMessageMap.find (result);
+
+    return it != ResultMessageMap.end () ? it->second : "Unknown error.";
+}

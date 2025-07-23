@@ -11,7 +11,7 @@ void Setting::initConnections ()
              &AppSettingModel::historySearchListEnabledChanged, this,
              &Setting::onHistorySearchListEnabledChanged);
 }
-ChangeResult Setting::setHistorySearchEnabled (bool enabled)
+ChangeResult Setting::setHistorySearchListEnabled (bool enabled)
 {
     auto result =
         AppSettingModel::getInstance ().setHistorySearchListEnabled (enabled);

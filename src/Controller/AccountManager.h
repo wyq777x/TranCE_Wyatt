@@ -63,6 +63,8 @@ public:
     ChangeResult changeEmail (const QString &newEmail);
     ChangeResult changeAvatar ();
 
+    ChangeResult changeHistorySearchListEnabled_Json (bool enabled);
+
     QString getUserUuid (const QString &username) const;
     QString getUsername () const;
     QString getHashedPassword () const;

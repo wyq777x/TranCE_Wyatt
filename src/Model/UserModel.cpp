@@ -248,7 +248,7 @@ UserDataResult UserModel::loadUserData (const QString &userProfilePath)
         // setHistorySearchListEnabled
 
         auto setHistoryResult =
-            Setting::getInstance ().setHistorySearchEnabled (
+            Setting::getInstance ().setHistorySearchListEnabled (
                 historyListEnabled);
         return UserDataResult::Success;
     }

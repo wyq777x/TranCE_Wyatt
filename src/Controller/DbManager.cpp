@@ -9,6 +9,10 @@ AsyncTask<void> DbManager::initializeAsync (const QString &dictPath)
     return DbModel::getInstance ().initializeAsync (dictPath);
 }
 
+void DbManager::deleteUser (const QString &username)
+{
+    DbModel::getInstance ().deleteUser (username);
+}
 RegisterUserResult DbManager::registerUser (const QString &username,
                                             const QString &passwordHash)
 {

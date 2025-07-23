@@ -1,6 +1,6 @@
 #include "RegisterPage.h"
 #include "Controller/AccountManager.h"
-#include "Model/DbModel.h"
+#include "Controller/DbManager.h"
 #include "Utility/Constants.h"
 
 RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
@@ -116,7 +116,7 @@ void RegisterPage::initConnections ()
 
             if (username.isEmpty () || password.isEmpty ())
             {
-                showDialog ("Register Error",
+                showDialog (tr ("Register Error"),
                             tr ("Username or password cannot be empty.\n\n"
                                 "Please enter your username/password."));
                 return;
@@ -124,7 +124,7 @@ void RegisterPage::initConnections ()
 
             if (password != confirmPassword)
             {
-                showDialog ("Register Error",
+                showDialog (tr ("Register Error"),
                             tr ("Passwords do not match.\n\n"
                                 "Please confirm your password."));
                 return;
@@ -135,11 +135,9 @@ void RegisterPage::initConnections ()
 
             if (result != RegisterUserResult::Success)
             {
-                auto it = RegisterUserResultMessage.find (result);
-                QString errorMsg = it != RegisterUserResultMessage.end ()
-                                       ? QString::fromStdString (it->second)
-                                       : "Unknown error";
-                showDialog ("Register Error", errorMsg);
+                QString errorMsg = QString::fromStdString (
+                    getErrorMessage (result, RegisterUserResultMessage));
+                showDialog (tr ("Register Error"), errorMsg);
                 return;
             }
             else
@@ -161,11 +159,10 @@ void RegisterPage::initConnections ()
                     if (userDataResult != UserDataResult::Success)
                     {
                         needRollback = true;
-                        auto it = UserDataResultMessage.find (userDataResult);
+
                         rollbackReason =
-                            it != UserDataResultMessage.end ()
-                                ? QString::fromStdString (it->second)
-                                : "Unknown error creating user profile";
+                            QString::fromStdString (getErrorMessage (
+                                userDataResult, UserDataResultMessage));
                     }
                 }
                 catch (const std::exception &e)
@@ -185,7 +182,7 @@ void RegisterPage::initConnections ()
 
                     try
                     {
-                        DbModel::getInstance ().deleteUser (username);
+                        DbManager::getInstance ().deleteUser (username);
                     }
                     catch (...)
                     {

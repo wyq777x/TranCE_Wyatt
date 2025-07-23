@@ -19,6 +19,10 @@ public:
     explicit MainWindow (QWidget *parent = nullptr);
     ~MainWindow () {};
 
+private slots:
+    void onLoginSuccessful (const QString &username);
+    void onLogoutSuccessful ();
+
 private:
     void initPages ();
     void initConnections ();
@@ -32,8 +36,4 @@ private:
     RecitePage *recitePage;
     SettingPage *settingPage;
     StatisticsPage *statisticsPage;
-
-private slots:
-    void onLoginSuccessful (const QString &username);
-    void onLogoutSuccessful ();
 };

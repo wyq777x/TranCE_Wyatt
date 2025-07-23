@@ -109,11 +109,9 @@ void LoginPage::initConnections ()
 
                      if (result != UserAuthResult::Success)
                      {
-                         auto it = UserAuthResultMessage.find (result);
-                         QString errorMsg =
-                             it != UserAuthResultMessage.end ()
-                                 ? QString::fromStdString (it->second)
-                                 : tr ("Unknown error");
+                         QString errorMsg = QString::fromStdString (
+                             getErrorMessage (result, UserAuthResultMessage));
+
                          showDialog (tr ("Login Error"), errorMsg);
 
                          return;

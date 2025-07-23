@@ -18,14 +18,19 @@ public:
     }
 
 private slots:
-    void onHistorySearchToggled (bool enabled);
+    void onHistorySearchListEnabledToggled (bool enabled);
     void onLanguageChanged (int index);
 
 private:
     void initUI ();
     void initConnections ();
     void updateStatusWithAnimation (bool enabled);
-    void saveHistorySearchSetting (bool enabled);
+
+    // change AppSettingModel through Setting controller
+    ChangeResult changeHistorySearchListEnabled (bool enabled);
+
+    // Change UserJson data of UserModel through the AccountManager controller
+    ChangeResult changeHistorySearchListEnabled_Json (bool enabled);
 
     // UI components
     QWidget *centralWidget;
@@ -33,7 +38,7 @@ private:
     QHBoxLayout *enableHistorySearchLayout;
     QLabel *enableHistorySearchLabel;
     QLabel *m_statusLabel;
-    ElaToggleSwitch *m_historySearchSwitch;
+    ElaToggleSwitch *m_historySearchListEnabledSwitch;
     QFrame *splitLine1;
     QFrame *splitLine2;
     QHBoxLayout *languageLayout;

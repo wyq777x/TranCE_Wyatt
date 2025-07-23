@@ -23,6 +23,7 @@ public:
     RegisterUserResult registerUser (const QString &username,
                                      const QString &passwordHash);
 
+    void deleteUser (const QString &username);
     std::optional<WordEntry> lookupWord (const QString &word,
                                          const QString &lang);
     std::vector<WordEntry> searchWords (const QString &pattern,

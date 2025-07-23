@@ -1,4 +1,5 @@
 #include "SettingPage.h"
+#include "Model/AppSettingModel.h"
 #include "Utility/Result.h"
 
 SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
@@ -41,10 +42,10 @@ void SettingPage::initUI ()
     m_statusLabel->setMinimumWidth (40);
     enableHistorySearchLayout->addWidget (m_statusLabel);
 
-    m_historySearchSwitch = new ElaToggleSwitch (centralWidget);
-    m_historySearchSwitch->setFixedSize (60, 30);
-    m_historySearchSwitch->setIsToggled (true);
-    enableHistorySearchLayout->addWidget (m_historySearchSwitch);
+    m_historySearchListEnabledSwitch = new ElaToggleSwitch (centralWidget);
+    m_historySearchListEnabledSwitch->setFixedSize (60, 30);
+    m_historySearchListEnabledSwitch->setIsToggled (true);
+    enableHistorySearchLayout->addWidget (m_historySearchListEnabledSwitch);
 
     settingPageLayout->addLayout (enableHistorySearchLayout);
 
@@ -115,14 +116,14 @@ void SettingPage::initUI ()
 
 void SettingPage::initConnections ()
 {
-    connect (m_historySearchSwitch, &ElaToggleSwitch::toggled, this,
-             &SettingPage::onHistorySearchToggled);
+    connect (m_historySearchListEnabledSwitch, &ElaToggleSwitch::toggled, this,
+             &SettingPage::onHistorySearchListEnabledToggled);
     connect (m_languageComboBox,
              QOverload<int>::of (&ElaComboBox::currentIndexChanged), this,
              &SettingPage::onLanguageChanged);
 }
 
-void SettingPage::onHistorySearchToggled (bool enabled)
+void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
 {
 
     m_statusLabel->setText (enabled ? Constants::UI::STATUS_ON
@@ -133,7 +134,26 @@ void SettingPage::onHistorySearchToggled (bool enabled)
 
     updateStatusWithAnimation (enabled);
 
-    saveHistorySearchSetting (enabled);
+    auto result = changeHistorySearchListEnabled (enabled);
+
+    if (result != ChangeResult::Success)
+    {
+        QString errorMsg = QString::fromStdString (
+            getErrorMessage (result, ChangeResultMessage));
+        showDialog (tr ("Error"), errorMsg);
+
+        // fallback to previous state
+        m_historySearchListEnabledSwitch->setIsToggled (!enabled);
+        m_statusLabel->setText (enabled ? Constants::UI::STATUS_OFF
+                                        : Constants::UI::STATUS_ON);
+    }
+    else
+    {
+        // Building...
+
+        // UpdateUI()
+        qDebug () << "History search list enabled set to" << enabled;
+    }
 }
 
 void SettingPage::updateStatusWithAnimation (bool enabled)
@@ -149,31 +169,23 @@ void SettingPage::updateStatusWithAnimation (bool enabled)
     animation->start (QAbstractAnimation::DeleteWhenStopped);
 }
 
-void SettingPage::saveHistorySearchSetting (bool enabled)
+ChangeResult SettingPage::changeHistorySearchListEnabled (bool enabled)
 {
-    // Building...
-    if (enabled)
-    {
+    // interact with Controller Setting to change AppSettingModel
 
-        // Adjust settings to enable history search
-        auto result = Setting::getInstance ().setHistorySearchEnabled (enabled);
-        if (result == ChangeResult::Success)
-        {
-            qDebug () << "History search enabled successfully.";
-        }
+    auto result = Setting::getInstance ().setHistorySearchListEnabled (enabled);
 
-        else
-        {
-            auto it = ChangeResultMessage.find (result);
-            QString errorMsg = it != ChangeResultMessage.end ()
-                                   ? QString::fromStdString (it->second)
-                                   : "Unknown error";
-            showDialog ("Save Error", errorMsg);
-        }
-        // save to user settings
-    }
+    return ChangeResult::Success;
 }
 
+ChangeResult SettingPage::changeHistorySearchListEnabled_Json (bool enabled)
+{
+    // Building...
+
+    // interact with AccountManager to change UserJson data
+
+    return ChangeResult::Success;
+}
 void SettingPage::onLanguageChanged (int index)
 {
 
