@@ -2,7 +2,6 @@
 
 ChangeResult AppSettingModel::setLanguage (const QString &lang)
 {
-
     // Building...
     if (lang.isEmpty ())
     {
@@ -12,12 +11,6 @@ ChangeResult AppSettingModel::setLanguage (const QString &lang)
         return ChangeResult::NullValue;
     }
 
-    if (lang == language)
-    {
-        logErr ("Language is already set to " + lang.toStdString (),
-                std::runtime_error ("No change needed"));
-        return ChangeResult::StillSame;
-    }
     if (lang != "en_US" && lang != "en_GB" && lang != "zh_CN" &&
         lang != "zh_TW" && lang != "zh_HK")
     {
@@ -35,8 +28,6 @@ ChangeResult AppSettingModel::setLanguage (const QString &lang)
 
 ChangeResult AppSettingModel::setHistorySearchListEnabled (bool enabled)
 {
-
-    // Building...
 
     historySearchEnabled = enabled;
 

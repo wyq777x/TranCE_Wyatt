@@ -119,6 +119,15 @@ QString AccountManager::hashPassword (const QString &password)
     return QString (hashed.toHex ());
 }
 
+UserDataResult AccountManager::createUserData (const QString &username)
+{
+    auto result = UserModel::getInstance ().createUserData (
+        "profile_" + AccountManager::getInstance ().getUserUuid (username) +
+            ".json",
+        username);
+
+    return result;
+}
 ChangeResult AccountManager::changeUsername (const QString &newUsername)
 {
     try

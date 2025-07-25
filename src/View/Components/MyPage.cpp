@@ -204,34 +204,33 @@ void MyPage::initConnections ()
                  }
              });
 
-    connect (
-        changeUsernameButton, &ElaPushButton::clicked, this,
-        [this] ()
-        {
-            if (usernameLineEdit->text ().isEmpty ())
-            {
-                showDialog (tr ("Error"), tr ("Username cannot be empty."));
-                return;
-            }
+    connect (changeUsernameButton, &ElaPushButton::clicked, this,
+             [this] ()
+             {
+                 if (usernameLineEdit->text ().isEmpty ())
+                 {
+                     showDialog (tr ("Error"),
+                                 tr ("Username cannot be empty."));
+                     return;
+                 }
 
-            auto result = AccountManager::getInstance ().changeUsername (
-                usernameLineEdit->text ());
+                 auto result = AccountManager::getInstance ().changeUsername (
+                     usernameLineEdit->text ());
 
-            if (result == ChangeResult::Success)
-            {
-                showDialog (tr ("Success"),
-                            tr ("Username changed successfully."));
-                emit usernameChanged (usernameLineEdit->text ());
-            }
-            else
-            {
-                auto it = ChangeResultMessage.find (result);
-                QString errorMsg = it != ChangeResultMessage.end ()
-                                       ? QString::fromStdString (it->second)
-                                       : tr ("Unknown error");
-                showDialog (tr ("Change Username Error"), errorMsg);
-            }
-        });
+                 if (result == ChangeResult::Success)
+                 {
+                     showDialog (tr ("Success"),
+                                 tr ("Username changed successfully."));
+                     emit usernameChanged (usernameLineEdit->text ());
+                 }
+                 else
+                 {
+
+                     QString errorMsg = QString::fromStdString (
+                         getErrorMessage (result, ChangeResultMessage));
+                     showDialog (tr ("Change Username Error"), errorMsg);
+                 }
+             });
 
     connect (changePasswordButton, &ElaPushButton::clicked, this,
              [this] ()
@@ -265,49 +264,44 @@ void MyPage::initConnections ()
                          }
                          else
                          {
-                             auto it = ChangeResultMessage.find (result);
-                             QString errorMsg =
-                                 it != ChangeResultMessage.end ()
-                                     ? QString::fromStdString (it->second)
-                                     : tr ("Unknown error");
+                             QString errorMsg = QString::fromStdString (
+                                 getErrorMessage (result, ChangeResultMessage));
                              showDialog (tr ("Change Password Error"),
                                          errorMsg);
                          }
                      });
              });
 
-    connect (
-        changeEmailButton, &ElaPushButton::clicked, this,
-        [this] ()
-        {
-            if (emailLineEdit->text ().isEmpty ())
-            {
-                showDialog (tr ("Error"), tr ("Email cannot be empty."));
-                return;
-            }
+    connect (changeEmailButton, &ElaPushButton::clicked, this,
+             [this] ()
+             {
+                 if (emailLineEdit->text ().isEmpty ())
+                 {
+                     showDialog (tr ("Error"), tr ("Email cannot be empty."));
+                     return;
+                 }
 
-            if (!emailLineEdit->text ().contains ("@"))
-            {
-                showDialog (tr ("Error"), tr ("Invalid email format."));
-                return;
-            }
+                 if (!emailLineEdit->text ().contains ("@"))
+                 {
+                     showDialog (tr ("Error"), tr ("Invalid email format."));
+                     return;
+                 }
 
-            auto result = AccountManager::getInstance ().changeEmail (
-                emailLineEdit->text ());
-            if (result == ChangeResult::Success)
-            {
-                showDialog (tr ("Success"), tr ("Email changed successfully."));
-                emit emailChanged (emailLineEdit->text ());
-            }
-            else
-            {
-                auto it = ChangeResultMessage.find (result);
-                QString errorMsg = it != ChangeResultMessage.end ()
-                                       ? QString::fromStdString (it->second)
-                                       : tr ("Unknown error");
-                showDialog (tr ("Change Email Error"), errorMsg);
-            }
-        });
+                 auto result = AccountManager::getInstance ().changeEmail (
+                     emailLineEdit->text ());
+                 if (result == ChangeResult::Success)
+                 {
+                     showDialog (tr ("Success"),
+                                 tr ("Email changed successfully."));
+                     emit emailChanged (emailLineEdit->text ());
+                 }
+                 else
+                 {
+                     QString errorMsg = QString::fromStdString (
+                         getErrorMessage (result, ChangeResultMessage));
+                     showDialog (tr ("Change Email Error"), errorMsg);
+                 }
+             });
 
     connect (
         logoutButton, &QPushButton::clicked, this,

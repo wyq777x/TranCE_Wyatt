@@ -56,11 +56,15 @@ public:
         return UserModel::getInstance ().isLoginExpired ();
     }
 
+    UserDataResult createUserData (const QString &username);
+
     ChangeResult changeUsername (const QString &newUsername);
+
     ChangeResult changePassword (const QString &oldPasswordHash,
                                  const QString &newPasswordHash);
 
     ChangeResult changeEmail (const QString &newEmail);
+
     ChangeResult changeAvatar ();
 
     ChangeResult

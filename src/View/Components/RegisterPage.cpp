@@ -149,11 +149,7 @@ void RegisterPage::initConnections ()
                 {
                     // invoke UserModel to create user profile and settings
                     auto userDataResult =
-                        UserModel::getInstance ().createUserData (
-                            "profile_" +
-                                AccountManager::getInstance ().getUserUuid (
-                                    username) +
-                                ".json",
+                        AccountManager::getInstance ().createUserData (
                             username);
 
                     if (userDataResult != UserDataResult::Success)
