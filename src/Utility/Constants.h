@@ -81,6 +81,25 @@ const int SUBTITLE_FONT_SIZE = 20;
 const int SMALL_FONT_SIZE = 14;
 } // namespace Settings
 
+namespace JsonFields
+{
+
+namespace userAccount
+{
+const QString FIELDNAME = "userAccount";
+const QString USERNAME = "username";
+const QString USER_UUID = "user_uuid";
+} // namespace userAccount
+
+namespace appSettings
+{
+const QString FIELDNAME = "appSettings";
+const QString LANGUAGE = "language";
+const QString HISTORY_LIST_ENABLED = "HistoryListEnabled";
+} // namespace appSettings
+
+} // namespace JsonFields
+
 // UI dimensions and styling
 namespace UI
 {
@@ -120,4 +139,5 @@ const QString USERNAME_CANNOT_BE_EMPTY = "Username cannot be empty.";
 const QString DATABASE_LOAD_MESSAGE = "loaded from the database. ";
 const QString NOT_FOUND_IN_DATABASE = "the database. ";
 } // namespace Messages
+
 } // namespace Constants

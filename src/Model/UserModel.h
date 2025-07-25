@@ -41,6 +41,11 @@ public:
     UserDataResult createUserData (const QString &filename,
                                    const QString &username);
 
+    template <typename FieldT>
+    ChangeResult changeUserProfileField (const QString &field,
+                                         const FieldT &value,
+                                         const QString &userProfile);
+
     ChangeResult
     changeHistorySearchListEnabled_Json (bool enabled,
                                          const QString &userProfile);

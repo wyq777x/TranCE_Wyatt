@@ -3,7 +3,9 @@
 #include "Controller/SettingManager.h"
 #include "Model/AppSettingModel.h"
 #include "Model/DbModel.h"
+#include "Utility/Constants.h"
 #include "Utility/Result.h"
+#include <type_traits>
 
 UserAuthResult UserModel::login (const QString &username,
                                  const QString &password)
@@ -348,12 +350,11 @@ UserDataResult UserModel::createUserData (const QString &filename,
     }
 }
 
-ChangeResult
-UserModel::changeHistorySearchListEnabled_Json (bool enabled,
+template <typename FieldT>
+ChangeResult UserModel::changeUserProfileField (const QString &field,
+                                                const FieldT &value,
                                                 const QString &userProfile)
 {
-    // Building...
-
     try
     {
         if (userProfile.isEmpty ())
@@ -409,7 +410,22 @@ UserModel::changeHistorySearchListEnabled_Json (bool enabled,
 
         QJsonObject userData = userDataDoc.object ();
         QJsonObject appSettings = userData.value ("appSettings").toObject ();
-        appSettings["HistoryListEnabled"] = enabled;
+
+        QJsonValue jsonValue;
+        if constexpr (std::is_same_v<FieldT, bool>)
+        {
+            jsonValue = QJsonValue (value);
+        }
+        else if constexpr (std::is_same_v<FieldT, QString>)
+        {
+            jsonValue = QJsonValue (value);
+        }
+        else
+        {
+            jsonValue = QJsonValue::fromVariant (QVariant::fromValue (value));
+        }
+
+        appSettings[field] = jsonValue;
         userData["appSettings"] = appSettings;
 
         QJsonDocument updatedDoc (userData);
@@ -437,111 +453,31 @@ UserModel::changeHistorySearchListEnabled_Json (bool enabled,
     }
     catch (const std::exception &e)
     {
-        logErr ("Error changing history search list enabled", e);
+        logErr ("Error changing user profile field: " + field.toStdString (),
+                e);
         return ChangeResult::UnknownError;
     }
     catch (...)
     {
-        logErr ("Unknown error occurred while changing history search list "
-                "enabled",
+        logErr ("Unknown error occurred while changing user profile field: " +
+                    field.toStdString (),
                 std::runtime_error ("Unknown exception"));
         return ChangeResult::UnknownError;
     }
 }
 
+ChangeResult
+UserModel::changeHistorySearchListEnabled_Json (bool enabled,
+                                                const QString &userProfile)
+{
+    return changeUserProfileField (
+        Constants::JsonFields::appSettings::HISTORY_LIST_ENABLED, enabled,
+        userProfile);
+}
+
 ChangeResult UserModel::changeLanguage_Json (const QString &lang,
                                              const QString &userProfile)
 {
-    // Building...
-    try
-    {
-        if (userProfile.isEmpty ())
-        {
-            logErr ("User profile file path is empty",
-                    std::runtime_error ("User profile file path is empty"));
-            return ChangeResult::NullValue;
-        }
-
-        QDir userProfileDir = QDir (getUserProfileDir ());
-        if (!userProfileDir.exists ())
-        {
-            logErr ("User profile directory does not exist",
-                    std::runtime_error ("User profile directory does not "
-                                        "exist: " +
-                                        userProfileDir.path ().toStdString ()));
-            return ChangeResult::DirectoryNotFound;
-        }
-
-        QString userProfilePath = userProfileDir.filePath (userProfile);
-
-        if (!QFile (userProfilePath).exists ())
-        {
-            logErr ("User profile file does not exist",
-                    std::runtime_error ("User profile file does not exist: " +
-                                        userProfilePath.toStdString ()));
-            return ChangeResult::FileNotFound;
-        }
-
-        QFile userProfileFile (userProfilePath);
-
-        if (!userProfileFile.open (QIODevice::ReadOnly))
-        {
-            logErr ("User profile file open error",
-                    std::runtime_error ("Failed to open user profile file: " +
-                                        userProfilePath.toStdString ()));
-            return ChangeResult::FileOpenError;
-        }
-
-        QByteArray fileData = userProfileFile.readAll ();
-        userProfileFile.close ();
-
-        QJsonDocument userDataDoc = QJsonDocument::fromJson (fileData);
-        if (userDataDoc.isNull () || !userDataDoc.isObject ())
-        {
-            logErr (
-                "User profile file parse error",
-                std::runtime_error ("Failed to parse JSON from user profile "
-                                    "file: " +
-                                    userProfilePath.toStdString ()));
-            return ChangeResult::InvalidInput;
-        }
-
-        QJsonObject userData = userDataDoc.object ();
-        QJsonObject appSettings = userData.value ("appSettings").toObject ();
-        appSettings["language"] = lang;
-        userData["appSettings"] = appSettings;
-
-        QJsonDocument updatedDoc (userData);
-        if (!userProfileFile.open (QIODevice::WriteOnly | QIODevice::Truncate))
-        {
-            logErr ("User profile file write error",
-                    std::runtime_error ("Failed to open user profile file for "
-                                        "writing: " +
-                                        userProfilePath.toStdString ()));
-            return ChangeResult::FileOpenError;
-        }
-        if (userProfileFile.write (updatedDoc.toJson ()) == -1)
-        {
-            userProfileFile.close ();
-            logErr ("User profile file write error",
-                    std::runtime_error (
-                        "Failed to write data to user profile file: " +
-                        userProfilePath.toStdString ()));
-            return ChangeResult::FileWriteError;
-        }
-
-        userProfileFile.close ();
-        return ChangeResult::Success;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Error changing language", e);
-        return ChangeResult::UnknownError;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error occurred while changing language",
-                std::runtime_error ("Unknown exception"));
-        return ChangeResult::UnknownError;
-    }
+    return changeUserProfileField (Constants::JsonFields::appSettings::LANGUAGE,
+                                   lang, userProfile);
 }
