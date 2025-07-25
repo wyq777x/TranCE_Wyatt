@@ -294,11 +294,19 @@ ChangeResult
 AccountManager::changeHistorySearchListEnabled_Json (bool enabled,
                                                      const QString &userProfile)
 {
-    // Building...
 
     auto result =
         UserModel::getInstance ().changeHistorySearchListEnabled_Json (
             enabled, userProfile);
+
+    return result;
+}
+
+ChangeResult AccountManager::changeLanguage_Json (const QString &lang,
+                                                  const QString &userProfile)
+{
+    auto result =
+        UserModel::getInstance ().changeLanguage_Json (lang, userProfile);
 
     return result;
 }

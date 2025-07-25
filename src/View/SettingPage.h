@@ -34,6 +34,8 @@ private:
     changeHistorySearchListEnabled_Json (bool enabled,
                                          const QString &userProfile);
 
+    ChangeResult changeLanguage_Json (const QString &lang,
+                                      const QString &userProfile);
     // UI components
     QWidget *centralWidget;
     QVBoxLayout *settingPageLayout;

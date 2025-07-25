@@ -232,15 +232,46 @@ SettingPage::changeHistorySearchListEnabled_Json (bool enabled,
 
     return result;
 }
+
+ChangeResult SettingPage::changeLanguage_Json (const QString &lang,
+                                               const QString &userProfile)
+{
+    // Building...
+
+    auto result =
+        AccountManager::getInstance ().changeLanguage_Json (lang, userProfile);
+
+    return result;
+}
 void SettingPage::onLanguageChanged (int index)
 {
 
     // Building...
 
     // 0: Chinese, 1: English
-    QString selectedLanguage = (index == 0) ? "Chinese" : "English";
+    QString selectedLanguage = (index == 0) ? "zh_CN" : "en_US";
 
     // Set the application language
 
     // Save the selected language to user settings
+    if (AccountManager::getInstance ().isLoggedIn ())
+    {
+        auto changeJsonResult = changeLanguage_Json (
+            selectedLanguage,
+            "profile_" +
+                AccountManager::getInstance ().getUserUuid (
+                    AccountManager::getInstance ().getUsername ()) +
+                ".json");
+
+        if (changeJsonResult != ChangeResult::Success)
+        {
+            QString errorMsg = QString::fromStdString (
+                getErrorMessage (changeJsonResult, ChangeResultMessage));
+            showDialog (tr ("Error"), errorMsg);
+        }
+        else
+        {
+            qDebug () << "Language changed successfully to" << selectedLanguage;
+        }
+    }
 }

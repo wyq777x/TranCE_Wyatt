@@ -26,7 +26,5 @@ void SettingManager::onLanguageChanged (const QString &lang)
 {
     // Building...
 
-    // change UI display
-
     qDebug () << "Language Pack" << lang << "loaded";
 }

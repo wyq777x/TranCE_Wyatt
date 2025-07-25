@@ -67,6 +67,9 @@ public:
     changeHistorySearchListEnabled_Json (bool enabled,
                                          const QString &userProfile);
 
+    ChangeResult changeLanguage_Json (const QString &lang,
+                                      const QString &userProfile);
+
     QString getUserUuid (const QString &username) const;
     QString getUsername () const;
     QString getHashedPassword () const;

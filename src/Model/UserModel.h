@@ -12,7 +12,6 @@
 #include <QJsonObject>
 #include <QString>
 
-
 class SettingManager;
 
 class UserModel : public QObject
@@ -46,6 +45,9 @@ public:
     changeHistorySearchListEnabled_Json (bool enabled,
                                          const QString &userProfile);
 
+    ChangeResult changeLanguage_Json (const QString &lang,
+                                      const QString &userProfile);
+
     QString getUserProfileDir ()
     {
         return QCoreApplication::applicationDirPath () +
@@ -62,18 +64,6 @@ public:
             loginExpired = false;
     }
     void setLoginExpired (bool expired) { loginExpired = expired; }
-
-    QJsonArray getUserList (const QString &storageFile) const
-    {
-        // Building ...
-        QFile file (storageFile);
-        if (!file.open (QIODevice::ReadOnly))
-            return QJsonArray ();
-
-        QJsonDocument doc = QJsonDocument::fromJson (file.readAll ());
-        file.close ();
-        return doc.array ();
-    }
 
 private:
     explicit UserModel (const QString &userProfilePath)
