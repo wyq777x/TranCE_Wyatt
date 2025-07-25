@@ -1,7 +1,7 @@
 #include "HomePage.h"
 #include "Controller/DbManager.h"
+#include "Controller/UIController.h"
 #include "Utility/Constants.h"
-#include "View/Components/WordCard.h"
 
 HomePage::HomePage (QWidget *parent) : TempPage (parent)
 {
@@ -369,9 +369,8 @@ void HomePage::initConnections ()
 
                          if (wordEntry.has_value ())
                          {
-                             auto wordCard = WordCard::getInstance ();
-                             wordCard->setWordEntry (wordEntry.value ());
-                             wordCard->show ();
+                             UIController::getInstance ().showWordCard (
+                                 wordEntry.value ());
                          }
                          else
                          {
@@ -391,9 +390,8 @@ void HomePage::initConnections ()
 
                          if (!firstWordEntry.empty ())
                          {
-                             auto wordCard = WordCard::getInstance ();
-                             wordCard->setWordEntry (firstWordEntry[0]);
-                             wordCard->show ();
+                             UIController::getInstance ().showWordCard (
+                                 firstWordEntry[0]);
                          }
                          else
                          {
@@ -405,44 +403,44 @@ void HomePage::initConnections ()
                  }
              });
 
-    connect (suggestionsList, &ElaListView::clicked, this,
-             [=, this] (const QModelIndex &index)
-             {
-                 if (searchOnline->getIsToggled ())
-                 {
-                     QDesktopServices::openUrl (
-                         QUrl (Constants::Urls::BING_SEARCH.arg (
-                             index.data ().toString ())));
-                     return;
-                 }
-                 auto wordEntry = DbManager::getInstance ().lookupWord (
-                     index.data ().toString (), "en");
-                 if (!wordEntry.has_value ())
-                 {
-                     showDialog (
-                         tr ("Error Loading Word Card"),
-                         tr ("The word you selected can't be loaded from "
-                             "the database. "));
-                 }
-                 else
-                 {
-                     auto wordCard = WordCard::getInstance ();
+    connect (
+        suggestionsList, &ElaListView::clicked, this,
+        [=, this] (const QModelIndex &index)
+        {
+            if (searchOnline->getIsToggled ())
+            {
+                QDesktopServices::openUrl (
+                    QUrl (Constants::Urls::BING_SEARCH.arg (
+                        index.data ().toString ())));
+                return;
+            }
+            auto wordEntry = DbManager::getInstance ().lookupWord (
+                index.data ().toString (), "en");
+            if (!wordEntry.has_value ())
+            {
+                showDialog (tr ("Error Loading Word Card"),
+                            tr ("The word you selected can't be loaded from "
+                                "the database. "));
+            }
+            else
+            {
+                UIController::getInstance ().showWordCard (wordEntry.value ());
+            }
+        });
 
-                     wordCard->setWordEntry (wordEntry.value ());
-
-                     wordCard->show ();
-                 }
-             });
-
-    connect (recommendWordButton, &ElaPushButton::clicked,
-             [=] ()
-             {
-                 auto wordEntry = DbManager::getInstance ().getRandomWord ();
-                 if (wordEntry.has_value ())
-                 {
-                     auto wordCard = WordCard::getInstance ();
-                     wordCard->setWordEntry (wordEntry.value ());
-                     wordCard->show ();
-                 }
-             });
+    connect (
+        recommendWordButton, &ElaPushButton::clicked,
+        [=, this] ()
+        {
+            auto wordEntry = DbManager::getInstance ().getRandomWord ();
+            if (wordEntry.has_value ())
+            {
+                UIController::getInstance ().showWordCard (wordEntry.value ());
+            }
+            else
+            {
+                showDialog (tr ("Error"), tr ("Failed to get a random word "
+                                              "recommendation."));
+            }
+        });
 }
