@@ -55,6 +55,7 @@ enum class UserDataResult
     FileDeleteError,
     FileNotFound,
     InvalidData,
+    SettingError,
     UnknownError
 };
 
@@ -70,6 +71,7 @@ static const std::unordered_map<UserDataResult, std::string>
         {UserDataResult::FileDeleteError, "Error deleting file."},
         {UserDataResult::FileNotFound, "File not found."},
         {UserDataResult::InvalidData, "Invalid data provided."},
+        {UserDataResult::SettingError, "Error setting user data."},
         {UserDataResult::UnknownError, "Unknown error occurred."}
 
 };

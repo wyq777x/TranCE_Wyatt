@@ -36,7 +36,7 @@ public:
 
     static ValidationResult validateUserData (const QJsonObject &userData);
 
-    static UserDataResult loadUserData (const QString &userProfilePath);
+    static UserDataResult loadUserData (const QString &userProfile);
 
     UserDataResult createUserData (const QString &filename,
                                    const QString &username);

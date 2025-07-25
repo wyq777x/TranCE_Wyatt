@@ -37,13 +37,6 @@ ChangeResult AppSettingModel::setHistorySearchListEnabled (bool enabled)
 {
 
     // Building...
-    if (enabled == historySearchEnabled)
-    {
-        logErr ("History search list is already set to " +
-                    QString::number (enabled).toStdString (),
-                std::runtime_error ("No change needed"));
-        return ChangeResult::StillSame;
-    }
 
     historySearchEnabled = enabled;
 

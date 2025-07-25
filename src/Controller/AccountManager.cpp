@@ -36,6 +36,20 @@ UserAuthResult AccountManager::login (const QString &username,
                 this->avatarPath =
                     DbManager::getInstance ().getUserAvatarPath (username);
                 emit loginSuccessful (username);
+
+                auto loadUserDataResult = userModel->loadUserData (
+                    "profile_" +
+                    AccountManager::getInstance ().getUserUuid (
+                        AccountManager::getInstance ().getUsername ()) +
+                    ".json");
+                if (loadUserDataResult != UserDataResult::Success)
+                {
+                    logErr ("Failed to load user data after login",
+                            std::runtime_error (
+                                "Failed to load user data after login: " +
+                                getErrorMessage (loadUserDataResult,
+                                                 UserDataResultMessage)));
+                }
             }
 
             return result;
