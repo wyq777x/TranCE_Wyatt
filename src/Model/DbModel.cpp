@@ -374,7 +374,7 @@ ChangeResult DbModel::changeAvatar (const QString &username,
         return ChangeResult::FileNotFound;
     }
 
-    QDir avatarDir (m_avatarDir);
+    QDir avatarDir (getAvatarDir ());
     if (!avatarDir.exists ())
     {
         if (!avatarDir.mkpath ("."))

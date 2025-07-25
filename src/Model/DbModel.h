@@ -1,6 +1,7 @@
 #pragma once
 #include "SQLiteCpp/Database.h"
 #include "Utility/AsyncTask.h"
+#include "Utility/Constants.h"
 #include "Utility/Result.h"
 #include "Utility/WordEntry.h"
 #include <QCoreApplication>
@@ -16,8 +17,6 @@
 class DbModel
 {
 public:
-    DbModel () = delete;
-
     DbModel (const DbModel &) = delete;
     DbModel operator= (const DbModel &) = delete;
 
@@ -27,15 +26,25 @@ public:
 
     static DbModel &getInstance ()
     {
-        static DbModel instance (
-            QCoreApplication::applicationDirPath () + "/Utility/DBs",
-            QCoreApplication::applicationDirPath () + "/Utility/Avatars");
+        static DbModel instance;
         return instance;
+    }
+
+    static QString getDbDir ()
+    {
+        return QCoreApplication::applicationDirPath () +
+               Constants::Paths::DB_DIR;
+    }
+
+    static QString getAvatarDir ()
+    {
+        return QCoreApplication::applicationDirPath () +
+               Constants::Paths::AVATAR_DIR;
     }
 
     void initDBs ()
     {
-        QDir dir (m_dbDir);
+        QDir dir (getDbDir ());
         if (!dir.exists ())
         {
             dir.mkpath (".");
@@ -328,15 +337,8 @@ public:
     std::optional<std::vector<QString>> getSearchHistory ();
 
 private:
-    explicit DbModel (const QString &dbPath, const QString &avatarPath)
-        : m_dbDir (dbPath), m_avatarDir (avatarPath), user_db (nullptr),
-          dict_db (nullptr)
-    {
-        initDBs ();
-    }
+    explicit DbModel () : user_db (nullptr), dict_db (nullptr) { initDBs (); }
 
-    QString m_dbDir;
-    QString m_avatarDir;
     std::unique_ptr<SQLite::Database> user_db;
     std::unique_ptr<SQLite::Database> dict_db;
     mutable std::string m_lastError;

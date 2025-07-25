@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Utility/Constants.h"
 #include "Utility/Result.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -10,6 +11,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QString>
+
 
 class SettingManager;
 
@@ -33,6 +35,23 @@ public:
     UserAuthResult login (const QString &username, const QString &password);
     void logout ();
 
+    static ValidationResult validateUserData (const QJsonObject &userData);
+
+    static UserDataResult loadUserData (const QString &userProfilePath);
+
+    UserDataResult createUserData (const QString &filename,
+                                   const QString &username);
+
+    ChangeResult
+    changeHistorySearchListEnabled_Json (bool enabled,
+                                         const QString &userProfile);
+
+    QString getUserProfileDir ()
+    {
+        return QCoreApplication::applicationDirPath () +
+               Constants::Paths::USER_PROFILES_DIR;
+    }
+
     bool isLoggedIn () const { return loggedIn; };
     bool isLoginExpired () const { return loginExpired; };
 
@@ -55,16 +74,6 @@ public:
         file.close ();
         return doc.array ();
     }
-    static ValidationResult validateUserData (const QJsonObject &userData);
-
-    static UserDataResult loadUserData (const QString &userProfilePath);
-
-    UserDataResult createUserData (const QString &filename,
-                                   const QString &username);
-
-    ChangeResult
-    changeHistorySearchListEnabled_Json (bool enabled,
-                                         const QString &userProfile);
 
 private:
     explicit UserModel (const QString &userProfilePath)

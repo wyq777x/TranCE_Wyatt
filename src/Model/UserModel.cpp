@@ -353,6 +353,7 @@ UserModel::changeHistorySearchListEnabled_Json (bool enabled,
                                                 const QString &userProfile)
 {
     // Building...
+
     try
     {
         if (userProfile.isEmpty ())
@@ -362,21 +363,33 @@ UserModel::changeHistorySearchListEnabled_Json (bool enabled,
             return ChangeResult::NullValue;
         }
 
-        if (!QFile (userProfile).exists ())
+        QDir userProfileDir = QDir (getUserProfileDir ());
+        if (!userProfileDir.exists ())
+        {
+            logErr ("User profile directory does not exist",
+                    std::runtime_error ("User profile directory does not "
+                                        "exist: " +
+                                        userProfileDir.path ().toStdString ()));
+            return ChangeResult::DirectoryNotFound;
+        }
+
+        QString userProfilePath = userProfileDir.filePath (userProfile);
+
+        if (!QFile (userProfilePath).exists ())
         {
             logErr ("User profile file does not exist",
                     std::runtime_error ("User profile file does not exist: " +
-                                        userProfile.toStdString ()));
+                                        userProfilePath.toStdString ()));
             return ChangeResult::FileNotFound;
         }
 
-        QFile userProfileFile (userProfile);
+        QFile userProfileFile (userProfilePath);
 
         if (!userProfileFile.open (QIODevice::ReadOnly))
         {
             logErr ("User profile file open error",
                     std::runtime_error ("Failed to open user profile file: " +
-                                        userProfile.toStdString ()));
+                                        userProfilePath.toStdString ()));
             return ChangeResult::FileOpenError;
         }
 
@@ -390,7 +403,7 @@ UserModel::changeHistorySearchListEnabled_Json (bool enabled,
                 "User profile file parse error",
                 std::runtime_error ("Failed to parse JSON from user profile "
                                     "file: " +
-                                    userProfile.toStdString ()));
+                                    userProfilePath.toStdString ()));
             return ChangeResult::InvalidInput;
         }
 
@@ -405,7 +418,7 @@ UserModel::changeHistorySearchListEnabled_Json (bool enabled,
             logErr ("User profile file write error",
                     std::runtime_error ("Failed to open user profile file for "
                                         "writing: " +
-                                        userProfile.toStdString ()));
+                                        userProfilePath.toStdString ()));
             return ChangeResult::FileOpenError;
         }
 
@@ -415,7 +428,7 @@ UserModel::changeHistorySearchListEnabled_Json (bool enabled,
             logErr ("User profile file write error",
                     std::runtime_error (
                         "Failed to write data to user profile file: " +
-                        userProfile.toStdString ()));
+                        userProfilePath.toStdString ()));
             return ChangeResult::FileWriteError;
         }
 

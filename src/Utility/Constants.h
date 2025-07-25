@@ -63,6 +63,14 @@ const QString APP_ICON = ":/image/learnENG.ico";
 const QString ENG_ICON = ":/image/engICO.png";
 } // namespace Resources
 
+// Application directories
+namespace Paths
+{
+const QString DB_DIR = "/Utility/DBs";
+const QString AVATAR_DIR = "/Utility/Avatars";
+const QString USER_PROFILES_DIR = "/Utility/UserProfiles";
+} // namespace Paths
+
 // Application settings
 namespace Settings
 {

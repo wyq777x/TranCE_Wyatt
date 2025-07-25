@@ -135,43 +135,69 @@ void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
 
     updateStatusWithAnimation (enabled);
 
-    auto changeJsonResult = changeHistorySearchListEnabled_Json (
-        enabled, "profile_" +
-                     AccountManager::getInstance ().getUserUuid (
-                         AccountManager::getInstance ().getUsername ()) +
-                     ".json");
-
-    if (changeJsonResult != ChangeResult::Success)
+    if (AccountManager::getInstance ().isLoggedIn ())
     {
-        QString errorMsg = QString::fromStdString (
-            getErrorMessage (changeJsonResult, ChangeResultMessage));
-        showDialog (tr ("Error"), errorMsg);
+        auto changeJsonResult = changeHistorySearchListEnabled_Json (
+            enabled, "profile_" +
+                         AccountManager::getInstance ().getUserUuid (
+                             AccountManager::getInstance ().getUsername ()) +
+                         ".json");
+
+        if (changeJsonResult != ChangeResult::Success)
+        {
+            QString errorMsg = QString::fromStdString (
+                getErrorMessage (changeJsonResult, ChangeResultMessage));
+            showDialog (tr ("Error"), errorMsg);
+        }
+        else
+        {
+            qDebug ()
+                << "History search list enabled JSON changed successfully to"
+                << enabled;
+        }
+
+        auto changeSettingsResult = changeHistorySearchListEnabled (enabled);
+
+        if (changeSettingsResult != ChangeResult::Success)
+        {
+            QString errorMsg = QString::fromStdString (
+                getErrorMessage (changeSettingsResult, ChangeResultMessage));
+            showDialog (tr ("Error"), errorMsg);
+
+            // fallback to previous state
+            m_historySearchListEnabledSwitch->setIsToggled (!enabled);
+            m_statusLabel->setText (enabled ? Constants::UI::STATUS_OFF
+                                            : Constants::UI::STATUS_ON);
+        }
+        else
+        {
+            // Building...
+
+            // updateUI()
+        }
     }
     else
     {
-        qDebug () << "History search list enabled JSON changed successfully to"
-                  << enabled;
-    }
+        // If not logged in, just change the AppSettingModel
+        auto changeSettingsResult = changeHistorySearchListEnabled (enabled);
 
-    auto changeSettingsResult = changeHistorySearchListEnabled (enabled);
+        if (changeSettingsResult != ChangeResult::Success)
+        {
+            QString errorMsg = QString::fromStdString (
+                getErrorMessage (changeSettingsResult, ChangeResultMessage));
+            showDialog (tr ("Error"), errorMsg);
 
-    if (changeSettingsResult != ChangeResult::Success)
-    {
-        QString errorMsg = QString::fromStdString (
-            getErrorMessage (changeSettingsResult, ChangeResultMessage));
-        showDialog (tr ("Error"), errorMsg);
+            // fallback to previous state
+            m_historySearchListEnabledSwitch->setIsToggled (!enabled);
+            m_statusLabel->setText (enabled ? Constants::UI::STATUS_OFF
+                                            : Constants::UI::STATUS_ON);
+        }
+        else
+        {
+            // Building...
 
-        // fallback to previous state
-        m_historySearchListEnabledSwitch->setIsToggled (!enabled);
-        m_statusLabel->setText (enabled ? Constants::UI::STATUS_OFF
-                                        : Constants::UI::STATUS_ON);
-    }
-    else
-    {
-        // Building...
-
-        // updateUI()
-        qDebug () << "History search list enabled set to" << enabled;
+            // updateUI()
+        }
     }
 }
 
