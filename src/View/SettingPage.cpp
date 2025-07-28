@@ -169,12 +169,6 @@ void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
             m_statusLabel->setText (enabled ? Constants::UI::STATUS_OFF
                                             : Constants::UI::STATUS_ON);
         }
-        else
-        {
-            // Building...
-
-            // updateUI()
-        }
     }
     else
     {
@@ -191,12 +185,6 @@ void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
             m_historySearchListEnabledSwitch->setIsToggled (!enabled);
             m_statusLabel->setText (enabled ? Constants::UI::STATUS_OFF
                                             : Constants::UI::STATUS_ON);
-        }
-        else
-        {
-            // Building...
-
-            // updateUI()
         }
     }
 }

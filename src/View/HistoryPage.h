@@ -7,6 +7,9 @@ class HistoryPage : public TempPage
 public:
     explicit HistoryPage (QWidget *parent = nullptr);
 
+private slots:
+    void enableHistorySearchListUI (bool enabled);
+
 private:
     void initUI ();
     void initConnections ();

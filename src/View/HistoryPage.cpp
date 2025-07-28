@@ -1,4 +1,5 @@
 #include "HistoryPage.h"
+#include "Controller/UIController.h"
 
 HistoryPage::HistoryPage (QWidget *parent) : TempPage (parent)
 {
@@ -6,6 +7,14 @@ HistoryPage::HistoryPage (QWidget *parent) : TempPage (parent)
 
     initUI ();
     initConnections ();
+}
+
+void HistoryPage::enableHistorySearchListUI (bool enable)
+{
+    if (searchHistoryListView)
+    {
+        searchHistoryListView->setEnabled (enable);
+    }
 }
 
 void HistoryPage::initUI ()
@@ -36,4 +45,7 @@ void HistoryPage::initUI ()
 void HistoryPage::initConnections ()
 {
     // Building...
+    connect (&UIController::getInstance (),
+             &UIController::historySearchListUIChanged, this,
+             &HistoryPage::enableHistorySearchListUI);
 }
