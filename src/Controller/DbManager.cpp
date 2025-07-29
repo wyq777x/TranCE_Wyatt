@@ -78,3 +78,32 @@ std::optional<WordEntry> DbManager::getRandomWord ()
 {
     return DbModel::getInstance ().getRandomWord ();
 }
+
+void DbManager::addToSearchHistory (const QString &userId, const QString &word)
+{
+    DbModel::getInstance ().addToSearchHistory (userId, word);
+}
+
+std::vector<QString> DbManager::getUserSearchHistory (const QString &userId)
+{
+    return DbModel::getInstance ().getUserSearchHistory (userId);
+}
+
+std::vector<WordEntry>
+DbManager::getUserHistorySearchVector (const QString &user_uuid)
+{
+    std::vector<WordEntry> historyEntries;
+
+    auto searchHistory = getUserSearchHistory (user_uuid);
+
+    for (const auto &word : searchHistory)
+    {
+        auto wordEntry = lookupWord (word, "en");
+        if (wordEntry.has_value ())
+        {
+            historyEntries.emplace_back (wordEntry.value ());
+        }
+    }
+
+    return historyEntries;
+}

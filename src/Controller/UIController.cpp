@@ -14,6 +14,11 @@ void UIController::enableHistorySearchListUI (bool enabled)
     emit historySearchListUIChanged (enabled);
 }
 
+void UIController::notifySearchHistoryUpdated ()
+{
+    emit searchHistoryUpdated ();
+}
+
 void UIController::initConnections ()
 {
 

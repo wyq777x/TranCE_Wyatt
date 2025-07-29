@@ -1,4 +1,5 @@
 #include "HomePage.h"
+#include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
 #include "Controller/UIController.h"
 #include "Utility/Constants.h"
@@ -425,6 +426,17 @@ void HomePage::initConnections ()
             else
             {
                 UIController::getInstance ().showWordCard (wordEntry.value ());
+
+                if (AccountManager::getInstance ().isLoggedIn ())
+                {
+                    auto userId = AccountManager::getInstance ().getUserUuid (
+                        AccountManager::getInstance ().getUsername ());
+                    DbManager::getInstance ().addToSearchHistory (
+                        userId, index.data ().toString ());
+
+                    // Notify that search history has been updated
+                    UIController::getInstance ().notifySearchHistoryUpdated ();
+                }
             }
         });
 

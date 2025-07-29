@@ -15,9 +15,11 @@ public:
     }
 
     void showWordCard (WordEntry &entry, QWidget *parent = nullptr);
+    void notifySearchHistoryUpdated ();
 
 signals:
     void historySearchListUIChanged (bool enabled);
+    void searchHistoryUpdated ();
 
 private slots:
     void enableHistorySearchListUI (bool enabled);

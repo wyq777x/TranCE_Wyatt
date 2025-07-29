@@ -793,7 +793,7 @@ DbModel::importFromFileAsync (const QString &filePath,
             WordEntry entry = parseCSVLineToWordEntry (line);
             if (!entry.word.isEmpty ())
             {
-                batch.push_back (std::move (entry));
+                batch.emplace_back (std::move (entry));
             }
 
             processedLines++;
@@ -900,7 +900,7 @@ void DbModel::importFromFileSync (
             WordEntry entry = parseCSVLineToWordEntry (line);
             if (!entry.word.isEmpty ())
             {
-                batch.push_back (std::move (entry));
+                batch.emplace_back (std::move (entry));
             }
 
             processedLines++;
@@ -1600,4 +1600,78 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
     }
 
     co_return;
+}
+
+void DbModel::addToSearchHistory (const QString &userId, const QString &word)
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return;
+    }
+
+    try
+    {
+        SQLite::Statement query (*user_db,
+                                 "INSERT INTO user_search_history (user_id, "
+                                 "search_word) VALUES (?, ?)");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, word.toStdString ());
+        query.exec ();
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error adding to search history", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error adding to search history", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error adding to search history",
+                std::runtime_error ("Unknown exception"));
+    }
+}
+
+std::vector<QString> DbModel::getUserSearchHistory (const QString &userId)
+{
+    std::vector<QString> history;
+
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return history;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "SELECT DISTINCT search_word FROM user_search_history "
+                      "WHERE user_id = ? ORDER BY search_history_id DESC");
+        query.bind (1, userId.toStdString ());
+
+        while (query.executeStep ())
+        {
+            history.emplace_back (
+                QString::fromStdString (query.getColumn (0).getString ()));
+        }
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error getting user search history", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting user search history", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting user search history",
+                std::runtime_error ("Unknown exception"));
+    }
+
+    return history;
 }

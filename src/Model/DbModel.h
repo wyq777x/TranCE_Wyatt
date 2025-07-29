@@ -336,6 +336,10 @@ public:
 
     std::optional<std::vector<QString>> getSearchHistory ();
 
+    void addToSearchHistory (const QString &userId, const QString &word);
+
+    std::vector<QString> getUserSearchHistory (const QString &userId);
+
 private:
     explicit DbModel () : user_db (nullptr), dict_db (nullptr) { initDBs (); }
 

@@ -46,6 +46,11 @@ public:
 
     std::optional<WordEntry> getRandomWord ();
 
+    void addToSearchHistory (const QString &userId, const QString &word);
+    std::vector<QString> getUserSearchHistory (const QString &userId);
+    std::vector<WordEntry>
+    getUserHistorySearchVector (const QString &user_uuid);
+
 private:
     DbManager () = default;
     DbManager (const DbManager &) = delete;

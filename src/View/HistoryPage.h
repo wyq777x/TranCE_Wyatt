@@ -13,10 +13,16 @@ private slots:
 private:
     void initUI ();
     void initConnections ();
+    void loadSearchHistory ();
 
     // UI components
     QWidget *centralWidget;
     QVBoxLayout *layout;
+
+    QStringListModel *historySearchModel;
+    QStringListModel *reciteHistoryModel;
     ElaListView *searchHistoryListView;
     ElaListView *reciteHistoryListView;
+
+    QLabel *searchHistoryLabel;
 };
