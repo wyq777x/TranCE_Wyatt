@@ -11,11 +11,13 @@ HistoryPage::HistoryPage (QWidget *parent) : TempPage (parent)
     initConnections ();
 }
 
-void HistoryPage::enableHistorySearchListUI (bool enable)
+void HistoryPage::enableHistorySearchListUI (bool enabled)
 {
     if (searchHistoryListView)
     {
-        searchHistoryListView->setEnabled (enable);
+        searchHistoryListView->setEnabled (enabled);
+        searchHistoryListView->setVisible (enabled);
+        searchHistoryLabel->setVisible (enabled);
     }
 }
 
@@ -46,6 +48,15 @@ void HistoryPage::initUI ()
     searchHistoryListView->setModel (historySearchModel);
 
     layout->addWidget (searchHistoryListView);
+
+    reciteHistoryLabel = new QLabel (tr ("Recite History"), centralWidget);
+    reciteHistoryLabel->setStyleSheet (
+        "font-size: 20px; font-weight: normal; color: #333;");
+    reciteHistoryLabel->setFont (
+        QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+               Constants::Settings::TITLE_FONT_SIZE));
+
+    layout->addWidget (reciteHistoryLabel);
 
     reciteHistoryListView = new ElaListView (centralWidget);
     reciteHistoryListView->setFixedSize (550, 300);

@@ -156,6 +156,9 @@ void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
                 << enabled;
         }
 
+        // Block signals to prevent recursive invocations
+        m_historySearchListEnabledSwitch->blockSignals (true);
+
         auto changeSettingsResult = changeHistorySearchListEnabled (enabled);
 
         if (changeSettingsResult != ChangeResult::Success)
@@ -169,6 +172,8 @@ void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
             m_statusLabel->setText (enabled ? Constants::UI::STATUS_OFF
                                             : Constants::UI::STATUS_ON);
         }
+
+        m_historySearchListEnabledSwitch->blockSignals (false);
     }
     else
     {

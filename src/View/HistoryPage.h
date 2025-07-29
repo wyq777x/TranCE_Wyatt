@@ -25,4 +25,5 @@ private:
     ElaListView *reciteHistoryListView;
 
     QLabel *searchHistoryLabel;
+    QLabel *reciteHistoryLabel;
 };

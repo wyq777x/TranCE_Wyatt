@@ -12,6 +12,9 @@ void UIController::showWordCard (WordEntry &entry, QWidget *parent)
 void UIController::enableHistorySearchListUI (bool enabled)
 {
     emit historySearchListUIChanged (enabled);
+
+    // This will change the UI by calling the slot enableHistorySearchListUI
+    // (bool enabled) in HistoryPage
 }
 
 void UIController::notifySearchHistoryUpdated ()
