@@ -229,8 +229,6 @@ SettingPage::changeHistorySearchListEnabled_Json (bool enabled,
 ChangeResult SettingPage::changeLanguage_Json (const QString &lang,
                                                const QString &userProfile)
 {
-    // Building...
-
     auto result =
         AccountManager::getInstance ().changeLanguage_Json (lang, userProfile);
 
