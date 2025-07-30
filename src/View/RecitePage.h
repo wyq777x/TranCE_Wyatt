@@ -1,4 +1,5 @@
 #pragma once
+#include "Utility/ClickableWidget.h"
 #include "View/TempPage.h"
 #include <utility>
 
@@ -35,14 +36,18 @@ private:
     QVBoxLayout *reciteWidgetLayout;
     QLabel *progressLabel;
     ElaPushButton *reciteButton;
-    QWidget *flowContainer;
-    ElaFlowLayout *flowLayout;
-    QWidget *favoritesWidget;
+    QWidget *HBoxContainer;
+    QHBoxLayout *HBoxLayout;
+    ClickableWidget *favoritesWidget;
+    QWidget *favoritesContentWidget;
     QLabel *favoritesLabel;
     QVBoxLayout *favoritesLayout;
-    QWidget *masteredWidget;
+    QHBoxLayout *favoritesWidgetLayout;
+    ClickableWidget *masteredWidget;
+    QWidget *masteredContentWidget;
     QLabel *masteredLabel;
     QVBoxLayout *masteredLayout;
+    QHBoxLayout *masteredWidgetLayout;
 
     int currentProgress = 0;
     int totalProgress = 50;

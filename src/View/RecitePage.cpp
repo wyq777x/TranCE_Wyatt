@@ -1,4 +1,5 @@
 #include "RecitePage.h"
+#include "Utility/ClickableWidget.h"
 #include "Utility/Constants.h"
 
 RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
@@ -73,42 +74,68 @@ void RecitePage::initUI ()
 
     recitePageLayout->addWidget (containerWidget);
 
-    flowContainer = new QWidget (centralWidget);
-    flowLayout = new ElaFlowLayout (flowContainer);
-    flowLayout->setAlignment (Qt::AlignCenter | Qt::AlignTop);
+    HBoxContainer = new ClickableWidget (centralWidget);
+    HBoxLayout = new QHBoxLayout (HBoxContainer);
 
-    favoritesWidget = new QWidget (flowContainer);
+    HBoxLayout->setAlignment (Qt::AlignCenter);
+    HBoxLayout->setSpacing (20);
+
+    favoritesWidget = new ClickableWidget (HBoxContainer);
+
     favoritesWidget->setStyleSheet (
         "background-color: #FFF8DC; border-radius: 8px;");
-    favoritesWidget->setFixedSize (600, 200);
+    favoritesWidget->setFixedSize (300, 300);
+    favoritesWidget->setSizePolicy (QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-    favoritesLabel = new QLabel (favoritesWidget);
+    favoritesContentWidget = new QWidget (favoritesWidget);
+    favoritesContentWidget->setStyleSheet (
+        "background-color: #FFF8DC; border-radius: 8px;");
+
+    favoritesLabel = new QLabel ();
     favoritesLabel->setText (tr ("Favorites"));
     favoritesLabel->setStyleSheet (
         QString ("font-size: %1px; color: #333;")
             .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
-    favoritesLayout = new QVBoxLayout (favoritesWidget);
+
+    favoritesLayout = new QVBoxLayout (favoritesContentWidget);
     favoritesLayout->addWidget (favoritesLabel);
     favoritesLayout->addStretch ();
 
-    masteredWidget = new QWidget (flowContainer);
+    favoritesWidgetLayout = new QHBoxLayout (favoritesWidget);
+    favoritesWidgetLayout->setContentsMargins (0, 0, 0, 0);
+    favoritesWidgetLayout->addWidget (favoritesContentWidget);
+
+    masteredWidget = new ClickableWidget (HBoxContainer);
+
     masteredWidget->setStyleSheet (
         "background-color: #E0FFE0; border-radius: 8px;");
-    masteredWidget->setFixedSize (600, 200);
-    masteredLabel = new QLabel (masteredWidget);
+    masteredWidget->setFixedSize (300, 300);
+    masteredWidget->setSizePolicy (QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+    masteredContentWidget = new QWidget (masteredWidget);
+    masteredContentWidget->setStyleSheet (
+        "background-color: #E0FFE0; border-radius: 8px;");
+
+    masteredLabel = new QLabel ();
     masteredLabel->setText (tr ("Mastered"));
     masteredLabel->setStyleSheet (
         QString ("font-size: %1px; color: #333;")
             .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
 
-    masteredLayout = new QVBoxLayout (masteredWidget);
+    masteredLayout = new QVBoxLayout (masteredContentWidget);
     masteredLayout->addWidget (masteredLabel);
     masteredLayout->addStretch ();
 
-    flowLayout->addWidget (favoritesWidget);
-    flowLayout->addWidget (masteredWidget);
+    masteredWidgetLayout = new QHBoxLayout (masteredWidget);
+    masteredWidgetLayout->setContentsMargins (0, 0, 0, 0);
+    masteredWidgetLayout->addWidget (masteredContentWidget);
 
-    recitePageLayout->addWidget (flowContainer);
+    HBoxLayout->addWidget (favoritesWidget);
+    HBoxLayout->addWidget (masteredWidget);
+
+    HBoxContainer->setMinimumSize (620, 300);
+
+    recitePageLayout->addWidget (HBoxContainer);
     addCentralWidget (centralWidget, true, true, 0);
 }
 
@@ -117,4 +144,10 @@ void RecitePage::initConnections ()
     // Building...
     connect (reciteButton, &ElaPushButton::clicked, this,
              &RecitePage::onReciteButtonClicked);
+
+    connect (favoritesWidget, &ClickableWidget::clicked, this,
+             [] () { qDebug () << "Favorites widget clicked"; });
+
+    connect (masteredWidget, &ClickableWidget::clicked, this,
+             [] () { qDebug () << "Mastered widget clicked"; });
 }
