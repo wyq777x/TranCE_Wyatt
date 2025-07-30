@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Utility/ClickableWidget.h"
 #include "Utility/Constants.h"
 #include <ElaComboBox.h>
 #include <ElaContentDialog.h>
@@ -31,6 +32,7 @@
 #include <QStringListModel>
 #include <QVBoxLayout>
 #include <functional>
+
 
 class TempPage : public ElaScrollPage
 {

@@ -25,7 +25,7 @@ private slots:
     void enableHistorySearchListUI (bool enabled);
 
 private:
-    UIController () { initConnections (); }
+    explicit UIController () { initConnections (); }
 
     UIController (const UIController &) = delete;
     UIController &operator= (const UIController &) = delete;

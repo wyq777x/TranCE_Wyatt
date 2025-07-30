@@ -112,8 +112,7 @@ void QuizCard::initConnections ()
              [this] ()
              {
                  // Building...
-                 add2FavoritesButton->setAwesome (
-                     ElaIconType::HeartCircleCheck);
+                 add2FavoritesButton->setAwesome (ElaIconType::BookHeart);
                  qDebug () << "Add to Favorites clicked";
              });
 

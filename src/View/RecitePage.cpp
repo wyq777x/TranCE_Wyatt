@@ -9,6 +9,12 @@ RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
     initConnections ();
 }
 
+void RecitePage::onReciteButtonClicked ()
+{
+    // Building...
+    qDebug () << "Recite button clicked";
+}
+
 void RecitePage::initUI ()
 {
     centralWidget = new QWidget (this);
@@ -109,4 +115,6 @@ void RecitePage::initUI ()
 void RecitePage::initConnections ()
 {
     // Building...
+    connect (reciteButton, &ElaPushButton::clicked, this,
+             &RecitePage::onReciteButtonClicked);
 }

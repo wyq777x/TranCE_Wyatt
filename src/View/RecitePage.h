@@ -18,6 +18,9 @@ public:
         totalProgress = total;
     }
 
+private slots:
+    void onReciteButtonClicked ();
+
 private:
     void initUI ();
     void initConnections ();

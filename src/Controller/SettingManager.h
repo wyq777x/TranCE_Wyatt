@@ -33,7 +33,7 @@ private slots:
     void onLanguageChanged (const QString &lang);
 
 private:
-    SettingManager () { initConnections (); }
+    explicit SettingManager () { initConnections (); }
     SettingManager (const SettingManager &) = delete;
     SettingManager &operator= (const SettingManager &) = delete;
     SettingManager (SettingManager &&) = delete;
