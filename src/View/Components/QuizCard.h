@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Utility/Constants.h"
+#include "Utility/WordEntry.h"
 #include "View/TempPage.h"
 
 class QuizCard : public TempPage
@@ -13,6 +14,8 @@ public:
         static QuizCard instance (parent);
         return &instance;
     }
+
+    void setWordEntry (WordEntry &entry);
 
 private:
     explicit QuizCard (QWidget *parent = nullptr);
@@ -39,4 +42,6 @@ private:
     ElaIconButton *add2FavoritesButton =
         new ElaIconButton (Constants::UI::UNLIKE_ICON);
     ElaIconButton *masterButton = new ElaIconButton (ElaIconType::Book);
+
+    WordEntry currentWordEntry;
 };

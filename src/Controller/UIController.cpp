@@ -1,6 +1,7 @@
 #include "UIController.h"
 #include "Controller/AccountManager.h"
 #include "Model/AppSettingModel.h"
+#include "View/Components/QuizCard.h"
 #include "View/Components/WordCard.h"
 
 void UIController::showWordCard (WordEntry &entry, QWidget *parent)
@@ -12,6 +13,16 @@ void UIController::showWordCard (WordEntry &entry, QWidget *parent)
         AccountManager::getInstance ().isLoggedIn ());
 
     wordCard->show ();
+}
+
+void UIController::showQuizCard (WordEntry &entry, QWidget *parent)
+{
+    // Building...
+    QuizCard *quizCard = QuizCard::getInstance (parent);
+
+    // Set the word entry for the quiz card
+
+    quizCard->show ();
 }
 
 void UIController::enableHistorySearchListUI (bool enabled)

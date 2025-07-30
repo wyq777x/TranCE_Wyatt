@@ -12,6 +12,13 @@ QuizCard::QuizCard (QWidget *parent) : TempPage (parent)
     initConnections ();
 }
 
+void QuizCard::setWordEntry (WordEntry &entry)
+{
+    // Building...
+
+    currentWordEntry = entry;
+}
+
 void QuizCard::initUI ()
 {
     // UI Layout:
@@ -112,7 +119,8 @@ void QuizCard::initConnections ()
              [this] ()
              {
                  // Building...
-                 add2FavoritesButton->setAwesome (ElaIconType::BookHeart);
+
+                 add2FavoritesButton->setAwesome (Constants::UI::UNLIKE_ICON);
                  qDebug () << "Add to Favorites clicked";
              });
 
@@ -124,14 +132,30 @@ void QuizCard::initConnections ()
              });
 
     connect (optionAButton, &ElaPushButton::clicked, this,
-             [this] () { qDebug () << "Option A clicked"; });
+             [this] ()
+             {
+                 // Building...
+                 qDebug () << "Option A clicked";
+             });
 
     connect (optionBButton, &ElaPushButton::clicked, this,
-             [this] () { qDebug () << "Option B clicked"; });
+             [this] ()
+             {
+                 // Building...
+                 qDebug () << "Option B clicked";
+             });
 
     connect (optionCButton, &ElaPushButton::clicked, this,
-             [this] () { qDebug () << "Option C clicked"; });
+             [this] ()
+             {
+                 // Building...
+                 qDebug () << "Option C clicked";
+             });
 
     connect (optionDButton, &ElaPushButton::clicked, this,
-             [this] () { qDebug () << "Option D clicked"; });
+             [this] ()
+             {
+                 // Building...
+                 qDebug () << "Option D clicked";
+             });
 }

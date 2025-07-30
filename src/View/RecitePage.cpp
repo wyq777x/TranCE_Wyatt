@@ -1,4 +1,5 @@
 #include "RecitePage.h"
+#include "UIController.h"
 #include "Utility/ClickableWidget.h"
 #include "Utility/Constants.h"
 
@@ -13,6 +14,8 @@ RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
 void RecitePage::onReciteButtonClicked ()
 {
     // Building...
+    UIController::getInstance ().showQuizCard ();
+
     qDebug () << "Recite button clicked";
 }
 
