@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Utility/Constants.h"
 #include "View/TempPage.h"
 
 class QuizCard : public TempPage
@@ -35,6 +36,7 @@ private:
     ElaPushButton *optionCButton;
     ElaPushButton *optionDButton;
 
-    ElaIconButton *add2FavoritesButton = new ElaIconButton (ElaIconType::Heart);
+    ElaIconButton *add2FavoritesButton =
+        new ElaIconButton (Constants::UI::UNLIKE_ICON);
     ElaIconButton *masterButton = new ElaIconButton (ElaIconType::Book);
 };

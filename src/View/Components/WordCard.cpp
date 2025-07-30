@@ -97,10 +97,16 @@ void WordCard::initConnections ()
              {
                  // Building...
 
-                 add2FavoritesButton->setAwesome (
-                     ElaIconType::HeartCircleCheck);
+                 add2FavoritesButton->setAwesome (Constants::UI::LIKE_ICON);
                  qDebug () << "Add to Favorites clicked";
              });
+}
+
+void WordCard::setAdd2FavoritesButtonEnabled (bool enabled)
+{
+
+    add2FavoritesButton->setEnabled (enabled);
+    add2FavoritesButton->setVisible (enabled);
 }
 
 void WordCard::setWordEntry (WordEntry &entry)

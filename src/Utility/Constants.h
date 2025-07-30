@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Def.h"
 #include <QString>
 
 namespace Constants
@@ -118,6 +119,9 @@ const QString HISTORY_SEARCH_TEXT = "Enable History Search List";
 const QString LANGUAGE_SETTING_TEXT = "Software Language";
 const QString STATUS_ON = "ON";
 const QString STATUS_OFF = "OFF";
+
+const ElaIconType::IconName UNLIKE_ICON = ElaIconType::Heart;
+const ElaIconType::IconName LIKE_ICON = ElaIconType::HeartCircleCheck;
 
 } // namespace UI
 

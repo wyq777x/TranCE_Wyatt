@@ -1,11 +1,16 @@
 #include "UIController.h"
-#include "AppSettingModel.h"
+#include "Controller/AccountManager.h"
+#include "Model/AppSettingModel.h"
 #include "View/Components/WordCard.h"
 
 void UIController::showWordCard (WordEntry &entry, QWidget *parent)
 {
     WordCard *wordCard = WordCard::getInstance (parent);
     wordCard->setWordEntry (entry);
+
+    wordCard->setAdd2FavoritesButtonEnabled (
+        AccountManager::getInstance ().isLoggedIn ());
+
     wordCard->show ();
 }
 

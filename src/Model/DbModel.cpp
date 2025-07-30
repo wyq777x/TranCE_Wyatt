@@ -1368,6 +1368,19 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
     return std::vector<WordEntry> ();
 }
 
+void DbModel::addToUserFavorites (const QString &userId, const QString &word)
+{
+    // Building...
+    return;
+}
+
+void DbModel::removeFromUserFavorites (const QString &userId,
+                                       const QString &word)
+{
+    // Building...
+    return;
+}
+
 void DbModel::addToUserVocabulary (const QString &userId, const QString &word)
 {
     // Building...
@@ -1631,6 +1644,40 @@ void DbModel::addToSearchHistory (const QString &userId, const QString &word)
     catch (...)
     {
         logErr ("Unknown error adding to search history",
+                std::runtime_error ("Unknown exception"));
+    }
+}
+
+void DbModel::removeFromSearchHistory (const QString &userId,
+                                       const QString &word)
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "DELETE FROM user_search_history WHERE user_id = ? "
+                      "AND search_word = ?");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, word.toStdString ());
+        query.exec ();
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error removing from search history", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error removing from search history", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error removing from search history",
                 std::runtime_error ("Unknown exception"));
     }
 }

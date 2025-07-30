@@ -1,7 +1,9 @@
 #pragma once
 
+#include "Utility/Constants.h"
 #include "Utility/WordEntry.h"
 #include "View/TempPage.h"
+
 
 class WordCard : public TempPage
 {
@@ -13,6 +15,8 @@ public:
         static WordCard instance (parent);
         return &instance;
     }
+
+    void setAdd2FavoritesButtonEnabled (bool enabled);
 
     void setWordEntry (WordEntry &entry);
 
@@ -35,6 +39,5 @@ private:
     QLabel *translationLabel;
 
     ElaIconButton *add2FavoritesButton =
-        new ElaIconButton (ElaIconType::Heart); // Default unfavortite
-    ;
+        new ElaIconButton (Constants::UI::UNLIKE_ICON); // Default unfavortite
 };

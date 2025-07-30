@@ -84,6 +84,12 @@ void DbManager::addToSearchHistory (const QString &userId, const QString &word)
     DbModel::getInstance ().addToSearchHistory (userId, word);
 }
 
+void DbManager::removeFromSearchHistory (const QString &userId,
+                                         const QString &word)
+{
+    DbModel::getInstance ().removeFromSearchHistory (userId, word);
+}
+
 std::vector<QString> DbManager::getUserSearchHistory (const QString &userId)
 {
     return DbModel::getInstance ().getUserSearchHistory (userId);

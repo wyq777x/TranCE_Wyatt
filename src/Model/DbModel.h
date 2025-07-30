@@ -149,6 +149,14 @@ public:
                     "ON UPDATE CASCADE );");
 
                 user_db->exec (
+                    "CREATE TABLE IF NOT EXISTS user_favorites("
+                    "favorites_word_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    "user_id TEXT NOT NULL,"
+                    "word TEXT NOT NULL,"
+                    "FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                    "ON DELETE CASCADE ON UPDATE CASCADE );");
+
+                user_db->exec (
                     "CREATE TABLE IF NOT EXISTS user_vocabulary("
                     "user_id TEXT NOT NULL,"
                     "word TEXT NOT NULL,"
@@ -160,6 +168,10 @@ public:
                     "FOREIGN KEY(user_id) REFERENCES users(user_id) "
                     "ON DELETE CASCADE ON UPDATE CASCADE,"
                     "PRIMARY KEY (user_id, word));");
+
+                user_db->exec (
+                    "CREATE INDEX IF NOT EXISTS idx_user_favorites ON "
+                    "user_favorites(favorites_word_id, user_id);");
 
                 user_db->exec (
                     "CREATE INDEX IF NOT EXISTS idx_user_search_history "
@@ -320,6 +332,9 @@ public:
     std::vector<WordEntry> searchWords (const QString &pattern,
                                         const QString &srcLang, int limit = 10);
 
+    void addToUserFavorites (const QString &userId, const QString &word);
+    void removeFromUserFavorites (const QString &userId, const QString &word);
+
     void addToUserVocabulary (const QString &userId, const QString &word);
     void removeFromUserVocabulary (const QString &userId, const QString &word);
 
@@ -337,6 +352,7 @@ public:
     std::optional<std::vector<QString>> getSearchHistory ();
 
     void addToSearchHistory (const QString &userId, const QString &word);
+    void removeFromSearchHistory (const QString &userId, const QString &word);
 
     std::vector<QString> getUserSearchHistory (const QString &userId);
 
