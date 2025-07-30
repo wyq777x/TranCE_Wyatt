@@ -334,6 +334,7 @@ public:
 
     void addToUserFavorites (const QString &userId, const QString &word);
     void removeFromUserFavorites (const QString &userId, const QString &word);
+    bool isWordFavorited (const QString &userId, const QString &word);
 
     void addToUserVocabulary (const QString &userId, const QString &word);
     void removeFromUserVocabulary (const QString &userId, const QString &word);

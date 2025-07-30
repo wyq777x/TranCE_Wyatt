@@ -1370,15 +1370,111 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
 
 void DbModel::addToUserFavorites (const QString &userId, const QString &word)
 {
-    // Building...
-    return;
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return;
+    }
+
+    if (isWordFavorited (userId, word))
+    {
+        return;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db,
+            "INSERT INTO user_favorites (user_id, word) VALUES (?, ?)");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, word.toStdString ());
+        query.exec ();
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error adding word to favorites", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error adding word to favorites", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error adding word to favorites",
+                std::runtime_error ("Unknown exception"));
+    }
 }
 
 void DbModel::removeFromUserFavorites (const QString &userId,
                                        const QString &word)
 {
-    // Building...
-    return;
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db,
+            "DELETE FROM user_favorites WHERE user_id = ? AND word = ?");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, word.toStdString ());
+        query.exec ();
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error removing word from favorites", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error removing word from favorites", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error removing word from favorites",
+                std::runtime_error ("Unknown exception"));
+    }
+}
+
+bool DbModel::isWordFavorited (const QString &userId, const QString &word)
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return false;
+    }
+
+    try
+    {
+        SQLite::Statement query (*user_db,
+                                 "SELECT COUNT(*) FROM user_favorites WHERE "
+                                 "user_id = ? AND word = ?");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, word.toStdString ());
+        query.executeStep ();
+        return query.getColumn (0).getInt () > 0;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error checking if word is favorited", e);
+        return false;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error checking if word is favorited", e);
+        return false;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error checking if word is favorited",
+                std::runtime_error ("Unknown exception"));
+        return false;
+    }
 }
 
 void DbModel::addToUserVocabulary (const QString &userId, const QString &word)

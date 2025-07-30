@@ -4,7 +4,6 @@
 #include "Utility/WordEntry.h"
 #include "View/TempPage.h"
 
-
 class WordCard : public TempPage
 {
     Q_OBJECT
@@ -20,6 +19,14 @@ public:
 
     void setWordEntry (WordEntry &entry);
 
+    void updateAdd2FavoritesButton (); // update icon and tooltip
+
+    void addToUserFavorites (const QString &userId, const QString &word);
+
+    void removeFromUserFavorites (const QString &userId, const QString &word);
+private slots:
+    void onAdd2FavoritesClicked ();
+
 private:
     explicit WordCard (QWidget *parent = nullptr);
     WordCard () = delete;
@@ -28,6 +35,8 @@ private:
 
     void initUI ();
     void initConnections ();
+
+    bool isFavorite () const;
 
     // UI components
     QWidget *centralWidget;
@@ -40,4 +49,6 @@ private:
 
     ElaIconButton *add2FavoritesButton =
         new ElaIconButton (Constants::UI::UNLIKE_ICON); // Default unfavortite
+
+    WordEntry currentWordEntry;
 };

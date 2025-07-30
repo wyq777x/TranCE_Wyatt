@@ -46,8 +46,13 @@ public:
 
     std::optional<WordEntry> getRandomWord ();
 
+    void addToUserFavorites (const QString &userId, const QString &word);
+    void removeFromUserFavorites (const QString &userId, const QString &word);
+    bool isWordFavorited (const QString &userId, const QString &word);
+
     void addToSearchHistory (const QString &userId, const QString &word);
     void removeFromSearchHistory (const QString &userId, const QString &word);
+
     std::vector<QString> getUserSearchHistory (const QString &userId);
     std::vector<WordEntry>
     getUserHistorySearchVector (const QString &user_uuid);

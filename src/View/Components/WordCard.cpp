@@ -1,4 +1,6 @@
 #include "WordCard.h"
+#include "Controller/AccountManager.h"
+#include "Controller/DbManager.h"
 #include "Utility/Constants.h"
 
 WordCard::WordCard (QWidget *parent) : TempPage (parent)
@@ -93,13 +95,7 @@ void WordCard::initUI ()
 void WordCard::initConnections ()
 {
     connect (add2FavoritesButton, &ElaIconButton::clicked, this,
-             [this] ()
-             {
-                 // Building...
-
-                 add2FavoritesButton->setAwesome (Constants::UI::LIKE_ICON);
-                 qDebug () << "Add to Favorites clicked";
-             });
+             &WordCard::onAdd2FavoritesClicked);
 }
 
 void WordCard::setAdd2FavoritesButtonEnabled (bool enabled)
@@ -111,6 +107,7 @@ void WordCard::setAdd2FavoritesButtonEnabled (bool enabled)
 
 void WordCard::setWordEntry (WordEntry &entry)
 {
+    currentWordEntry = entry;
 
     wordLabel->setText (entry.word);
 
@@ -153,4 +150,81 @@ void WordCard::setWordEntry (WordEntry &entry)
     }
 
     translationLabel->setText (translationText);
+
+    updateAdd2FavoritesButton (); // update icon and tooltip
+}
+
+void WordCard::updateAdd2FavoritesButton ()
+{
+    if (isFavorite ())
+    {
+        add2FavoritesButton->setAwesome (Constants::UI::LIKE_ICON);
+        add2FavoritesButton->setToolTip (tr ("Remove from Favorites"));
+    }
+    else
+    {
+        add2FavoritesButton->setAwesome (Constants::UI::UNLIKE_ICON);
+        add2FavoritesButton->setToolTip (tr ("Add to Favorites"));
+    }
+}
+
+void WordCard::addToUserFavorites (const QString &userId, const QString &word)
+{
+    DbManager::getInstance ().addToUserFavorites (userId, word);
+}
+
+void WordCard::removeFromUserFavorites (const QString &userId,
+                                        const QString &word)
+{
+    DbManager::getInstance ().removeFromUserFavorites (userId, word);
+}
+
+bool WordCard::isFavorite () const
+{
+    if (!AccountManager::getInstance ().isLoggedIn ())
+    {
+        return false;
+    }
+
+    QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+
+    if (userId.isEmpty () || currentWordEntry.word.isEmpty ())
+    {
+        return false;
+    }
+
+    return DbManager::getInstance ().isWordFavorited (userId,
+                                                      currentWordEntry.word);
+}
+void WordCard::onAdd2FavoritesClicked ()
+{
+    if (!AccountManager::getInstance ().isLoggedIn ())
+    {
+        qDebug () << "User not logged in, cannot modify favorites";
+        return;
+    }
+
+    QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+
+    if (userId.isEmpty () || currentWordEntry.word.isEmpty ())
+    {
+        qDebug () << "Invalid user ID or word, cannot modify favorites";
+        return;
+    }
+
+    if (isFavorite ())
+    {
+        removeFromUserFavorites (userId, currentWordEntry.word);
+        qDebug () << "Removed word from favorites:" << currentWordEntry.word;
+    }
+    else
+    {
+        addToUserFavorites (userId, currentWordEntry.word);
+        qDebug () << "Added word to favorites:" << currentWordEntry.word;
+    }
+
+    // Update button state and tooltip
+    updateAdd2FavoritesButton ();
 }

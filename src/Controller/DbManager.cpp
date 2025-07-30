@@ -79,6 +79,22 @@ std::optional<WordEntry> DbManager::getRandomWord ()
     return DbModel::getInstance ().getRandomWord ();
 }
 
+void DbManager::addToUserFavorites (const QString &userId, const QString &word)
+{
+    DbModel::getInstance ().addToUserFavorites (userId, word);
+}
+
+void DbManager::removeFromUserFavorites (const QString &userId,
+                                         const QString &word)
+{
+    DbModel::getInstance ().removeFromUserFavorites (userId, word);
+}
+
+bool DbManager::isWordFavorited (const QString &userId, const QString &word)
+{
+    return DbModel::getInstance ().isWordFavorited (userId, word);
+}
+
 void DbManager::addToSearchHistory (const QString &userId, const QString &word)
 {
     DbModel::getInstance ().addToSearchHistory (userId, word);
