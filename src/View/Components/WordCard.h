@@ -19,8 +19,6 @@ public:
 
     void setWordEntry (WordEntry &entry);
 
-    void updateAdd2FavoritesButton (); // update icon and tooltip
-
     void addToUserFavorites (const QString &userId, const QString &word);
 
     void removeFromUserFavorites (const QString &userId, const QString &word);
@@ -37,6 +35,8 @@ private:
     void initConnections ();
 
     bool isFavorite () const;
+
+    void updateAdd2FavoritesButton (); // update icon and tooltip
 
     // UI components
     QWidget *centralWidget;

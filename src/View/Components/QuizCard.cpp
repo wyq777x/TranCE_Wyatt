@@ -1,4 +1,6 @@
 #include "QuizCard.h"
+#include "Controller/AccountManager.h"
+#include "Controller/DbManager.h"
 #include "Utility/Constants.h"
 
 QuizCard::QuizCard (QWidget *parent) : TempPage (parent)
@@ -17,6 +19,10 @@ void QuizCard::setWordEntry (WordEntry &entry)
     // Building...
 
     currentWordEntry = entry;
+
+    wordLabel->setText (entry.word);
+
+    updateAdd2FavoritesButton ();
 }
 
 void QuizCard::initUI ()
@@ -158,4 +164,38 @@ void QuizCard::initConnections ()
                  // Building...
                  qDebug () << "Option D clicked";
              });
+}
+
+bool QuizCard::isFavorite () const
+{
+
+    if (!AccountManager::getInstance ().isLoggedIn ())
+    {
+        return false;
+    }
+
+    QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+
+    if (userId.isEmpty () || currentWordEntry.word.isEmpty ())
+    {
+        return false;
+    }
+
+    return DbManager::getInstance ().isWordFavorited (userId,
+                                                      currentWordEntry.word);
+}
+
+void QuizCard::updateAdd2FavoritesButton ()
+{
+    if (isFavorite ())
+    {
+        add2FavoritesButton->setAwesome (Constants::UI::LIKE_ICON);
+        add2FavoritesButton->setToolTip (tr ("Remove from Favorites"));
+    }
+    else
+    {
+        add2FavoritesButton->setAwesome (Constants::UI::UNLIKE_ICON);
+        add2FavoritesButton->setToolTip (tr ("Add to Favorites"));
+    }
 }

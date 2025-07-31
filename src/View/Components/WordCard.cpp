@@ -154,20 +154,6 @@ void WordCard::setWordEntry (WordEntry &entry)
     updateAdd2FavoritesButton (); // update icon and tooltip
 }
 
-void WordCard::updateAdd2FavoritesButton ()
-{
-    if (isFavorite ())
-    {
-        add2FavoritesButton->setAwesome (Constants::UI::LIKE_ICON);
-        add2FavoritesButton->setToolTip (tr ("Remove from Favorites"));
-    }
-    else
-    {
-        add2FavoritesButton->setAwesome (Constants::UI::UNLIKE_ICON);
-        add2FavoritesButton->setToolTip (tr ("Add to Favorites"));
-    }
-}
-
 void WordCard::addToUserFavorites (const QString &userId, const QString &word)
 {
     DbManager::getInstance ().addToUserFavorites (userId, word);
@@ -197,6 +183,21 @@ bool WordCard::isFavorite () const
     return DbManager::getInstance ().isWordFavorited (userId,
                                                       currentWordEntry.word);
 }
+
+void WordCard::updateAdd2FavoritesButton ()
+{
+    if (isFavorite ())
+    {
+        add2FavoritesButton->setAwesome (Constants::UI::LIKE_ICON);
+        add2FavoritesButton->setToolTip (tr ("Remove from Favorites"));
+    }
+    else
+    {
+        add2FavoritesButton->setAwesome (Constants::UI::UNLIKE_ICON);
+        add2FavoritesButton->setToolTip (tr ("Add to Favorites"));
+    }
+}
+
 void WordCard::onAdd2FavoritesClicked ()
 {
     if (!AccountManager::getInstance ().isLoggedIn ())

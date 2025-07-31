@@ -27,6 +27,10 @@ private:
     void initUI ();
     void initConnections ();
 
+    bool isFavorite () const;
+
+    void updateAdd2FavoritesButton (); // update icon and tooltip
+
     // UI components
     QWidget *centralWidget;
     QVBoxLayout *mainLayout;
