@@ -31,8 +31,6 @@ void RecitePage::onLogoutSuccessful ()
     // Building ...
     setProgress (0, 15);
 
-    updateProgressUI (0, 15);
-
     // reset Favorites and Mastered widgets
 }
 
@@ -185,6 +183,9 @@ void RecitePage::initConnections ()
 
     connect (&AccountManager::getInstance (), &AccountManager::logoutSuccessful,
              this, &RecitePage::onLogoutSuccessful);
+
+    connect (this, &RecitePage::progressUpdated, this,
+             &RecitePage::updateProgressUI);
 
     connect (reciteButton, &ElaPushButton::clicked, this,
              &RecitePage::onReciteButtonClicked);

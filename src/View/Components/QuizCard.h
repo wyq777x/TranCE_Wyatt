@@ -23,6 +23,8 @@ public:
 
     // shuffle reciteOptions
 
+    void shuffleReciteOptions ();
+
     // set reciteOptions in quizCard
 
 private:

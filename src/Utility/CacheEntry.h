@@ -1,13 +1,9 @@
 #pragma once
-#include <QByteArray>
+
 #include <QPixmap>
 #include <chrono>
-#include <functional>
-#include <list>
 #include <memory>
-#include <optional>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 template <typename T>

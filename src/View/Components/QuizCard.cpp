@@ -2,6 +2,8 @@
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
 #include "Utility/Constants.h"
+#include <algorithm>
+#include <random>
 
 QuizCard::QuizCard (QWidget *parent) : TempPage (parent)
 {
@@ -42,6 +44,14 @@ void QuizCard::fillReciteOptions ()
                           wrongTranslations.end ());
 }
 
+void QuizCard::shuffleReciteOptions ()
+{
+    // Building...
+    std::random_device rd;
+    std::mt19937 g (rd ());
+
+    std::shuffle (reciteOptions.begin (), reciteOptions.end (), g);
+}
 void QuizCard::initUI ()
 {
     // UI Layout:
