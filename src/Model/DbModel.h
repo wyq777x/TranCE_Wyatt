@@ -12,7 +12,9 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <memory>
 #include <optional>
+#include <utility>
 #include <vector>
+
 
 class DbModel
 {
@@ -148,6 +150,15 @@ public:
                     "ON DELETE CASCADE "
                     "ON UPDATE CASCADE );");
 
+                user_db->exec ("CREATE TABLE IF NOT EXISTS user_progress("
+                               "user_id TEXT PRIMARY KEY,"
+                               "total_words INTEGER DEFAULT 15,"
+                               "current_progress INTEGER DEFAULT 0 CHECK "
+                               "(current_progress >= 0 AND current_progress <= "
+                               "total_words), "
+                               "FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                               "ON DELETE CASCADE ON UPDATE CASCADE);");
+
                 user_db->exec (
                     "CREATE TABLE IF NOT EXISTS user_favorites("
                     "favorites_word_id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -252,30 +263,6 @@ public:
                                "FOREIGN KEY(word) REFERENCES words(word)"
                                "ON DELETE CASCADE ON UPDATE CASCADE);");
 
-                // User learning progress table "user_progress"
-
-                dict_db->exec (
-                    "CREATE TABLE IF NOT EXISTS user_progress("
-                    "user_id TEXT NOT NULL," // write from user.db every time
-                                             // when user logs in (MUST)
-                    "source_word TEXT NOT NULL,"
-                    "target_word TEXT NOT NULL,"
-                    "source_language TEXT NOT NULL,"
-                    "target_language TEXT NOT NULL,"
-                    "correct_count INTEGER DEFAULT 0,"
-                    "incorrect_count INTEGER DEFAULT 0,"
-                    "last_reviewed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-                    "mastery_level INTEGER DEFAULT 0,"
-                    "study_streak INTEGER DEFAULT 0,"
-                    "PRIMARY KEY (user_id, source_word, target_word, "
-                    "source_language, target_language),"
-                    "FOREIGN KEY(source_word) REFERENCES words(word) ON DELETE "
-                    "CASCADE,"
-                    "FOREIGN KEY(target_word) REFERENCES words(word) ON DELETE "
-                    "CASCADE,"
-                    "FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE "
-                    "CASCADE);");
-
                 // Index for boosting performance
                 dict_db->exec ("CREATE INDEX IF NOT EXISTS idx_words_word ON "
                                "words(word);");
@@ -350,12 +337,12 @@ public:
 
     std::optional<WordEntry> getRandomWord ();
 
-    std::optional<std::vector<QString>> getSearchHistory ();
-
     void addToSearchHistory (const QString &userId, const QString &word);
     void removeFromSearchHistory (const QString &userId, const QString &word);
 
     std::vector<QString> getUserSearchHistory (const QString &userId);
+
+    std::pair<int, int> getProgress (const QString &userId) const;
 
 private:
     explicit DbModel () : user_db (nullptr), dict_db (nullptr) { initDBs (); }

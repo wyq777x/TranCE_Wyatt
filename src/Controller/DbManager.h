@@ -4,7 +4,9 @@
 #include "Utility/Result.h"
 #include "Utility/WordEntry.h"
 #include <optional>
+#include <utility>
 #include <vector>
+
 
 class DbManager
 {
@@ -56,6 +58,8 @@ public:
     std::vector<QString> getUserSearchHistory (const QString &userId);
     std::vector<WordEntry>
     getUserHistorySearchVector (const QString &user_uuid);
+
+    std::pair<int, int> getProgress (const QString &userId) const;
 
 private:
     DbManager () = default;

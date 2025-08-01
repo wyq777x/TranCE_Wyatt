@@ -20,7 +20,7 @@ void UIController::showQuizCard (WordEntry &entry, QWidget *parent)
     // Building...
     QuizCard *quizCard = QuizCard::getInstance (parent);
 
-    // Set the word entry for the quiz card
+    quizCard->setWordEntry (entry);
 
     quizCard->show ();
 }

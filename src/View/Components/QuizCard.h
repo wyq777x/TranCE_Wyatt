@@ -48,4 +48,7 @@ private:
     ElaIconButton *masterButton = new ElaIconButton (ElaIconType::Book);
 
     WordEntry currentWordEntry;
+
+    std::vector<WordEntry> reciteWordEntries;
+    int currentReciteIndex = 0;
 };

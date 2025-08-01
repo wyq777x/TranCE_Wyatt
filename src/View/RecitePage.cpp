@@ -1,5 +1,7 @@
 #include "RecitePage.h"
-#include "UIController.h"
+#include "Controller/AccountManager.h"
+#include "Controller/DbManager.h"
+#include "Controller/UIController.h"
 #include "Utility/ClickableWidget.h"
 #include "Utility/Constants.h"
 
@@ -11,12 +13,44 @@ RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
     initConnections ();
 }
 
+void RecitePage::onLoginSuccessful ()
+{
+    // Building ...
+
+    std::pair<int, int> progress = DbManager::getInstance ().getProgress (
+        AccountManager::getInstance ().getUserUuid (
+            AccountManager::getInstance ().getUsername ()));
+
+    setProgress (progress.first, progress.second);
+
+    // update Favorites and Mastered widgets
+}
+
+void RecitePage::onLogoutSuccessful ()
+{
+    // Building ...
+    setProgress (0, 15);
+
+    updateProgressUI (0, 15);
+
+    // reset Favorites and Mastered widgets
+}
+
 void RecitePage::onReciteButtonClicked ()
 {
     // Building...
     UIController::getInstance ().showQuizCard ();
 
     qDebug () << "Recite button clicked";
+}
+
+void RecitePage::updateProgressUI (int current, int total)
+{
+    if (progressLabel)
+    {
+        progressLabel->setText (
+            tr ("Progress: %1/%2").arg (current).arg (total));
+    }
 }
 
 void RecitePage::initUI ()
@@ -145,6 +179,13 @@ void RecitePage::initUI ()
 void RecitePage::initConnections ()
 {
     // Building...
+
+    connect (&AccountManager::getInstance (), &AccountManager::loginSuccessful,
+             this, &RecitePage::onLoginSuccessful);
+
+    connect (&AccountManager::getInstance (), &AccountManager::logoutSuccessful,
+             this, &RecitePage::onLogoutSuccessful);
+
     connect (reciteButton, &ElaPushButton::clicked, this,
              &RecitePage::onReciteButtonClicked);
 

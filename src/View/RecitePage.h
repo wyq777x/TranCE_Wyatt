@@ -13,14 +13,24 @@ public:
     {
         return {currentProgress, totalProgress};
     }
+
     void setProgress (int current, int total)
     {
         currentProgress = current;
         totalProgress = total;
+
+        emit progressUpdated (currentProgress, totalProgress);
     }
 
+signals:
+    void progressUpdated (int current, int total);
+
 private slots:
+    void onLoginSuccessful ();
+    void onLogoutSuccessful ();
     void onReciteButtonClicked ();
+
+    void updateProgressUI (int current, int total);
 
 private:
     void initUI ();
@@ -50,5 +60,5 @@ private:
     QHBoxLayout *masteredWidgetLayout;
 
     int currentProgress = 0;
-    int totalProgress = 50;
+    int totalProgress = 15;
 };

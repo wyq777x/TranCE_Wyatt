@@ -1818,3 +1818,53 @@ std::vector<QString> DbModel::getUserSearchHistory (const QString &userId)
 
     return history;
 }
+
+std::pair<int, int> DbModel::getProgress (const QString &userId) const
+{
+
+    int currentProgress = 0;
+    int totalWords = 15;
+
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return {0, 15};
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "SELECT current_progress,total_words FROM user_progress "
+                      "WHERE user_id = ?");
+
+        query.bind (1, userId.toStdString ());
+
+        if (query.executeStep ())
+        {
+            currentProgress = query.getColumn (0).getInt ();
+            totalWords = query.getColumn (1).getInt ();
+
+            return {currentProgress, totalWords};
+        }
+
+        return {currentProgress, totalWords};
+    }
+    catch (const SQLite::Exception &e)
+    {
+
+        logErr ("Error getting user progress", e);
+        return {currentProgress, totalWords};
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting user progress", e);
+        return {currentProgress, totalWords};
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting user progress",
+                std::runtime_error ("Unknown exception"));
+        return {currentProgress, totalWords};
+    }
+}
