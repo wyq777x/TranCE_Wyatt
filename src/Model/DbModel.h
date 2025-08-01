@@ -12,9 +12,10 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <memory>
 #include <optional>
+#include <random>
+#include <set>
 #include <utility>
 #include <vector>
-
 
 class DbModel
 {
@@ -343,6 +344,10 @@ public:
     std::vector<QString> getUserSearchHistory (const QString &userId);
 
     std::pair<int, int> getProgress (const QString &userId) const;
+
+    std::vector<QString>
+    getRandomWrongTranslations (const QString &correctTranslation,
+                                int limit = 3);
 
 private:
     explicit DbModel () : user_db (nullptr), dict_db (nullptr) { initDBs (); }

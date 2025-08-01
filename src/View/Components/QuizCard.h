@@ -17,6 +17,14 @@ public:
 
     void setWordEntry (WordEntry &entry);
 
+    // extract 3 translations randomly and push them into reciteOptions
+
+    void fillReciteOptions ();
+
+    // shuffle reciteOptions
+
+    // set reciteOptions in quizCard
+
 private:
     explicit QuizCard (QWidget *parent = nullptr);
 
@@ -51,4 +59,6 @@ private:
 
     std::vector<WordEntry> reciteWordEntries;
     int currentReciteIndex = 0;
+
+    std::vector<QString> reciteOptions;
 };

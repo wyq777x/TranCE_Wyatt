@@ -18,11 +18,28 @@ void QuizCard::setWordEntry (WordEntry &entry)
 {
     // Building...
 
+    reciteOptions.clear ();
+
     currentWordEntry = entry;
 
     wordLabel->setText (entry.word);
 
     updateAdd2FavoritesButton ();
+
+    reciteOptions.emplace_back (entry.translation);
+}
+
+void QuizCard::fillReciteOptions ()
+{
+
+    // Building...
+
+    std::vector<QString> wrongTranslations =
+        DbManager::getInstance ().getRandomWrongTranslations (
+            currentWordEntry.translation, 3);
+
+    reciteOptions.insert (reciteOptions.end (), wrongTranslations.begin (),
+                          wrongTranslations.end ());
 }
 
 void QuizCard::initUI ()

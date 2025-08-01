@@ -1868,3 +1868,103 @@ std::pair<int, int> DbModel::getProgress (const QString &userId) const
         return {currentProgress, totalWords};
     }
 }
+
+std::vector<QString>
+DbModel::getRandomWrongTranslations (const QString &correctTranslation,
+                                     int limit)
+{
+    // Building...
+    std::vector<QString> wrongTranslations;
+    if (!isDictDbOpen ())
+    {
+        logErr ("Dictionary database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return std::vector<QString> ();
+    }
+
+    if (correctTranslation.isEmpty () || limit <= 0)
+    {
+        logErr ("Invalid input for getting wrong translations",
+                std::runtime_error ("Correct translation is empty or limit "
+                                    "is not positive"));
+        return std::vector<QString> ();
+    }
+    try
+    {
+        SQLite::Statement query (
+            *dict_db, "SELECT MIN(translation_id), MAX(translation_id) FROM "
+                      "word_translations; ");
+        query.executeStep ();
+        int minId = query.getColumn (0).getInt ();
+        int maxId = query.getColumn (1).getInt ();
+
+        if (minId == maxId)
+        {
+            logErr ("No translations found in the database",
+                    std::runtime_error ("No translations available"));
+            return std::vector<QString> ();
+        }
+
+        // Generate random IDs excluding the correct translation
+
+        std::set<int> usedIds;
+        std::random_device rd;
+        std::mt19937 gen (rd ());
+        std::uniform_int_distribution<> dis (minId, maxId);
+
+        while (wrongTranslations.size () < limit)
+        {
+            int randomId = dis (gen);
+            if (usedIds.count (randomId) > 0)
+            {
+                continue; // Already used this ID
+            }
+            usedIds.insert (randomId);
+
+            SQLite::Statement translationQuery (
+                *dict_db, "SELECT target_word FROM word_translations "
+                          "WHERE translation_id = ? AND target_word != ?");
+            translationQuery.bind (1, randomId);
+            translationQuery.bind (2, correctTranslation.toStdString ());
+
+            if (translationQuery.executeStep ())
+            {
+                QString translation = QString::fromStdString (
+                    translationQuery.getColumn (0).getString ());
+                if (!translation.isEmpty ())
+                {
+                    wrongTranslations.emplace_back (translation);
+                }
+            }
+            if (wrongTranslations.size () >= limit)
+            {
+                break;
+            }
+        }
+
+        if (wrongTranslations.empty ())
+        {
+            logErr ("No wrong translations found",
+                    std::runtime_error ("No valid translations available"));
+            return std::vector<QString> ();
+        }
+
+        return wrongTranslations;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error preparing query for wrong translations", e);
+        return std::vector<QString> ();
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error preparing query for wrong translations", e);
+        return std::vector<QString> ();
+    }
+    catch (...)
+    {
+        logErr ("Unknown error preparing query for wrong translations",
+                std::runtime_error ("Unknown exception"));
+        return std::vector<QString> ();
+    }
+}

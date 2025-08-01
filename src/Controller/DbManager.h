@@ -7,7 +7,6 @@
 #include <utility>
 #include <vector>
 
-
 class DbManager
 {
 
@@ -60,6 +59,9 @@ public:
     getUserHistorySearchVector (const QString &user_uuid);
 
     std::pair<int, int> getProgress (const QString &userId) const;
+
+    std::vector<QString>
+    getRandomWrongTranslations (const QString &correctTranslation, int limit);
 
 private:
     DbManager () = default;

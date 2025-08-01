@@ -134,3 +134,11 @@ std::pair<int, int> DbManager::getProgress (const QString &userId) const
 {
     return DbModel::getInstance ().getProgress (userId);
 }
+
+std::vector<QString>
+DbManager::getRandomWrongTranslations (const QString &correctTranslation,
+                                       int limit)
+{
+    return DbModel::getInstance ().getRandomWrongTranslations (
+        correctTranslation, limit);
+}
