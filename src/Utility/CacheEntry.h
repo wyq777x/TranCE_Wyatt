@@ -55,7 +55,8 @@ public:
         expirationTime = exp;
     }
 
-    static std::size_t calculateSize (const std::string &key, const T &value)
+    static constexpr std::size_t calculateSize (const std::string &key,
+                                                const T &value)
     {
         if constexpr (std::is_same_v<T, std::string>)
         {

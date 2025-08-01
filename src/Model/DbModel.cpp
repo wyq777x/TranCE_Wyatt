@@ -1440,7 +1440,7 @@ void DbModel::removeFromUserFavorites (const QString &userId,
     }
 }
 
-bool DbModel::isWordFavorited (const QString &userId, const QString &word)
+bool DbModel::isWordFavorited (const QString &userId, const QString &word) const
 {
     if (!isUserDbOpen ())
     {
