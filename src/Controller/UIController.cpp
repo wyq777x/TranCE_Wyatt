@@ -15,6 +15,21 @@ void UIController::showWordCard (WordEntry &entry, QWidget *parent)
     wordCard->show ();
 }
 
+QuizCard *UIController::showQuizCard (WordEntry &entry, QWidget *parent)
+{
+    QuizCard *quizCard = QuizCard::getInstance (parent);
+    quizCard->setWordEntry (entry);
+    quizCard->setAdd2FavoritesButtonEnabled (
+        AccountManager::getInstance ().isLoggedIn ());
+    quizCard->fillReciteOptions ();
+    quizCard->shuffleReciteOptions ();
+    quizCard->setReciteOptions (quizCard->getReciteOptions ());
+
+    quizCard->show ();
+
+    return quizCard;
+}
+
 void UIController::enableHistorySearchListUI (bool enabled)
 {
     emit historySearchListUIChanged (enabled);

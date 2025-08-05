@@ -1,6 +1,7 @@
 #include "RecitePage.h"
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
+#include "Controller/UIController.h"
 #include "Utility/ClickableWidget.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
@@ -258,23 +259,19 @@ void RecitePage::showNextQuizCard ()
     {
         showCompletionDialog ();
 
-        quizCard->close ();
+        if (quizCard)
+        {
+            quizCard->close ();
+        }
 
         return;
     }
 
-    quizCard = QuizCard::getInstance ();
-    quizCard->setWordEntry (Card_amount[currentCardIndex]);
-    quizCard->setAdd2FavoritesButtonEnabled (
-        AccountManager::getInstance ().isLoggedIn ());
-    quizCard->fillReciteOptions ();
-    quizCard->shuffleReciteOptions ();
-    quizCard->setReciteOptions (quizCard->getReciteOptions ());
+    quizCard = UIController::getInstance ().showQuizCard (
+        Card_amount[currentCardIndex], this);
 
     connect (quizCard, &QuizCard::optionSelected, this,
              &RecitePage::handleQuizCardOptionSelected, Qt::UniqueConnection);
-
-    quizCard->show ();
 }
 
 void RecitePage::handleQuizCardOptionSelected ()
@@ -285,7 +282,10 @@ void RecitePage::handleQuizCardOptionSelected ()
     if (currentCardIndex >= totalProgress)
     {
         showCompletionDialog ();
-        quizCard->close ();
+        if (quizCard)
+        {
+            quizCard->close ();
+        }
     }
     else
     {

@@ -3,7 +3,6 @@
 #include "Components/QuizCard.h"
 #include "Utility/WordEntry.h"
 #include <QObject>
-#include <qwidget.h>
 
 class UIController : public QObject
 {
@@ -17,6 +16,8 @@ public:
     }
 
     void showWordCard (WordEntry &entry, QWidget *parent = nullptr);
+
+    QuizCard *showQuizCard (WordEntry &entry, QWidget *parent = nullptr);
 
     void notifySearchHistoryUpdated ();
 
