@@ -95,6 +95,8 @@ public:
 
     bool userExists (const QString &username) const;
 
+    bool userIdExists (const QString &userId) const;
+
     static RegisterUserResult registerUser (const QString &username,
                                             const QString &passwordHash);
 

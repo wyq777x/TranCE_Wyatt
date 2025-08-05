@@ -3,6 +3,7 @@
 #include "Controller/DbManager.h"
 #include "Utility/ClickableWidget.h"
 #include "Utility/Constants.h"
+#include "Utility/Result.h"
 #include "View/Components/QuizCard.h"
 #include <QMessageBox>
 
@@ -189,24 +190,36 @@ void RecitePage::initConnections ()
     connect (this, &RecitePage::progressUpdated, this,
              &RecitePage::updateProgressUI);
 
-    connect (this, &RecitePage::progressUpdated, this,
-             [this] (int current, int total)
-             {
-                 // Building...
-                 if (AccountManager::getInstance ().isLoggedIn ())
-                 {
-                     QString userId =
-                         AccountManager::getInstance ().getUserUuid (
-                             AccountManager::getInstance ().getUsername ());
-                     if (!userId.isEmpty ())
-                     {
-                         // Update progress in the database
+    connect (
+        this, &RecitePage::progressUpdated, this,
+        [this] (int current, int total)
+        {
+            // Building...
+            if (AccountManager::getInstance ().isLoggedIn ())
+            {
+                QString userId = AccountManager::getInstance ().getUserUuid (
+                    AccountManager::getInstance ().getUsername ());
+                if (!userId.isEmpty ())
+                {
 
-                         qDebug () << "Progress updated in database:" << current
-                                   << "/" << total;
-                     }
-                 }
-             });
+                    auto result =
+                        DbManager::getInstance ().updateReciteProgress (
+                            current, total, userId);
+
+                    if (result != ChangeResult::Success)
+                    {
+                        qWarning ()
+                            << "Failed to update progress in database:"
+                            << getErrorMessage (result, ChangeResultMessage);
+
+                        return;
+                    }
+
+                    qDebug () << "Progress updated in database:" << current
+                              << "/" << total;
+                }
+            }
+        });
 
     connect (reciteButton, &ElaPushButton::clicked, this,
              &RecitePage::onReciteButtonClicked);

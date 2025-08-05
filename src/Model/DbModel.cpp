@@ -64,6 +64,41 @@ bool DbModel::userExists (const QString &username) const
     }
 }
 
+bool DbModel::userIdExists (const QString &userId) const
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return false;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "SELECT COUNT(*) FROM users WHERE user_id = ?");
+        query.bind (1, userId.toStdString ());
+        query.executeStep ();
+        return query.getColumn (0).getInt () > 0;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error checking if user exists", e);
+        return false;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error checking if user exists", e);
+        return false;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error checking if user exists",
+                std::runtime_error ("Unknown exception"));
+        return false;
+    }
+}
+
 RegisterUserResult DbModel::registerUser (const QString &username,
                                           const QString &passwordHash)
 {
@@ -443,14 +478,15 @@ ChangeResult DbModel::updateReciteProgress (int current, int total,
     try
     {
         SQLite::Statement query (*user_db,
-                                 "UPDATE user_progress SET current_progress = "
-                                 "?, total_words = ? WHERE user_id = ?");
-        query.bind (1, current);
-        query.bind (2, total);
-        query.bind (3, userId.toStdString ());
+                                 "INSERT OR REPLACE INTO user_progress "
+                                 "(user_id, current_progress, total_words) "
+                                 "VALUES (?, ?, ?)");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, current);
+        query.bind (3, total);
         query.exec ();
 
-        if (query.getChanges () == 0)
+        if (query.getChanges () == 0 && !userIdExists (userId))
         {
             logErr ("No changes made to user progress",
                     std::runtime_error ("User ID not found or no changes"));
