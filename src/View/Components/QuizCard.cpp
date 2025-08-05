@@ -52,6 +52,27 @@ void QuizCard::shuffleReciteOptions ()
 
     std::shuffle (reciteOptions.begin (), reciteOptions.end (), g);
 }
+
+void QuizCard::setReciteOptions (const std::vector<QString> &options)
+{
+
+    if (options.size () < 4)
+    {
+        qWarning () << "Not enough options to set in QuizCard";
+        return;
+    }
+
+    optionAButton->setText (options[0]);
+    optionBButton->setText (options[1]);
+    optionCButton->setText (options[2]);
+    optionDButton->setText (options[3]);
+
+    optionAButton->setEnabled (true);
+    optionBButton->setEnabled (true);
+    optionCButton->setEnabled (true);
+    optionDButton->setEnabled (true);
+}
+
 void QuizCard::initUI ()
 {
     // UI Layout:

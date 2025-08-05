@@ -27,6 +27,8 @@ public:
 
     // set reciteOptions in quizCard
 
+    void setReciteOptions (const std::vector<QString> &options);
+
 private:
     explicit QuizCard (QWidget *parent = nullptr);
 
