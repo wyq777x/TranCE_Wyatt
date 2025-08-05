@@ -1,6 +1,7 @@
 #pragma once
 #include "Utility/ClickableWidget.h"
 #include "Utility/WordEntry.h"
+#include "View/Components/QuizCard.h"
 #include "View/TempPage.h"
 #include <utility>
 
@@ -63,6 +64,8 @@ private:
     QLabel *masteredLabel;
     QVBoxLayout *masteredLayout;
     QHBoxLayout *masteredWidgetLayout;
+
+    QuizCard *quizCard;
 
     int currentProgress = 0;
     int totalProgress = 15;

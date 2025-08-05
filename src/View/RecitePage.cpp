@@ -240,10 +240,13 @@ void RecitePage::showNextQuizCard ()
     if (currentCardIndex >= Card_amount.size ())
     {
         showCompletionDialog ();
+
+        quizCard->close ();
+
         return;
     }
 
-    QuizCard *quizCard = QuizCard::getInstance ();
+    quizCard = QuizCard::getInstance ();
     quizCard->setWordEntry (Card_amount[currentCardIndex]);
     quizCard->fillReciteOptions ();
     quizCard->shuffleReciteOptions ();
@@ -263,6 +266,7 @@ void RecitePage::handleQuizCardOptionSelected ()
     if (currentCardIndex >= totalProgress)
     {
         showCompletionDialog ();
+        quizCard->close ();
     }
     else
     {
