@@ -2,6 +2,7 @@
 #include "SQLiteCpp/Exception.h"
 #include "SQLiteCpp/Statement.h"
 #include "SQLiteCpp/Transaction.h"
+#include "Utility/Result.h"
 #include <stdexcept>
 
 bool DbModel::isUserDbOpen () const
@@ -416,6 +417,12 @@ ChangeResult DbModel::changeAvatar (const QString &username,
                 std::runtime_error ("Unknown exception"));
         return ChangeResult::UnknownError;
     }
+}
+
+ChangeResult DbModel::updateReciteProgress (int current, int total)
+{
+    // Building...
+    return ChangeResult::Success;
 }
 
 std::optional<QString> DbModel::getUserId (const QString &username) const

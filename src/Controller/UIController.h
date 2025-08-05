@@ -19,13 +19,7 @@ public:
     void showWordCard (WordEntry &entry, QWidget *parent = nullptr);
 
     void showQuizCard (WordEntry &entry, QWidget *parent = nullptr);
-
-    // for debugging purposes
-    void showQuizCard (QWidget *parent = nullptr)
-    {
-        QuizCard *quizCard = QuizCard::getInstance (parent);
-        quizCard->show ();
-    }
+    void showQuizCard (QWidget *parent = nullptr);
 
     void notifySearchHistoryUpdated ();
 

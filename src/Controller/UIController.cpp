@@ -22,12 +22,19 @@ void UIController::showQuizCard (WordEntry &entry, QWidget *parent)
 
     quizCard->setWordEntry (entry);
 
-    // extract 3 translations randomly and push them into reciteOptions
+    quizCard->fillReciteOptions ();
 
-    // shuffle reciteOptions
+    quizCard->shuffleReciteOptions ();
 
-    // set reciteOptions in quizCard
+    quizCard->setReciteOptions (quizCard->getReciteOptions ());
 
+    quizCard->show ();
+}
+
+void UIController::showQuizCard (QWidget *parent)
+{
+
+    QuizCard *quizCard = QuizCard::getInstance (parent);
     quizCard->show ();
 }
 

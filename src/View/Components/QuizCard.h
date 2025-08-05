@@ -29,6 +29,11 @@ public:
 
     void setReciteOptions (const std::vector<QString> &options);
 
+    std::vector<QString> getReciteOptions () const { return reciteOptions; }
+
+signals:
+    void optionSelected (int optionIndex);
+
 private:
     explicit QuizCard (QWidget *parent = nullptr);
 

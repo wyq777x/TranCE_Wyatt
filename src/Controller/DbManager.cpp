@@ -59,6 +59,11 @@ ChangeResult DbManager::changeAvatar (const QString &username,
     return DbModel::getInstance ().changeAvatar (username, avatarPath);
 }
 
+ChangeResult DbManager::updateReciteProgress (int current, int total)
+{
+    return DbModel::getInstance ().updateReciteProgress (current, total);
+}
+
 std::optional<QString> DbManager::getUserId (const QString &username) const
 {
     return DbModel::getInstance ().getUserId (username);

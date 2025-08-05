@@ -1,5 +1,6 @@
 #pragma once
 #include "Utility/ClickableWidget.h"
+#include "Utility/WordEntry.h"
 #include "View/TempPage.h"
 #include <utility>
 
@@ -35,6 +36,10 @@ private slots:
 private:
     void initUI ();
     void initConnections ();
+    void initializeCardAmount ();
+    void showNextQuizCard ();
+    void handleQuizCardOptionSelected ();
+    void showCompletionDialog ();
 
     // UI components
     QWidget *centralWidget;
@@ -61,4 +66,7 @@ private:
 
     int currentProgress = 0;
     int totalProgress = 15;
+
+    std::vector<WordEntry> Card_amount;
+    int currentCardIndex = 0;
 };

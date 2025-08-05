@@ -189,6 +189,7 @@ void QuizCard::initConnections ()
              [this] ()
              {
                  // Building...
+                 emit optionSelected (0);
                  qDebug () << "Option A clicked";
              });
 
@@ -196,6 +197,7 @@ void QuizCard::initConnections ()
              [this] ()
              {
                  // Building...
+                 emit optionSelected (1);
                  qDebug () << "Option B clicked";
              });
 
@@ -203,6 +205,7 @@ void QuizCard::initConnections ()
              [this] ()
              {
                  // Building...
+                 emit optionSelected (2);
                  qDebug () << "Option C clicked";
              });
 
@@ -210,6 +213,7 @@ void QuizCard::initConnections ()
              [this] ()
              {
                  // Building...
+                 emit optionSelected (3);
                  qDebug () << "Option D clicked";
              });
 }

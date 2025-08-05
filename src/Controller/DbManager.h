@@ -41,6 +41,8 @@ public:
     ChangeResult changeAvatar (const QString &username,
                                const QString &avatarPath);
 
+    ChangeResult updateReciteProgress (int current, int total);
+
     std::optional<QString> getUserId (const QString &username) const;
     QString getUserEmail (const QString &username);
     QString getUserAvatarPath (const QString &username);

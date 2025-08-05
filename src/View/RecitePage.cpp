@@ -1,9 +1,10 @@
 #include "RecitePage.h"
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
-#include "Controller/UIController.h"
 #include "Utility/ClickableWidget.h"
 #include "Utility/Constants.h"
+#include "View/Components/QuizCard.h"
+#include <QMessageBox>
 
 RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
 {
@@ -11,6 +12,7 @@ RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
 
     initUI ();
     initConnections ();
+    initializeCardAmount ();
 }
 
 void RecitePage::onLoginSuccessful ()
@@ -36,8 +38,8 @@ void RecitePage::onLogoutSuccessful ()
 
 void RecitePage::onReciteButtonClicked ()
 {
-    // Building...
-    UIController::getInstance ().showQuizCard ();
+    currentCardIndex = 0;
+    showNextQuizCard ();
 
     qDebug () << "Recite button clicked";
 }
@@ -187,6 +189,25 @@ void RecitePage::initConnections ()
     connect (this, &RecitePage::progressUpdated, this,
              &RecitePage::updateProgressUI);
 
+    connect (this, &RecitePage::progressUpdated, this,
+             [this] (int current, int total)
+             {
+                 // Building...
+                 if (AccountManager::getInstance ().isLoggedIn ())
+                 {
+                     QString userId =
+                         AccountManager::getInstance ().getUserUuid (
+                             AccountManager::getInstance ().getUsername ());
+                     if (!userId.isEmpty ())
+                     {
+                         // Update progress in the database
+
+                         qDebug () << "Progress updated in database:" << current
+                                   << "/" << total;
+                     }
+                 }
+             });
+
     connect (reciteButton, &ElaPushButton::clicked, this,
              &RecitePage::onReciteButtonClicked);
 
@@ -195,4 +216,67 @@ void RecitePage::initConnections ()
 
     connect (masteredWidget, &ClickableWidget::clicked, this,
              [] () { qDebug () << "Mastered widget clicked"; });
+}
+
+void RecitePage::initializeCardAmount ()
+{
+    // Building...
+    Card_amount.clear ();
+    Card_amount.reserve (totalProgress);
+
+    for (int i = 0; i < totalProgress; ++i)
+    {
+        WordEntry entry;
+        entry.word = QString ("Word_%1").arg (i + 1);
+        entry.translation = QString ("Translation_%1").arg (i + 1);
+        Card_amount.emplace_back (entry);
+    }
+
+    currentCardIndex = 0;
+}
+
+void RecitePage::showNextQuizCard ()
+{
+    if (currentCardIndex >= Card_amount.size ())
+    {
+        showCompletionDialog ();
+        return;
+    }
+
+    QuizCard *quizCard = QuizCard::getInstance ();
+    quizCard->setWordEntry (Card_amount[currentCardIndex]);
+    quizCard->fillReciteOptions ();
+    quizCard->shuffleReciteOptions ();
+    quizCard->setReciteOptions (quizCard->getReciteOptions ());
+
+    connect (quizCard, &QuizCard::optionSelected, this,
+             &RecitePage::handleQuizCardOptionSelected, Qt::UniqueConnection);
+
+    quizCard->show ();
+}
+
+void RecitePage::handleQuizCardOptionSelected ()
+{
+    currentCardIndex++;
+    setProgress (currentCardIndex, totalProgress);
+
+    if (currentCardIndex >= totalProgress)
+    {
+        showCompletionDialog ();
+    }
+    else
+    {
+        showNextQuizCard ();
+    }
+}
+
+void RecitePage::showCompletionDialog ()
+{
+    QMessageBox::information (
+        this, tr ("Recitation Complete"),
+        tr ("Congratulations! You have completed one round of recitation."));
+
+    // Reset progress to initial state
+    setProgress (0, totalProgress);
+    currentCardIndex = 0;
 }
