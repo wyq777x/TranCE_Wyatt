@@ -18,9 +18,6 @@ public:
 
     void showWordCard (WordEntry &entry, QWidget *parent = nullptr);
 
-    void showQuizCard (WordEntry &entry, QWidget *parent = nullptr);
-    void showQuizCard (QWidget *parent = nullptr);
-
     void notifySearchHistoryUpdated ();
 
 signals:

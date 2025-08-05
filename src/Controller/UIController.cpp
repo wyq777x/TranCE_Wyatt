@@ -15,29 +15,6 @@ void UIController::showWordCard (WordEntry &entry, QWidget *parent)
     wordCard->show ();
 }
 
-void UIController::showQuizCard (WordEntry &entry, QWidget *parent)
-{
-    // Building...
-    QuizCard *quizCard = QuizCard::getInstance (parent);
-
-    quizCard->setWordEntry (entry);
-
-    quizCard->fillReciteOptions ();
-
-    quizCard->shuffleReciteOptions ();
-
-    quizCard->setReciteOptions (quizCard->getReciteOptions ());
-
-    quizCard->show ();
-}
-
-void UIController::showQuizCard (QWidget *parent)
-{
-
-    QuizCard *quizCard = QuizCard::getInstance (parent);
-    quizCard->show ();
-}
-
 void UIController::enableHistorySearchListUI (bool enabled)
 {
     emit historySearchListUIChanged (enabled);

@@ -265,6 +265,8 @@ void RecitePage::showNextQuizCard ()
 
     quizCard = QuizCard::getInstance ();
     quizCard->setWordEntry (Card_amount[currentCardIndex]);
+    quizCard->setAdd2FavoritesButtonEnabled (
+        AccountManager::getInstance ().isLoggedIn ());
     quizCard->fillReciteOptions ();
     quizCard->shuffleReciteOptions ();
     quizCard->setReciteOptions (quizCard->getReciteOptions ());

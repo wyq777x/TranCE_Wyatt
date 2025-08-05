@@ -16,10 +16,14 @@ QuizCard::QuizCard (QWidget *parent) : TempPage (parent)
     initConnections ();
 }
 
+void QuizCard::setAdd2FavoritesButtonEnabled (bool enabled)
+{
+    add2FavoritesButton->setEnabled (enabled);
+    add2FavoritesButton->setVisible (enabled);
+}
+
 void QuizCard::setWordEntry (WordEntry &entry)
 {
-    // Building...
-
     reciteOptions.clear ();
 
     currentWordEntry = entry;
@@ -33,9 +37,6 @@ void QuizCard::setWordEntry (WordEntry &entry)
 
 void QuizCard::fillReciteOptions ()
 {
-
-    // Building...
-
     std::vector<QString> wrongTranslations =
         DbManager::getInstance ().getRandomWrongTranslations (
             currentWordEntry.translation, 3);
@@ -46,7 +47,6 @@ void QuizCard::fillReciteOptions ()
 
 void QuizCard::shuffleReciteOptions ()
 {
-    // Building...
     std::random_device rd;
     std::mt19937 g (rd ());
 
@@ -55,7 +55,6 @@ void QuizCard::shuffleReciteOptions ()
 
 void QuizCard::setReciteOptions (const std::vector<QString> &options)
 {
-
     if (options.size () < 4)
     {
         qWarning () << "Not enough options to set in QuizCard";
@@ -77,7 +76,7 @@ void QuizCard::initUI ()
 {
     // UI Layout:
 
-    //   ENGLISH WORD     ADD2FAVORITES_BUTTON MASTER_BUTTON
+    //   ENGLISH WORD     (ADD2FAVORITES_BUTTON) MASTER_BUTTON
     //   -------------------
     //   (Chinese Buttons)
     //   OPTION A
@@ -170,13 +169,7 @@ void QuizCard::initUI ()
 void QuizCard::initConnections ()
 {
     connect (add2FavoritesButton, &ElaIconButton::clicked, this,
-             [this] ()
-             {
-                 // Building...
-
-                 add2FavoritesButton->setAwesome (Constants::UI::UNLIKE_ICON);
-                 qDebug () << "Add to Favorites clicked";
-             });
+             &QuizCard::onAdd2FavoritesClicked);
 
     connect (masterButton, &ElaIconButton::clicked, this,
              [this] ()
@@ -238,6 +231,17 @@ bool QuizCard::isFavorite () const
                                                       currentWordEntry.word);
 }
 
+void QuizCard::addToUserFavorites (const QString &userId, const QString &word)
+{
+    DbManager::getInstance ().addToUserFavorites (userId, word);
+}
+
+void QuizCard::removeFromUserFavorites (const QString &userId,
+                                        const QString &word)
+{
+    DbManager::getInstance ().removeFromUserFavorites (userId, word);
+}
+
 void QuizCard::updateAdd2FavoritesButton ()
 {
     if (isFavorite ())
@@ -250,4 +254,36 @@ void QuizCard::updateAdd2FavoritesButton ()
         add2FavoritesButton->setAwesome (Constants::UI::UNLIKE_ICON);
         add2FavoritesButton->setToolTip (tr ("Add to Favorites"));
     }
+}
+
+void QuizCard::onAdd2FavoritesClicked ()
+{
+    if (!AccountManager::getInstance ().isLoggedIn ())
+    {
+        qDebug () << "User not logged in, cannot modify favorites";
+        return;
+    }
+
+    QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+
+    if (userId.isEmpty () || currentWordEntry.word.isEmpty ())
+    {
+        qDebug () << "Invalid user ID or word, cannot modify favorites";
+        return;
+    }
+
+    if (isFavorite ())
+    {
+        removeFromUserFavorites (userId, currentWordEntry.word);
+        qDebug () << "Removed word from favorites:" << currentWordEntry.word;
+    }
+    else
+    {
+        addToUserFavorites (userId, currentWordEntry.word);
+        qDebug () << "Added word to favorites:" << currentWordEntry.word;
+    }
+
+    // Update button state and tooltip
+    updateAdd2FavoritesButton ();
 }

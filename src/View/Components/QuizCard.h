@@ -15,6 +15,8 @@ public:
         return &instance;
     }
 
+    void setAdd2FavoritesButtonEnabled (bool enabled);
+
     void setWordEntry (WordEntry &entry);
 
     void fillReciteOptions ();
@@ -25,8 +27,15 @@ public:
 
     std::vector<QString> getReciteOptions () const { return reciteOptions; }
 
+    void addToUserFavorites (const QString &userId, const QString &word);
+
+    void removeFromUserFavorites (const QString &userId, const QString &word);
+
 signals:
     void optionSelected (int optionIndex);
+
+private slots:
+    void onAdd2FavoritesClicked ();
 
 private:
     explicit QuizCard (QWidget *parent = nullptr);
