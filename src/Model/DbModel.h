@@ -115,7 +115,8 @@ public:
     ChangeResult changeAvatar (const QString &username,
                                const QString &avatarPath);
 
-    ChangeResult updateReciteProgress (int current, int total);
+    ChangeResult updateReciteProgress (int current, int total,
+                                       const QString &userId);
 
     std::optional<QString> getUserId (const QString &username) const;
     std::optional<QString> getUserName (const QString &userId) const;

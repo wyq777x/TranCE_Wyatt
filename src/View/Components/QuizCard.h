@@ -17,15 +17,9 @@ public:
 
     void setWordEntry (WordEntry &entry);
 
-    // extract 3 translations randomly and push them into reciteOptions
-
     void fillReciteOptions ();
 
-    // shuffle reciteOptions
-
     void shuffleReciteOptions ();
-
-    // set reciteOptions in quizCard
 
     void setReciteOptions (const std::vector<QString> &options);
 

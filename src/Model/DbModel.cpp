@@ -401,7 +401,7 @@ ChangeResult DbModel::changeAvatar (const QString &username,
 
         return ChangeResult::Success;
     }
-    catch (SQLite::Exception &e)
+    catch (const SQLite::Exception &e)
     {
         logErr ("Error changing user avatar in database", e);
         return ChangeResult::DatabaseError;
@@ -419,10 +419,62 @@ ChangeResult DbModel::changeAvatar (const QString &username,
     }
 }
 
-ChangeResult DbModel::updateReciteProgress (int current, int total)
+ChangeResult DbModel::updateReciteProgress (int current, int total,
+                                            const QString &userId)
 {
-    // Building...
-    return ChangeResult::Success;
+    if (!isUserDbOpen ())
+    {
+        return ChangeResult::DatabaseError;
+    }
+
+    if (current < 0 || total <= 0 || current > total)
+    {
+        logErr ("Invalid progress values",
+                std::runtime_error ("Current or total progress is invalid"));
+        return ChangeResult::InvalidInput;
+    }
+
+    if (userId.isEmpty ())
+    {
+        logErr ("User ID is empty", std::runtime_error ("Invalid input"));
+        return ChangeResult::NullValue;
+    }
+
+    try
+    {
+        SQLite::Statement query (*user_db,
+                                 "UPDATE user_progress SET current_progress = "
+                                 "?, total_words = ? WHERE user_id = ?");
+        query.bind (1, current);
+        query.bind (2, total);
+        query.bind (3, userId.toStdString ());
+        query.exec ();
+
+        if (query.getChanges () == 0)
+        {
+            logErr ("No changes made to user progress",
+                    std::runtime_error ("User ID not found or no changes"));
+            return ChangeResult::DatabaseError;
+        }
+
+        return ChangeResult::Success;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error updating recite progress in database", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error updating recite progress in database", e);
+        return ChangeResult::UnknownError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error updating recite progress in database",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::UnknownError;
+    }
 }
 
 std::optional<QString> DbModel::getUserId (const QString &username) const
