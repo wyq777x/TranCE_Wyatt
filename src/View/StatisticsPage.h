@@ -21,9 +21,4 @@ private:
     QLabel *masteredWordsLabel;
     QLabel *learningWordsLabel;
     ElaIconButton *refreshButton;
-    QWidget *masteredWordsWidget;
-    QVBoxLayout *masteredWordsLayout;
-    QLabel *masteredWordsListLabel;
-    ElaScrollArea *masteredWordsScrollArea;
-    ElaListView *masteredWordsList;
 };
