@@ -268,7 +268,7 @@ void RecitePage::showNextQuizCard ()
     }
 
     quizCard = UIController::getInstance ().showQuizCard (
-        Card_amount[currentCardIndex], this);
+        Card_amount[currentCardIndex]);
 
     connect (quizCard, &QuizCard::optionSelected, this,
              &RecitePage::handleQuizCardOptionSelected, Qt::UniqueConnection);
