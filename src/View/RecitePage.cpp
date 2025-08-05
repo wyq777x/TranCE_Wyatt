@@ -26,6 +26,13 @@ void RecitePage::onLoginSuccessful ()
 
     setProgress (progress.first, progress.second);
 
+    currentCardIndex = currentProgress % totalProgress;
+
+    if (currentCardIndex >= totalProgress)
+    {
+        currentCardIndex = 0;
+    }
+
     // update Favorites and Mastered widgets
 }
 
@@ -39,7 +46,6 @@ void RecitePage::onLogoutSuccessful ()
 
 void RecitePage::onReciteButtonClicked ()
 {
-    currentCardIndex = 0;
     showNextQuizCard ();
 
     qDebug () << "Recite button clicked";
@@ -244,8 +250,6 @@ void RecitePage::initializeCardAmount ()
         entry.translation = QString ("Translation_%1").arg (i + 1);
         Card_amount.emplace_back (entry);
     }
-
-    currentCardIndex = 0;
 }
 
 void RecitePage::showNextQuizCard ()
@@ -295,5 +299,6 @@ void RecitePage::showCompletionDialog ()
 
     // Reset progress to initial state
     setProgress (0, totalProgress);
+
     currentCardIndex = 0;
 }
