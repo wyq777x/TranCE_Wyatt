@@ -2035,7 +2035,6 @@ std::vector<QString>
 DbModel::getRandomWrongTranslations (const QString &correctTranslation,
                                      int limit)
 {
-    // Building...
     std::vector<QString> wrongTranslations;
     if (!isDictDbOpen ())
     {

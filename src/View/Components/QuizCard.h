@@ -34,6 +34,8 @@ public:
 signals:
     void optionSelected (int optionIndex);
 
+    void masterButtonClicked ();
+
 private slots:
     void onAdd2FavoritesClicked ();
     void onMasterButtonClicked ();

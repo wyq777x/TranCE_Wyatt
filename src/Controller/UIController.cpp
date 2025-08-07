@@ -46,7 +46,6 @@ void UIController::notifySearchHistoryUpdated ()
 void UIController::initConnections ()
 {
 
-    // Building...
     connect (&AppSettingModel::getInstance (),
              &AppSettingModel::historySearchListEnabledChanged, this,
              &UIController::enableHistorySearchListUI);

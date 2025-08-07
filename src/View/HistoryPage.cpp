@@ -70,7 +70,6 @@ void HistoryPage::initUI ()
 
 void HistoryPage::initConnections ()
 {
-    // Building...
     connect (&UIController::getInstance (),
              &UIController::historySearchListUIChanged, this,
              &HistoryPage::enableHistorySearchListUI);

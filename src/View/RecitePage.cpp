@@ -186,7 +186,6 @@ void RecitePage::initUI ()
 
 void RecitePage::initConnections ()
 {
-    // Building...
 
     connect (&AccountManager::getInstance (), &AccountManager::loginSuccessful,
              this, &RecitePage::onLoginSuccessful);
@@ -271,6 +270,9 @@ void RecitePage::showNextQuizCard ()
         Card_amount[currentCardIndex]);
 
     connect (quizCard, &QuizCard::optionSelected, this,
+             &RecitePage::handleQuizCardOptionSelected, Qt::UniqueConnection);
+
+    connect (quizCard, &QuizCard::masterButtonClicked, this,
              &RecitePage::handleQuizCardOptionSelected, Qt::UniqueConnection);
 }
 

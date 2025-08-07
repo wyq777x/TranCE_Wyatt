@@ -289,9 +289,15 @@ void QuizCard::onMasterButtonClicked ()
     // Building...
 
     // showNextQuizCard by RecitePage
+    emit masterButtonClicked ();
+
+    DbManager::getInstance ().addToReciteHistory (
+        AccountManager::getInstance ().getUserUuid (
+            AccountManager::getInstance ().getUsername ()),
+        currentWordEntry.word);
+    qDebug () << "Added to recite history:" << currentWordEntry.word;
 
     // add to mastered list in DbManager
 
-    // add to recite history in DbManager
-    qDebug () << "Master button clicked";
+    qDebug () << currentWordEntry.word << " mastered.";
 }
