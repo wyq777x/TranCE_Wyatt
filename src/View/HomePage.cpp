@@ -347,62 +347,75 @@ void HomePage::initConnections ()
             }
         });
 
-    connect (lineEdit, &ElaLineEdit::returnPressed,
-             [=, this] ()
-             {
-                 if (searchOnline->getIsToggled ())
-                 {
-                     if (lineEdit->text ().isEmpty ())
-                     {
-                         return;
-                     }
-                     QDesktopServices::openUrl (QUrl (
-                         Constants::Urls::BING_SEARCH.arg (lineEdit->text ())));
-                     return;
-                 }
-                 else
-                 {
-                     if (searchMode_precise->isChecked ())
-                     {
-                         auto wordEntry = DbManager::getInstance ().lookupWord (
-                             lineEdit->text (),
-                             mapLang (LangComboBox_left->currentText ()));
+    connect (
+        lineEdit, &ElaLineEdit::returnPressed,
+        [=, this] ()
+        {
+            if (searchOnline->getIsToggled ())
+            {
+                if (lineEdit->text ().isEmpty ())
+                {
+                    return;
+                }
+                QDesktopServices::openUrl (QUrl (
+                    Constants::Urls::BING_SEARCH.arg (lineEdit->text ())));
+                return;
+            }
+            else
+            {
+                if (searchMode_precise->isChecked ())
+                {
+                    auto wordEntry = DbManager::getInstance ().lookupWord (
+                        lineEdit->text (),
+                        mapLang (LangComboBox_left->currentText ()));
 
-                         if (wordEntry.has_value ())
-                         {
-                             UIController::getInstance ().showWordCard (
-                                 wordEntry.value ());
-                         }
-                         else
-                         {
-                             showDialog (tr ("Error Loading Word Card"),
-                                         tr ("The word you entered can't be "
-                                             "loaded from the database. "));
-                         }
-                     }
+                    if (wordEntry.has_value ())
+                    {
+                        UIController::getInstance ().showWordCard (
+                            wordEntry.value ());
 
-                     if (searchMode_fuzzy->isChecked ())
-                     {
-                         auto firstWordEntry =
-                             DbManager::getInstance ().searchWords (
-                                 lineEdit->text (),
-                                 mapLang (LangComboBox_left->currentText ()),
-                                 1);
+                        if (AccountManager::getInstance ().isLoggedIn ())
+                        {
+                            auto userId =
+                                AccountManager::getInstance ().getUserUuid (
+                                    AccountManager::getInstance ()
+                                        .getUsername ());
+                            DbManager::getInstance ().addToSearchHistory (
+                                userId, lineEdit->text ());
 
-                         if (!firstWordEntry.empty ())
-                         {
-                             UIController::getInstance ().showWordCard (
-                                 firstWordEntry[0]);
-                         }
-                         else
-                         {
-                             showDialog (tr ("Error Loading Word Card"),
-                                         tr ("The word you entered can't be "
-                                             "loaded from the database. "));
-                         }
-                     }
-                 }
-             });
+                            UIController::getInstance ()
+                                .notifySearchHistoryUpdated ();
+                        }
+                    }
+                    else
+                    {
+                        showDialog (tr ("Error Loading Word Card"),
+                                    tr ("The word you entered can't be "
+                                        "loaded from the database. "));
+                    }
+                }
+
+                if (searchMode_fuzzy->isChecked ())
+                {
+                    auto firstWordEntry =
+                        DbManager::getInstance ().searchWords (
+                            lineEdit->text (),
+                            mapLang (LangComboBox_left->currentText ()), 1);
+
+                    if (!firstWordEntry.empty ())
+                    {
+                        UIController::getInstance ().showWordCard (
+                            firstWordEntry[0]);
+                    }
+                    else
+                    {
+                        showDialog (tr ("Error Loading Word Card"),
+                                    tr ("The word you entered can't be "
+                                        "loaded from the database. "));
+                    }
+                }
+            }
+        });
 
     connect (
         suggestionsList, &ElaListView::clicked, this,

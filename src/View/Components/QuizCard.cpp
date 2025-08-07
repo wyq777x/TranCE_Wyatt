@@ -172,11 +172,7 @@ void QuizCard::initConnections ()
              &QuizCard::onAdd2FavoritesClicked);
 
     connect (masterButton, &ElaIconButton::clicked, this,
-             [this] ()
-             {
-                 // Building...
-                 qDebug () << "Master button clicked";
-             });
+             &QuizCard::onMasterButtonClicked);
 
     connect (optionAButton, &ElaPushButton::clicked, this,
              [this] ()
@@ -286,4 +282,16 @@ void QuizCard::onAdd2FavoritesClicked ()
 
     // Update button state and tooltip
     updateAdd2FavoritesButton ();
+}
+
+void QuizCard::onMasterButtonClicked ()
+{
+    // Building...
+
+    // showNextQuizCard by RecitePage
+
+    // add to mastered list in DbManager
+
+    // add to recite history in DbManager
+    qDebug () << "Master button clicked";
 }

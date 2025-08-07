@@ -36,6 +36,7 @@ signals:
 
 private slots:
     void onAdd2FavoritesClicked ();
+    void onMasterButtonClicked ();
 
 private:
     explicit QuizCard (QWidget *parent = nullptr);

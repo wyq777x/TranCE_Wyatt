@@ -35,12 +35,13 @@ private slots:
 
     void updateProgressUI (int current, int total);
 
+    void handleQuizCardOptionSelected ();
+
 private:
     void initUI ();
     void initConnections ();
     void initializeCardAmount ();
     void showNextQuizCard ();
-    void handleQuizCardOptionSelected ();
     void showCompletionDialog ();
 
     // UI components
