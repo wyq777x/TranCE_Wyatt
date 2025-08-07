@@ -1873,6 +1873,73 @@ void DbModel::removeFromSearchHistory (const QString &userId,
     }
 }
 
+void DbModel::addToReciteHistory (const QString &userId, const QString &word)
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "INSERT INTO user_recite_history (user_id, recite_word) "
+                      "VALUES (?, ?)");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, word.toStdString ());
+        query.exec ();
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error adding to recite history", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error adding to recite history", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error adding to recite history",
+                std::runtime_error ("Unknown exception"));
+    }
+}
+
+void DbModel::removeFromReciteHistory (const QString &userId,
+                                       const QString &word)
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "DELETE FROM user_recite_history WHERE user_id = ? "
+                      "AND recite_word = ?");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, word.toStdString ());
+        query.exec ();
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error removing from recite history", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error removing from recite history", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error removing from recite history",
+                std::runtime_error ("Unknown exception"));
+    }
+}
+
 std::vector<QString> DbModel::getUserSearchHistory (const QString &userId)
 {
     std::vector<QString> history;

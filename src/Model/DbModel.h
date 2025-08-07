@@ -157,6 +157,14 @@ public:
                     "ON DELETE CASCADE "
                     "ON UPDATE CASCADE );");
 
+                user_db->exec (
+                    "CREATE TABLE IF NOT EXISTS user_recite_history("
+                    " recite_history_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    " user_id TEXT NOT NULL,"
+                    " recite_word TEXT NOT NULL,"
+                    " FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                    "ON DELETE CASCADE ON UPDATE CASCADE );");
+
                 user_db->exec ("CREATE TABLE IF NOT EXISTS user_progress("
                                "user_id TEXT PRIMARY KEY,"
                                "total_words INTEGER DEFAULT 15,"
@@ -194,6 +202,10 @@ public:
                 user_db->exec (
                     "CREATE INDEX IF NOT EXISTS idx_user_search_history "
                     "ON user_search_history(search_history_id, user_id);");
+
+                user_db->exec (
+                    "CREATE INDEX IF NOT EXISTS idx_user_recite_history "
+                    "ON user_recite_history(recite_history_id, user_id);");
             }
         }
         catch (const SQLite::Exception &e)
@@ -346,6 +358,9 @@ public:
 
     void addToSearchHistory (const QString &userId, const QString &word);
     void removeFromSearchHistory (const QString &userId, const QString &word);
+
+    void addToReciteHistory (const QString &userId, const QString &word);
+    void removeFromReciteHistory (const QString &userId, const QString &word);
 
     std::vector<QString> getUserSearchHistory (const QString &userId);
 

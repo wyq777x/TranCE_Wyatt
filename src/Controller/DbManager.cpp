@@ -113,6 +113,17 @@ void DbManager::removeFromSearchHistory (const QString &userId,
     DbModel::getInstance ().removeFromSearchHistory (userId, word);
 }
 
+void DbManager::addToReciteHistory (const QString &userId, const QString &word)
+{
+    DbModel::getInstance ().addToReciteHistory (userId, word);
+}
+
+void DbManager::removeFromReciteHistory (const QString &userId,
+                                         const QString &word)
+{
+    DbModel::getInstance ().removeFromReciteHistory (userId, word);
+}
+
 std::vector<QString> DbManager::getUserSearchHistory (const QString &userId)
 {
     return DbModel::getInstance ().getUserSearchHistory (userId);
