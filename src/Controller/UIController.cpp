@@ -43,6 +43,11 @@ void UIController::notifySearchHistoryUpdated ()
     emit searchHistoryUpdated ();
 }
 
+void UIController::notifyReciteHistoryUpdated ()
+{
+    emit reciteHistoryUpdated ();
+}
+
 void UIController::initConnections ()
 {
 

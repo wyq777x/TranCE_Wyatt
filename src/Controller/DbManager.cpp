@@ -154,6 +154,11 @@ DbManager::getUserHistorySearchVector (const QString &user_uuid)
     return historyEntries;
 }
 
+std::vector<QString> DbManager::getUserReciteHistory (const QString &userId)
+{
+    return DbModel::getInstance ().getUserReciteHistory (userId);
+}
+
 std::pair<int, int> DbManager::getProgress (const QString &userId) const
 {
     return DbModel::getInstance ().getProgress (userId);

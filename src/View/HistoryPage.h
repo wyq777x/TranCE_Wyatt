@@ -14,6 +14,7 @@ private:
     void initUI ();
     void initConnections ();
     void loadSearchHistory ();
+    void loadReciteHistory ();
 
     // UI components
     QWidget *centralWidget;

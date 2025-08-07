@@ -2104,6 +2104,47 @@ std::vector<QString> DbModel::getUserSearchHistory (const QString &userId)
     return history;
 }
 
+std::vector<QString> DbModel::getUserReciteHistory (const QString &userId)
+{
+    std::vector<QString> history;
+
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return history;
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *user_db, "SELECT DISTINCT recite_word FROM user_recite_history "
+                      "WHERE user_id = ? ORDER BY recite_history_id DESC");
+        query.bind (1, userId.toStdString ());
+
+        while (query.executeStep ())
+        {
+            history.emplace_back (
+                QString::fromStdString (query.getColumn (0).getString ()));
+        }
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error getting user recite history", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting user recite history", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting user recite history",
+                std::runtime_error ("Unknown exception"));
+    }
+
+    return history;
+}
+
 std::pair<int, int> DbModel::getProgress (const QString &userId) const
 {
 

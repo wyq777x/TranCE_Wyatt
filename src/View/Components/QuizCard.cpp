@@ -1,6 +1,7 @@
 #include "QuizCard.h"
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
+#include "Controller/UIController.h"
 #include "Utility/Constants.h"
 #include <algorithm>
 #include <random>
@@ -295,6 +296,9 @@ void QuizCard::onMasterButtonClicked ()
             AccountManager::getInstance ().getUsername ()),
         currentWordEntry.word);
     qDebug () << "Added to recite history:" << currentWordEntry.word;
+
+    // Notify that recite history has been updated
+    UIController::getInstance ().notifyReciteHistoryUpdated ();
 
     // Add to mastered list
     auto result = DbManager::getInstance ().updateWordStatus (

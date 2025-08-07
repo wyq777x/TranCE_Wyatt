@@ -66,6 +66,7 @@ public:
     std::vector<QString> getUserSearchHistory (const QString &userId);
     std::vector<WordEntry>
     getUserHistorySearchVector (const QString &user_uuid);
+    std::vector<QString> getUserReciteHistory (const QString &userId);
 
     std::pair<int, int> getProgress (const QString &userId) const;
 

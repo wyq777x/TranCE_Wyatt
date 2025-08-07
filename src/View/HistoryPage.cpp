@@ -61,11 +61,16 @@ void HistoryPage::initUI ()
     reciteHistoryListView = new ElaListView (centralWidget);
     reciteHistoryListView->setFixedSize (550, 300);
     reciteHistoryListView->setIsTransparent (true);
+
+    reciteHistoryModel = new QStringListModel (this);
+    reciteHistoryListView->setModel (reciteHistoryModel);
+
     layout->addWidget (reciteHistoryListView);
 
     addCentralWidget (centralWidget, true, true, 0);
 
     loadSearchHistory ();
+    loadReciteHistory ();
 }
 
 void HistoryPage::initConnections ()
@@ -75,7 +80,12 @@ void HistoryPage::initConnections ()
              &HistoryPage::enableHistorySearchListUI);
 
     connect (&AccountManager::getInstance (), &AccountManager::loginSuccessful,
-             this, [this] (const QString &) { loadSearchHistory (); });
+             this,
+             [this] (const QString &)
+             {
+                 loadSearchHistory ();
+                 loadReciteHistory ();
+             });
 
     connect (&AccountManager::getInstance (), &AccountManager::logoutSuccessful,
              this,
@@ -86,13 +96,32 @@ void HistoryPage::initConnections ()
                  {
                      historySearchModel->setStringList (QStringList ());
                  }
+                 if (reciteHistoryModel)
+                 {
+                     reciteHistoryModel->setStringList (QStringList ());
+                 }
              });
 
     connect (&UIController::getInstance (), &UIController::searchHistoryUpdated,
              this, [this] () { loadSearchHistory (); });
 
+    connect (&UIController::getInstance (), &UIController::reciteHistoryUpdated,
+             this, [this] () { loadReciteHistory (); });
+
     connect (
         searchHistoryListView, &ElaListView::clicked, this,
+        [this] (const QModelIndex &index)
+        {
+            auto word = index.data ().toString ();
+            auto wordEntry = DbManager::getInstance ().lookupWord (word, "en");
+            if (wordEntry.has_value ())
+            {
+                UIController::getInstance ().showWordCard (wordEntry.value ());
+            }
+        });
+
+    connect (
+        reciteHistoryListView, &ElaListView::clicked, this,
         [this] (const QModelIndex &index)
         {
             auto word = index.data ().toString ();
@@ -121,5 +150,25 @@ void HistoryPage::loadSearchHistory ()
         }
 
         historySearchModel->setStringList (historyStringList);
+    }
+}
+
+void HistoryPage::loadReciteHistory ()
+{
+    if (AccountManager::getInstance ().isLoggedIn ())
+    {
+        auto userId = AccountManager::getInstance ().getUserUuid (
+            AccountManager::getInstance ().getUsername ());
+
+        auto historyVector =
+            DbManager::getInstance ().getUserReciteHistory (userId);
+
+        QStringList historyStringList;
+        for (const auto &word : historyVector)
+        {
+            historyStringList << word;
+        }
+
+        reciteHistoryModel->setStringList (historyStringList);
     }
 }
