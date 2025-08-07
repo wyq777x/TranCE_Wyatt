@@ -286,18 +286,27 @@ void QuizCard::onAdd2FavoritesClicked ()
 
 void QuizCard::onMasterButtonClicked ()
 {
-    // Building...
-
     // showNextQuizCard by RecitePage
     emit masterButtonClicked ();
 
+    // Add to recite history
     DbManager::getInstance ().addToReciteHistory (
         AccountManager::getInstance ().getUserUuid (
             AccountManager::getInstance ().getUsername ()),
         currentWordEntry.word);
     qDebug () << "Added to recite history:" << currentWordEntry.word;
 
-    // add to mastered list in DbManager
+    // Add to mastered list
+    auto result = DbManager::getInstance ().updateWordStatus (
+        AccountManager::getInstance ().getUserUuid (
+            AccountManager::getInstance ().getUsername ()),
+        currentWordEntry.word, 1);
+    if (result != ChangeResult::Success)
+    {
+        qWarning () << "Failed to update word status in database:"
+                    << getErrorMessage (result, ChangeResultMessage);
+        return;
+    }
 
     qDebug () << currentWordEntry.word << " mastered.";
 }

@@ -66,6 +66,12 @@ ChangeResult DbManager::updateReciteProgress (int current, int total,
                                                          userId);
 }
 
+ChangeResult DbManager::updateWordStatus (const QString &userId,
+                                          const QString &word, int status)
+{
+    return DbModel::getInstance ().updateWordStatus (userId, word, status);
+}
+
 std::optional<QString> DbManager::getUserId (const QString &username) const
 {
     return DbModel::getInstance ().getUserId (username);

@@ -44,6 +44,9 @@ public:
     ChangeResult updateReciteProgress (int current, int total,
                                        const QString &userId);
 
+    ChangeResult updateWordStatus (const QString &userId, const QString &word,
+                                   int status);
+
     std::optional<QString> getUserId (const QString &username) const;
     QString getUserEmail (const QString &username);
     QString getUserAvatarPath (const QString &username);
