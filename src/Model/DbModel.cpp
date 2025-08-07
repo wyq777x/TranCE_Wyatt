@@ -3,6 +3,8 @@
 #include "SQLiteCpp/Statement.h"
 #include "SQLiteCpp/Transaction.h"
 #include "Utility/Result.h"
+#include <random>
+#include <set>
 #include <stdexcept>
 
 bool DbModel::isUserDbOpen () const
@@ -1572,32 +1574,153 @@ bool DbModel::isWordFavorited (const QString &userId, const QString &word) const
     }
 }
 
-void DbModel::addToUserVocabulary (const QString &userId, const QString &word)
+ChangeResult DbModel::updateWordStatus (const QString &userId,
+                                        const QString &word, int status)
 {
     // Building...
-    return;
+    // status: 0=learning, 1=mastered
+
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return ChangeResult::DatabaseError;
+    }
+
+    if (userId.isEmpty () || word.isEmpty ())
+    {
+        logErr ("User ID or word is empty",
+                std::runtime_error ("Invalid input"));
+        return ChangeResult::InvalidInput;
+    }
+
+    if (status < 0 || status > 1)
+    {
+        logErr ("Invalid status value",
+                std::runtime_error ("Status must be 0 or 1"));
+        return ChangeResult::InvalidInput;
+    }
+    try
+    {
+        SQLite::Statement query (
+            *user_db,
+            "INSERT OR REPLACE INTO "
+            "user_vocabulary (user_id, word, status) VALUES (?, ?, ?)");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, word.toStdString ());
+        query.bind (3, status);
+        query.exec ();
+
+        if (query.getChanges () == 0)
+        {
+            logErr ("No changes made to user vocabulary",
+                    std::runtime_error ("Word already has the same status"));
+            return ChangeResult::StillSame;
+        }
+
+        return ChangeResult::Success;
+    }
+    catch (const SQLite::Exception &e)
+    {
+
+        logErr ("Error updating word status in database", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error updating word status in database", e);
+        return ChangeResult::UnknownError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error updating word status in database",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::UnknownError;
+    }
 }
 
-void DbModel::removeFromUserVocabulary (const QString &userId,
-                                        const QString &word)
+std::vector<QString> DbModel::getUserVocabulary (const QString &userId,
+                                                 int status) // -1 means all
 {
-    // Building...
-    return;
-}
 
-void DbModel::updateWordStatus (const QString &userId, const QString &word,
-                                int status)
-{
-    // Building...
-    // status: -1= never learned,0=learning, 1=mastered
-    return;
-}
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return std::vector<QString> ();
+    }
 
-std::vector<WordEntry> DbModel::getUserVocabulary (const QString &userId,
-                                                   int status) // -1 means all
-{
-    // Building...
-    return std::vector<WordEntry> ();
+    if (userId.isEmpty ())
+    {
+        logErr ("User ID is empty", std::runtime_error ("Invalid input"));
+        return std::vector<QString> (); // Invalid input
+    }
+
+    if (status < -1 || status > 1)
+    {
+        logErr ("Invalid status value",
+                std::runtime_error ("Status must be -1, 0 or 1"));
+        return std::vector<QString> (); // Invalid status
+    }
+
+    try
+    {
+        std::vector<QString> vocabularies;
+
+        if (status == -1) // Get all
+        {
+            SQLite::Statement query (
+                *user_db,
+                "SELECT word, status FROM user_vocabulary WHERE user_id = ?");
+            query.bind (1, userId.toStdString ());
+
+            while (query.executeStep ())
+            {
+                QString word =
+                    QString::fromStdString (query.getColumn (0).getString ());
+                int wordStatus = query.getColumn (1).getInt ();
+
+                if (wordStatus == 0 ||
+                    wordStatus == 1) // Only learning or mastered
+                {
+                    vocabularies.emplace_back (word);
+                }
+            }
+            return vocabularies;
+        }
+        else
+        {
+            SQLite::Statement query (
+                *user_db,
+                "SELECT word FROM user_vocabulary WHERE user_id = ? AND "
+                "status = ?");
+            query.bind (1, userId.toStdString ());
+            query.bind (2, status);
+            while (query.executeStep ())
+            {
+                QString word =
+                    QString::fromStdString (query.getColumn (0).getString ());
+                vocabularies.emplace_back (word);
+            }
+            return vocabularies;
+        }
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error getting user vocabulary from database", e);
+        return std::vector<QString> ();
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting user vocabulary from database", e);
+        return std::vector<QString> ();
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting user vocabulary from database",
+                std::runtime_error ("Unknown exception"));
+        return std::vector<QString> ();
+    }
 }
 
 std::optional<WordEntry> DbModel::getRandomWord ()

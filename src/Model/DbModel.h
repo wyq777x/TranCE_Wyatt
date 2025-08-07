@@ -12,8 +12,6 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <memory>
 #include <optional>
-#include <random>
-#include <set>
 #include <utility>
 #include <vector>
 
@@ -182,18 +180,16 @@ public:
                     "FOREIGN KEY(user_id) REFERENCES users(user_id) "
                     "ON DELETE CASCADE ON UPDATE CASCADE );");
 
-                user_db->exec (
-                    "CREATE TABLE IF NOT EXISTS user_vocabulary("
-                    "user_id TEXT NOT NULL,"
-                    "word TEXT NOT NULL,"
-                    "status INTEGER DEFAULT -1 CHECK (status IN (-1, "
-                    "0, 1))," // status:
-                              // -1= never learned
-                              // 0= learning,
-                              // 1= mastered
-                    "FOREIGN KEY(user_id) REFERENCES users(user_id) "
-                    "ON DELETE CASCADE ON UPDATE CASCADE,"
-                    "PRIMARY KEY (user_id, word));");
+                user_db->exec ("CREATE TABLE IF NOT EXISTS user_vocabulary("
+                               "user_id TEXT NOT NULL,"
+                               "word TEXT NOT NULL,"
+                               "status INTEGER DEFAULT -1 CHECK (status IN ( "
+                               "0, 1))," // status:
+                                         // 0= learning,
+                                         // 1= mastered
+                               "FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                               "ON DELETE CASCADE ON UPDATE CASCADE,"
+                               "PRIMARY KEY (user_id, word));");
 
                 user_db->exec (
                     "CREATE INDEX IF NOT EXISTS idx_user_favorites ON "
@@ -342,15 +338,12 @@ public:
     void removeFromUserFavorites (const QString &userId, const QString &word);
     bool isWordFavorited (const QString &userId, const QString &word) const;
 
-    void addToUserVocabulary (const QString &userId, const QString &word);
-    void removeFromUserVocabulary (const QString &userId, const QString &word);
+    // status: 0=learning, 1=mastered
+    ChangeResult updateWordStatus (const QString &userId, const QString &word,
+                                   int status);
 
-    // status: -1= never learned,0=learning, 1=mastered
-    void updateWordStatus (const QString &userId, const QString &word,
-                           int status);
-
-    std::vector<WordEntry> getUserVocabulary (const QString &userId,
-                                              int status = -1); // -1 means all
+    std::vector<QString> getUserVocabulary (const QString &userId,
+                                            int status = -1); // -1 means all
 
     std::string getLastError () const { return m_lastError; }
 
