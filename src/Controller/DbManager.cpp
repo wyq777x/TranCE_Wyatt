@@ -108,6 +108,11 @@ bool DbManager::isWordFavorited (const QString &userId, const QString &word)
     return DbModel::getInstance ().isWordFavorited (userId, word);
 }
 
+bool DbManager::existsInMastered (const QString &userId, const QString &word)
+{
+    return DbModel::getInstance ().existsInMastered (userId, word);
+}
+
 void DbManager::addToSearchHistory (const QString &userId, const QString &word)
 {
     DbModel::getInstance ().addToSearchHistory (userId, word);

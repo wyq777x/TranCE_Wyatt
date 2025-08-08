@@ -338,6 +338,8 @@ public:
     void removeFromUserFavorites (const QString &userId, const QString &word);
     bool isWordFavorited (const QString &userId, const QString &word) const;
 
+    bool existsInMastered (const QString &userId, const QString &word) const;
+
     // status: 0=learning, 1=mastered
     ChangeResult updateWordStatus (const QString &userId, const QString &word,
                                    int status);

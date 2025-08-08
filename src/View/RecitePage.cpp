@@ -245,10 +245,30 @@ void RecitePage::initializeCardAmount ()
 
     for (int i = 0; i < totalProgress; ++i)
     {
-        WordEntry entry;
-        entry.word = QString ("Word_%1").arg (i + 1);
-        entry.translation = QString ("Translation_%1").arg (i + 1);
-        Card_amount.emplace_back (entry);
+
+        auto entry = DbManager::getInstance ().getRandomWord ();
+        if (AccountManager::getInstance ().isLoggedIn ())
+        {
+            if (entry.has_value () &&
+                !DbManager::getInstance ().existsInMastered (
+                    AccountManager::getInstance ().getUserUuid (
+                        AccountManager::getInstance ().getUsername ()),
+                    entry.value ().word))
+            {
+                Card_amount.emplace_back (entry.value ());
+            }
+            else
+            {
+                --i; // Retry if already mastered or no entry
+            }
+        }
+        else
+        {
+            if (entry.has_value ())
+            {
+                Card_amount.emplace_back (entry.value ());
+            }
+        }
     }
 }
 

@@ -9,7 +9,9 @@
 QuizCard::QuizCard (QWidget *parent) : TempPage (parent)
 {
     setWindowTitle (tr ("Quiz Card"));
-    setFixedSize (400, 400);
+    setMinimumSize (400, 400);
+    setMaximumWidth (700);
+    setMaximumHeight (400);
     setStyleSheet (
         "background-color: #f0f0f0; font-family: 'Noto Sans', sans-serif;");
 
@@ -129,7 +131,8 @@ void QuizCard::initUI ()
     optionAButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
     optionAButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
     optionAButton->setMinimumWidth (150);
-    optionAButton->setMaximumWidth (350);
+    optionAButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
+
     optionAButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     optionBButton = new ElaPushButton (centralWidget);
@@ -137,7 +140,7 @@ void QuizCard::initUI ()
     optionBButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
     optionBButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
     optionBButton->setMinimumWidth (150);
-    optionBButton->setMaximumWidth (350);
+    optionBButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
     optionBButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     optionCButton = new ElaPushButton (centralWidget);
@@ -145,7 +148,7 @@ void QuizCard::initUI ()
     optionCButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
     optionCButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
     optionCButton->setMinimumWidth (150);
-    optionCButton->setMaximumWidth (350);
+    optionCButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
     optionCButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     optionDButton = new ElaPushButton (centralWidget);
@@ -153,7 +156,7 @@ void QuizCard::initUI ()
     optionDButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
     optionDButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
     optionDButton->setMinimumWidth (150);
-    optionDButton->setMaximumWidth (350);
+    optionDButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
     optionDButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     mainLayout->addLayout (headerLayout);
@@ -289,28 +292,32 @@ void QuizCard::onMasterButtonClicked ()
 {
     // showNextQuizCard by RecitePage
     emit masterButtonClicked ();
+    qDebug () << "Master button clicked";
 
     // Add to recite history
-    DbManager::getInstance ().addToReciteHistory (
-        AccountManager::getInstance ().getUserUuid (
-            AccountManager::getInstance ().getUsername ()),
-        currentWordEntry.word);
-    qDebug () << "Added to recite history:" << currentWordEntry.word;
-
-    // Notify that recite history has been updated
-    UIController::getInstance ().notifyReciteHistoryUpdated ();
-
-    // Add to mastered list
-    auto result = DbManager::getInstance ().updateWordStatus (
-        AccountManager::getInstance ().getUserUuid (
-            AccountManager::getInstance ().getUsername ()),
-        currentWordEntry.word, 1);
-    if (result != ChangeResult::Success)
+    if (AccountManager::getInstance ().isLoggedIn ())
     {
-        qWarning () << "Failed to update word status in database:"
-                    << getErrorMessage (result, ChangeResultMessage);
-        return;
-    }
+        DbManager::getInstance ().addToReciteHistory (
+            AccountManager::getInstance ().getUserUuid (
+                AccountManager::getInstance ().getUsername ()),
+            currentWordEntry.word);
+        qDebug () << "Added to recite history:" << currentWordEntry.word;
 
-    qDebug () << currentWordEntry.word << " mastered.";
+        // Notify that recite history has been updated
+        UIController::getInstance ().notifyReciteHistoryUpdated ();
+
+        // Add to mastered list
+        auto result = DbManager::getInstance ().updateWordStatus (
+            AccountManager::getInstance ().getUserUuid (
+                AccountManager::getInstance ().getUsername ()),
+            currentWordEntry.word, 1);
+        if (result != ChangeResult::Success)
+        {
+            qWarning () << "Failed to update word status in database:"
+                        << getErrorMessage (result, ChangeResultMessage);
+            return;
+        }
+
+        qDebug () << currentWordEntry.word << " mastered.";
+    }
 }

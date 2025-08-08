@@ -1574,6 +1574,44 @@ bool DbModel::isWordFavorited (const QString &userId, const QString &word) const
     }
 }
 
+bool DbModel::existsInMastered (const QString &userId,
+                                const QString &word) const
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return false;
+    }
+
+    try
+    {
+        SQLite::Statement query (*user_db,
+                                 "SELECT COUNT(*) FROM user_vocabulary WHERE "
+                                 "user_id = ? AND word = ? AND status = 1");
+        query.bind (1, userId.toStdString ());
+        query.bind (2, word.toStdString ());
+        query.executeStep ();
+        return query.getColumn (0).getInt () > 0;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error checking if word is mastered", e);
+        return false;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error checking if word is mastered", e);
+        return false;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error checking if word is mastered",
+                std::runtime_error ("Unknown exception"));
+        return false;
+    }
+}
+
 ChangeResult DbModel::updateWordStatus (const QString &userId,
                                         const QString &word, int status)
 {

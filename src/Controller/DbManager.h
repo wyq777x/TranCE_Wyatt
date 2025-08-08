@@ -57,6 +57,8 @@ public:
     void removeFromUserFavorites (const QString &userId, const QString &word);
     bool isWordFavorited (const QString &userId, const QString &word);
 
+    bool existsInMastered (const QString &userId, const QString &word);
+
     void addToSearchHistory (const QString &userId, const QString &word);
     void removeFromSearchHistory (const QString &userId, const QString &word);
 
