@@ -7,6 +7,7 @@
 #include "Utility/Result.h"
 #include "View/Components/QuizCard.h"
 #include <QMessageBox>
+#include <QTimer>
 
 RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
 {
@@ -59,6 +60,13 @@ void RecitePage::updateProgressUI (int current, int total)
         progressLabel->setText (
             tr ("Progress: %1/%2").arg (current).arg (total));
     }
+}
+
+void RecitePage::onMasterButtonClicked ()
+{
+    handleQuizCardOptionSelected (-1, true);
+
+    qDebug () << "Master button clicked";
 }
 
 void RecitePage::initUI ()
@@ -286,6 +294,9 @@ void RecitePage::showNextQuizCard ()
         return;
     }
 
+    // Set the current word entry
+    currentWordEntry = Card_amount[currentCardIndex];
+
     quizCard = UIController::getInstance ().showQuizCard (
         Card_amount[currentCardIndex]);
 
@@ -293,11 +304,33 @@ void RecitePage::showNextQuizCard ()
              &RecitePage::handleQuizCardOptionSelected, Qt::UniqueConnection);
 
     connect (quizCard, &QuizCard::masterButtonClicked, this,
-             &RecitePage::handleQuizCardOptionSelected, Qt::UniqueConnection);
+             &RecitePage::onMasterButtonClicked, Qt::UniqueConnection);
 }
 
-void RecitePage::handleQuizCardOptionSelected ()
+void RecitePage::handleQuizCardOptionSelected (int optionIndex, bool isCorrect)
 {
+
+    if (optionIndex >= 0) // -1 indicates master button was clicked
+    {
+        qDebug () << "Answer selected for word:" << currentWordEntry.word
+                  << "Option:" << optionIndex
+                  << "Correct:" << (isCorrect ? "Yes" : "No");
+
+        if (isCorrect)
+        {
+            qDebug () << "Correct answer! Well done!";
+        }
+        else
+        {
+            qDebug () << "Wrong answer. The correct answer was:"
+                      << currentWordEntry.translation;
+        }
+    }
+    else
+    {
+        qDebug () << "Word marked as mastered:" << currentWordEntry.word;
+    }
+
     currentCardIndex++;
     setProgress (currentCardIndex, totalProgress);
 
@@ -311,7 +344,9 @@ void RecitePage::handleQuizCardOptionSelected ()
     }
     else
     {
-        showNextQuizCard ();
+        // Wait a moment before showing the next card if feedback is being shown
+        QTimer::singleShot (optionIndex >= 0 ? 200 : 0, this,
+                            [this] () { showNextQuizCard (); });
     }
 }
 

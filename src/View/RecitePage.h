@@ -34,8 +34,9 @@ private slots:
     void onReciteButtonClicked ();
 
     void updateProgressUI (int current, int total);
+    void onMasterButtonClicked ();
 
-    void handleQuizCardOptionSelected ();
+    void handleQuizCardOptionSelected (int optionIndex, bool isCorrect);
 
 private:
     void initUI ();
@@ -74,4 +75,6 @@ private:
 
     std::vector<WordEntry> Card_amount;
     int currentCardIndex = 0;
+
+    WordEntry currentWordEntry; // Current word being displayed
 };

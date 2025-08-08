@@ -31,8 +31,12 @@ public:
 
     void removeFromUserFavorites (const QString &userId, const QString &word);
 
+    bool validateAnswer (int optionIndex) const;
+    void showAnswerFeedback (int selectedOptionIndex, bool isCorrect);
+    void resetButtonStates ();
+
 signals:
-    void optionSelected (int optionIndex);
+    void optionSelected (int optionIndex, bool isCorrect);
 
     void masterButtonClicked ();
 
@@ -76,4 +80,6 @@ private:
     int currentReciteIndex = 0;
 
     std::vector<QString> reciteOptions;
+
+    int correctAnswerIndex = 0; // Index of the correct answer in reciteOptions
 };

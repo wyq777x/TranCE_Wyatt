@@ -38,6 +38,7 @@ void QuizCard::setWordEntry (WordEntry &entry)
     updateAdd2FavoritesButton ();
 
     reciteOptions.emplace_back (entry.translation);
+    correctAnswerIndex = 0; // The correct answer is always at index 0 initially
 
     QTimer::singleShot (0, this, [this] () { adjustSize (); });
 }
@@ -54,10 +55,24 @@ void QuizCard::fillReciteOptions ()
 
 void QuizCard::shuffleReciteOptions ()
 {
+    if (reciteOptions.empty ())
+        return;
+
+    QString correctAnswer = reciteOptions[correctAnswerIndex];
+
     std::random_device rd;
     std::mt19937 g (rd ());
 
     std::shuffle (reciteOptions.begin (), reciteOptions.end (), g);
+
+    for (int i = 0; i < reciteOptions.size (); ++i)
+    {
+        if (reciteOptions[i] == correctAnswer)
+        {
+            correctAnswerIndex = i;
+            break;
+        }
+    }
 }
 
 void QuizCard::setReciteOptions (const std::vector<QString> &options)
@@ -197,33 +212,41 @@ void QuizCard::initConnections ()
     connect (optionAButton, &ElaPushButton::clicked, this,
              [this] ()
              {
-                 // Building...
-                 emit optionSelected (0);
-                 qDebug () << "Option A clicked";
+                 bool isCorrect = validateAnswer (0);
+                 showAnswerFeedback (0, isCorrect);
+                 emit optionSelected (0, isCorrect);
+                 qDebug () << "Option A clicked - "
+                           << (isCorrect ? "Correct" : "Wrong");
              });
 
     connect (optionBButton, &ElaPushButton::clicked, this,
              [this] ()
              {
-                 // Building...
-                 emit optionSelected (1);
-                 qDebug () << "Option B clicked";
+                 bool isCorrect = validateAnswer (1);
+                 showAnswerFeedback (1, isCorrect);
+                 emit optionSelected (1, isCorrect);
+                 qDebug () << "Option B clicked - "
+                           << (isCorrect ? "Correct" : "Wrong");
              });
 
     connect (optionCButton, &ElaPushButton::clicked, this,
              [this] ()
              {
-                 // Building...
-                 emit optionSelected (2);
-                 qDebug () << "Option C clicked";
+                 bool isCorrect = validateAnswer (2);
+                 showAnswerFeedback (2, isCorrect);
+                 emit optionSelected (2, isCorrect);
+                 qDebug () << "Option C clicked - "
+                           << (isCorrect ? "Correct" : "Wrong");
              });
 
     connect (optionDButton, &ElaPushButton::clicked, this,
              [this] ()
              {
-                 // Building...
-                 emit optionSelected (3);
-                 qDebug () << "Option D clicked";
+                 bool isCorrect = validateAnswer (3);
+                 showAnswerFeedback (3, isCorrect);
+                 emit optionSelected (3, isCorrect);
+                 qDebug () << "Option D clicked - "
+                           << (isCorrect ? "Correct" : "Wrong");
              });
 }
 
@@ -335,5 +358,56 @@ void QuizCard::onMasterButtonClicked ()
         }
 
         qDebug () << currentWordEntry.word << " mastered.";
+    }
+}
+
+bool QuizCard::validateAnswer (int optionIndex) const
+{
+    return optionIndex == correctAnswerIndex;
+}
+
+void QuizCard::showAnswerFeedback (int selectedOptionIndex, bool isCorrect)
+{
+    std::vector<ElaPushButton *> buttons = {optionAButton, optionBButton,
+                                            optionCButton, optionDButton};
+
+    for (auto *button : buttons)
+    {
+        button->setEnabled (false);
+    }
+
+    QString correctStyle = "background-color: #4CAF50;"
+                           "color: white;"
+                           "border: 2px solid #45a049;";
+
+    QString wrongStyle = "background-color: #f44336;"
+                         "color: white;"
+                         "border: 2px solid #da190b;";
+
+    buttons[correctAnswerIndex]->setStyleSheet (correctStyle);
+
+    if (!isCorrect && selectedOptionIndex < buttons.size ())
+    {
+        buttons[selectedOptionIndex]->setStyleSheet (wrongStyle);
+    }
+
+    QTimer::singleShot (200, this,
+                        [this] ()
+                        {
+                            resetButtonStates ();
+                            close ();
+                        });
+}
+
+void QuizCard::resetButtonStates ()
+{
+    // Reset button styles and enable them
+    std::vector<ElaPushButton *> buttons = {optionAButton, optionBButton,
+                                            optionCButton, optionDButton};
+
+    for (auto *button : buttons)
+    {
+        button->setStyleSheet (""); // Reset to default style
+        button->setEnabled (true);
     }
 }
