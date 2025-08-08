@@ -3,15 +3,17 @@
 #include "Controller/DbManager.h"
 #include "Controller/UIController.h"
 #include "Utility/Constants.h"
+#include <QTimer>
 #include <algorithm>
 #include <random>
 
 QuizCard::QuizCard (QWidget *parent) : TempPage (parent)
 {
     setWindowTitle (tr ("Quiz Card"));
-    setMinimumSize (400, 400);
+    setMinimumSize (500, 500);
     setMaximumWidth (700);
     setMaximumHeight (400);
+    setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
     setStyleSheet (
         "background-color: #f0f0f0; font-family: 'Noto Sans', sans-serif;");
 
@@ -36,6 +38,8 @@ void QuizCard::setWordEntry (WordEntry &entry)
     updateAdd2FavoritesButton ();
 
     reciteOptions.emplace_back (entry.translation);
+
+    QTimer::singleShot (0, this, [this] () { adjustSize (); });
 }
 
 void QuizCard::fillReciteOptions ()
@@ -73,6 +77,16 @@ void QuizCard::setReciteOptions (const std::vector<QString> &options)
     optionBButton->setEnabled (true);
     optionCButton->setEnabled (true);
     optionDButton->setEnabled (true);
+
+    QTimer::singleShot (0, this,
+                        [this] ()
+                        {
+                            adjustSize ();
+                            if (height () > 600)
+                            {
+                                resize (width (), 600);
+                            }
+                        });
 }
 
 void QuizCard::initUI ()
@@ -92,12 +106,14 @@ void QuizCard::initUI ()
 
     mainLayout = new QVBoxLayout (centralWidget);
     mainLayout->setContentsMargins (20, 20, 20, 20);
-    mainLayout->setSpacing (10);
+    mainLayout->setSpacing (15);
 
     headerLayout = new QHBoxLayout ();
 
     wordLabel = new QLabel ();
     wordLabel->setAlignment (Qt::AlignCenter);
+    wordLabel->setWordWrap (true);
+    wordLabel->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Preferred);
     wordLabel->setStyleSheet (QString ("QLabel {"
                                        "font-size: %1px;"
                                        "font-weight: bold;"
@@ -128,35 +144,34 @@ void QuizCard::initUI ()
 
     optionAButton = new ElaPushButton (centralWidget);
     optionAButton->setText (tr ("Option A"));
-    optionAButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
-    optionAButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
-    optionAButton->setMinimumWidth (150);
-    optionAButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
-
+    optionAButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
+    optionAButton->setMinimumWidth (200);
+    optionAButton->setSizePolicy (QSizePolicy::Expanding,
+                                  QSizePolicy::MinimumExpanding);
     optionAButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     optionBButton = new ElaPushButton (centralWidget);
     optionBButton->setText (tr ("Option B"));
-    optionBButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
-    optionBButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
-    optionBButton->setMinimumWidth (150);
-    optionBButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
+    optionBButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
+    optionBButton->setMinimumWidth (200);
+    optionBButton->setSizePolicy (QSizePolicy::Expanding,
+                                  QSizePolicy::MinimumExpanding);
     optionBButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     optionCButton = new ElaPushButton (centralWidget);
     optionCButton->setText (tr ("Option C"));
-    optionCButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
-    optionCButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
-    optionCButton->setMinimumWidth (150);
-    optionCButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
+    optionCButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
+    optionCButton->setMinimumWidth (200);
+    optionCButton->setSizePolicy (QSizePolicy::Expanding,
+                                  QSizePolicy::MinimumExpanding);
     optionCButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     optionDButton = new ElaPushButton (centralWidget);
     optionDButton->setText (tr ("Option D"));
-    optionDButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
-    optionDButton->setMaximumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT - 10);
-    optionDButton->setMinimumWidth (150);
-    optionDButton->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Fixed);
+    optionDButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
+    optionDButton->setMinimumWidth (200);
+    optionDButton->setSizePolicy (QSizePolicy::Expanding,
+                                  QSizePolicy::MinimumExpanding);
     optionDButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     mainLayout->addLayout (headerLayout);
@@ -165,9 +180,10 @@ void QuizCard::initUI ()
     mainLayout->addWidget (optionBButton);
     mainLayout->addWidget (optionCButton);
     mainLayout->addWidget (optionDButton);
-    mainLayout->addStretch ();
 
     addCentralWidget (centralWidget);
+
+    adjustSize ();
 }
 
 void QuizCard::initConnections ()

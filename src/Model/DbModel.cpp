@@ -1615,7 +1615,6 @@ bool DbModel::existsInMastered (const QString &userId,
 ChangeResult DbModel::updateWordStatus (const QString &userId,
                                         const QString &word, int status)
 {
-    // Building...
     // status: 0=learning, 1=mastered
 
     if (!isUserDbOpen ())
