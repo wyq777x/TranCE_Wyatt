@@ -391,12 +391,7 @@ void QuizCard::showAnswerFeedback (int selectedOptionIndex, bool isCorrect)
         buttons[selectedOptionIndex]->setStyleSheet (wrongStyle);
     }
 
-    QTimer::singleShot (200, this,
-                        [this] ()
-                        {
-                            resetButtonStates ();
-                            close ();
-                        });
+    QTimer::singleShot (200, this, [this] () { close (); });
 }
 
 void QuizCard::resetButtonStates ()
