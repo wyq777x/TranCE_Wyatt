@@ -176,3 +176,15 @@ DbManager::getRandomWrongTranslations (const QString &correctTranslation,
     return DbModel::getInstance ().getRandomWrongTranslations (
         correctTranslation, limit);
 }
+
+int DbManager::getMasteredWordsCount (const QString &userId)
+{
+    auto masteredWords = DbModel::getInstance ().getUserVocabulary (userId, 1);
+    return static_cast<int> (masteredWords.size ());
+}
+
+int DbManager::getLearningWordsCount (const QString &userId)
+{
+    auto learningWords = DbModel::getInstance ().getUserVocabulary (userId, 0);
+    return static_cast<int> (learningWords.size ());
+}

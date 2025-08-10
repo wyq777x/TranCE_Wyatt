@@ -1,4 +1,6 @@
 #include "StatisticsPage.h"
+#include "Controller/AccountManager.h"
+#include "Controller/DbManager.h"
 #include "Utility/Constants.h"
 
 StatisticsPage::StatisticsPage (QWidget *parent) : TempPage (parent)
@@ -7,6 +9,7 @@ StatisticsPage::StatisticsPage (QWidget *parent) : TempPage (parent)
 
     initUI ();
     initConnections ();
+    refreshStatistics ();
 }
 
 void StatisticsPage::initUI ()
@@ -66,8 +69,47 @@ void StatisticsPage::initUI ()
 
 void StatisticsPage::initConnections ()
 {
-    // Add connections here when needed
-    // For example:
-    // connect(refreshButton, &ElaIconButton::clicked, this,
-    // &StatisticsPage::onRefreshButtonClicked);
+
+    connect (&AccountManager::getInstance (), &AccountManager::loginSuccessful,
+             this, &StatisticsPage::refreshStatistics);
+    connect (&AccountManager::getInstance (), &AccountManager::logoutSuccessful,
+             this, &StatisticsPage::refreshStatistics);
+    connect (refreshButton, &ElaIconButton::clicked, this,
+             &StatisticsPage::onRefreshButtonClicked);
 }
+
+void StatisticsPage::refreshStatistics ()
+{
+
+    auto &accountManager = AccountManager::getInstance ();
+    QString currentUsername = accountManager.getUsername ();
+
+    if (currentUsername.isEmpty ())
+    {
+
+        masteredWordsLabel->setText (tr ("Mastered Words: %1").arg (0));
+        learningWordsLabel->setText (tr ("Learning Words: %1").arg (0));
+        return;
+    }
+
+    auto &dbManager = DbManager::getInstance ();
+    auto userId = dbManager.getUserId (currentUsername);
+
+    if (!userId.has_value ())
+    {
+
+        masteredWordsLabel->setText (tr ("Mastered Words: %1").arg (0));
+        learningWordsLabel->setText (tr ("Learning Words: %1").arg (0));
+        return;
+    }
+
+    int masteredCount = dbManager.getMasteredWordsCount (userId.value ());
+    int learningCount = dbManager.getLearningWordsCount (userId.value ());
+
+    masteredWordsLabel->setText (tr ("Mastered Words: %1").arg (masteredCount));
+    learningWordsLabel->setText (tr ("Learning Words: %1").arg (learningCount));
+
+    qDebug () << "Statistics refreshed. ";
+}
+
+void StatisticsPage::onRefreshButtonClicked () { refreshStatistics (); }

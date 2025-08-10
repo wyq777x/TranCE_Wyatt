@@ -75,6 +75,9 @@ public:
     std::vector<QString>
     getRandomWrongTranslations (const QString &correctTranslation, int limit);
 
+    int getMasteredWordsCount (const QString &userId);
+    int getLearningWordsCount (const QString &userId);
+
 private:
     DbManager () = default;
     DbManager (const DbManager &) = delete;

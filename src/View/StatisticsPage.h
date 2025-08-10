@@ -8,9 +8,13 @@ class StatisticsPage : public TempPage
 public:
     explicit StatisticsPage (QWidget *parent = nullptr);
 
+private slots:
+    void onRefreshButtonClicked ();
+
 private:
     void initUI ();
     void initConnections ();
+    void refreshStatistics ();
 
     // UI components
     QWidget *centralWidget;
