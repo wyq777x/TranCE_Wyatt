@@ -2,6 +2,7 @@
 #include "Utility/ClickableWidget.h"
 #include "Utility/WordEntry.h"
 #include "View/TempPage.h"
+#include <array>
 #include <utility>
 
 class QuizCard;
@@ -38,12 +39,17 @@ private slots:
 
     void handleQuizCardOptionSelected (int optionIndex, bool isCorrect);
 
+    void onFavoritesWidgetClicked ();
+    void onMasteredWidgetClicked ();
+
 private:
     void initUI ();
     void initConnections ();
     void initializeCardAmount ();
     void showNextQuizCard ();
     void showCompletionDialog ();
+    void updateFavoritesDisplay ();
+    void updateMasteredDisplay ();
 
     // UI components
     QWidget *centralWidget;
@@ -67,6 +73,9 @@ private:
     QLabel *masteredLabel;
     QVBoxLayout *masteredLayout;
     QHBoxLayout *masteredWidgetLayout;
+
+    std::array<QLabel *, 5> favoritesPreviewLabels;
+    std::array<QLabel *, 5> masteredPreviewLabels;
 
     QuizCard *quizCard;
 

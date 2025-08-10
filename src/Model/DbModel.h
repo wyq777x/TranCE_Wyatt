@@ -347,6 +347,8 @@ public:
     std::vector<QString> getUserVocabulary (const QString &userId,
                                             int status = -1); // -1 means all
 
+    std::vector<QString> getUserFavorites (const QString &userId);
+
     std::string getLastError () const { return m_lastError; }
 
     std::optional<WordEntry> getRandomWord ();

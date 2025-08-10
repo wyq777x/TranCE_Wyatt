@@ -6,8 +6,10 @@
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
 #include "View/Components/QuizCard.h"
+#include "View/Components/WordList.h"
 #include <QMessageBox>
 #include <QTimer>
+#include <array>
 
 RecitePage::RecitePage (QWidget *parent) : TempPage (parent)
 {
@@ -36,6 +38,8 @@ void RecitePage::onLoginSuccessful ()
     }
 
     // update Favorites and Mastered widgets
+    updateFavoritesDisplay ();
+    updateMasteredDisplay ();
 }
 
 void RecitePage::onLogoutSuccessful ()
@@ -44,6 +48,8 @@ void RecitePage::onLogoutSuccessful ()
     setProgress (0, 15);
 
     // reset Favorites and Mastered widgets
+    updateFavoritesDisplay ();
+    updateMasteredDisplay ();
 }
 
 void RecitePage::onReciteButtonClicked ()
@@ -152,6 +158,17 @@ void RecitePage::initUI ()
 
     favoritesLayout = new QVBoxLayout (favoritesContentWidget);
     favoritesLayout->addWidget (favoritesLabel);
+
+    for (int i = 0; i < 5; ++i)
+    {
+        favoritesPreviewLabels[i] = new QLabel (favoritesContentWidget);
+        favoritesPreviewLabels[i]->setStyleSheet (
+            "font-size: 12px; color: #666; padding: 2px;");
+        favoritesPreviewLabels[i]->setAlignment (Qt::AlignCenter);
+        favoritesPreviewLabels[i]->hide (); // Initially hidden
+        favoritesLayout->addWidget (favoritesPreviewLabels[i]);
+    }
+
     favoritesLayout->addStretch ();
 
     favoritesWidgetLayout = new QHBoxLayout (favoritesWidget);
@@ -177,6 +194,17 @@ void RecitePage::initUI ()
 
     masteredLayout = new QVBoxLayout (masteredContentWidget);
     masteredLayout->addWidget (masteredLabel);
+
+    for (int i = 0; i < 5; ++i)
+    {
+        masteredPreviewLabels[i] = new QLabel (masteredContentWidget);
+        masteredPreviewLabels[i]->setStyleSheet (
+            "font-size: 12px; color: #666; padding: 2px;");
+        masteredPreviewLabels[i]->setAlignment (Qt::AlignCenter);
+        masteredPreviewLabels[i]->hide (); // Initially hidden
+        masteredLayout->addWidget (masteredPreviewLabels[i]);
+    }
+
     masteredLayout->addStretch ();
 
     masteredWidgetLayout = new QHBoxLayout (masteredWidget);
@@ -239,10 +267,10 @@ void RecitePage::initConnections ()
              &RecitePage::onReciteButtonClicked);
 
     connect (favoritesWidget, &ClickableWidget::clicked, this,
-             [] () { qDebug () << "Favorites widget clicked"; });
+             &RecitePage::onFavoritesWidgetClicked);
 
     connect (masteredWidget, &ClickableWidget::clicked, this,
-             [] () { qDebug () << "Mastered widget clicked"; });
+             &RecitePage::onMasteredWidgetClicked);
 }
 
 void RecitePage::initializeCardAmount ()
@@ -387,4 +415,108 @@ void RecitePage::showCompletionDialog ()
     setProgress (0, totalProgress);
 
     currentCardIndex = 0;
+}
+
+void RecitePage::updateFavoritesDisplay ()
+{
+    for (int i = 0; i < 5; ++i)
+    {
+        favoritesPreviewLabels[i]->hide ();
+        favoritesPreviewLabels[i]->clear ();
+    }
+
+    if (!AccountManager::getInstance ().isLoggedIn ())
+    {
+        return;
+    }
+
+    QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+    auto favorites = DbManager::getInstance ().getUserFavorites (userId);
+
+    int displayCount = std::min (static_cast<int> (favorites.size ()), 5);
+    for (int i = 0; i < displayCount; ++i)
+    {
+        favoritesPreviewLabels[i]->setText (favorites[i]);
+        favoritesPreviewLabels[i]->show ();
+    }
+}
+
+void RecitePage::updateMasteredDisplay ()
+{
+    for (int i = 0; i < 5; ++i)
+    {
+        masteredPreviewLabels[i]->hide ();
+        masteredPreviewLabels[i]->clear ();
+    }
+
+    if (!AccountManager::getInstance ().isLoggedIn ())
+    {
+        return;
+    }
+
+    QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+    auto masteredWords =
+        DbManager::getInstance ().getUserMasteredWords (userId);
+
+    int displayCount = std::min (static_cast<int> (masteredWords.size ()), 5);
+    for (int i = 0; i < displayCount; ++i)
+    {
+        masteredPreviewLabels[i]->setText (masteredWords[i]);
+        masteredPreviewLabels[i]->show ();
+    }
+}
+
+void RecitePage::onFavoritesWidgetClicked ()
+{
+    if (!AccountManager::getInstance ().isLoggedIn ())
+    {
+        return;
+    }
+
+    QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+    auto favorites = DbManager::getInstance ().getUserFavorites (userId);
+
+    QStringList favoritesStringList;
+    for (const auto &word : favorites)
+    {
+        favoritesStringList << word;
+    }
+
+    auto *wordList = WordList::getInstance ();
+    wordList->setTitle (tr ("Favorites Words List"));
+    wordList->setWordList (favoritesStringList);
+
+    wordList->show ();
+
+    qDebug () << "Favorites widget clicked.";
+}
+
+void RecitePage::onMasteredWidgetClicked ()
+{
+    if (!AccountManager::getInstance ().isLoggedIn ())
+    {
+        return;
+    }
+
+    QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+    auto masteredWords =
+        DbManager::getInstance ().getUserMasteredWords (userId);
+
+    QStringList masteredStringList;
+    for (const auto &word : masteredWords)
+    {
+        masteredStringList << word;
+    }
+
+    auto *wordList = WordList::getInstance ();
+    wordList->setTitle (tr ("Mastered Words List"));
+    wordList->setWordList (masteredStringList);
+
+    wordList->show ();
+
+    qDebug () << "Mastered widget clicked.";
 }

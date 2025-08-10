@@ -183,6 +183,16 @@ int DbManager::getMasteredWordsCount (const QString &userId)
     return static_cast<int> (masteredWords.size ());
 }
 
+std::vector<QString> DbManager::getUserFavorites (const QString &userId)
+{
+    return DbModel::getInstance ().getUserFavorites (userId);
+}
+
+std::vector<QString> DbManager::getUserMasteredWords (const QString &userId)
+{
+    return DbModel::getInstance ().getUserVocabulary (userId, 1);
+}
+
 int DbManager::getLearningWordsCount (const QString &userId)
 {
     auto learningWords = DbModel::getInstance ().getUserVocabulary (userId, 0);

@@ -1760,6 +1760,54 @@ std::vector<QString> DbModel::getUserVocabulary (const QString &userId,
     }
 }
 
+std::vector<QString> DbModel::getUserFavorites (const QString &userId)
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return std::vector<QString> ();
+    }
+
+    if (userId.isEmpty ())
+    {
+        logErr ("User ID is empty", std::runtime_error ("Invalid input"));
+        return std::vector<QString> (); // Invalid input
+    }
+
+    try
+    {
+        std::vector<QString> favorites;
+        SQLite::Statement query (
+            *user_db, "SELECT word FROM user_favorites WHERE user_id = ?");
+        query.bind (1, userId.toStdString ());
+
+        while (query.executeStep ())
+        {
+            QString word =
+                QString::fromStdString (query.getColumn (0).getString ());
+            favorites.emplace_back (word);
+        }
+        return favorites;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error getting user favorites from database", e);
+        return std::vector<QString> ();
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting user favorites from database", e);
+        return std::vector<QString> ();
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting user favorites from database",
+                std::runtime_error ("Unknown exception"));
+        return std::vector<QString> ();
+    }
+}
+
 std::optional<WordEntry> DbModel::getRandomWord ()
 {
     if (!isDictDbOpen ())

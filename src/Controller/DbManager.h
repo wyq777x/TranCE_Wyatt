@@ -75,6 +75,9 @@ public:
     std::vector<QString>
     getRandomWrongTranslations (const QString &correctTranslation, int limit);
 
+    std::vector<QString> getUserFavorites (const QString &userId);
+    std::vector<QString> getUserMasteredWords (const QString &userId);
+
     int getMasteredWordsCount (const QString &userId);
     int getLearningWordsCount (const QString &userId);
 
