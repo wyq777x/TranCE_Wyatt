@@ -316,6 +316,33 @@ void RecitePage::handleQuizCardOptionSelected (int optionIndex, bool isCorrect)
                   << "Option:" << optionIndex
                   << "Correct:" << (isCorrect ? "Yes" : "No");
 
+        if (AccountManager::getInstance ().isLoggedIn ())
+        {
+            QString userId = AccountManager::getInstance ().getUserUuid (
+                AccountManager::getInstance ().getUsername ());
+
+            if (!userId.isEmpty () && !currentWordEntry.word.isEmpty ())
+            {
+                int status = isCorrect ? 1 : 0; // 1 = mastered, 0 = learning
+                auto result = DbManager::getInstance ().updateWordStatus (
+                    userId, currentWordEntry.word, status);
+
+                if (result == ChangeResult::Success)
+                {
+                    qDebug ()
+                        << "Word status updated in database:"
+                        << currentWordEntry.word
+                        << "Status:" << (isCorrect ? "mastered" : "learning");
+                }
+                else
+                {
+                    qWarning ()
+                        << "Failed to update word status in database:"
+                        << getErrorMessage (result, ChangeResultMessage);
+                }
+            }
+        }
+
         if (isCorrect)
         {
             qDebug () << "Correct answer! Well done!";
