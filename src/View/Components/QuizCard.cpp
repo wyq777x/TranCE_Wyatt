@@ -83,6 +83,9 @@ void QuizCard::setReciteOptions (const std::vector<QString> &options)
         return;
     }
 
+    // Reset button states first to ensure clean state
+    resetButtonStates ();
+
     optionAButton->setText (options[0]);
     optionBButton->setText (options[1]);
     optionCButton->setText (options[2]);
@@ -157,37 +160,69 @@ void QuizCard::initUI ()
                                   "margin: 10px 0px;"
                                   "}");
 
-    optionAButton = new ElaPushButton (centralWidget);
+    optionAButton = new QPushButton (centralWidget);
     optionAButton->setText (tr ("Option A"));
     optionAButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     optionAButton->setMinimumWidth (200);
     optionAButton->setSizePolicy (QSizePolicy::Expanding,
                                   QSizePolicy::MinimumExpanding);
-    optionAButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
+    optionAButton->setStyleSheet (
+        QString ("QPushButton {"
+                 "border: 2px solid #bdc3c7;"
+                 "border-radius: %1px;"
+                 "color: #2c3e50;"
+                 "font-family: 'Noto Sans', sans-serif;"
+                 "background-color: white;"
+                 "}")
+            .arg (Constants::UI::DEFAULT_BORDER_RADIUS));
 
-    optionBButton = new ElaPushButton (centralWidget);
+    optionBButton = new QPushButton (centralWidget);
     optionBButton->setText (tr ("Option B"));
     optionBButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     optionBButton->setMinimumWidth (200);
     optionBButton->setSizePolicy (QSizePolicy::Expanding,
                                   QSizePolicy::MinimumExpanding);
-    optionBButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
+    optionBButton->setStyleSheet (
+        QString ("QPushButton {"
+                 "border: 2px solid #bdc3c7;"
+                 "border-radius: %1px;"
+                 "color: #2c3e50;"
+                 "font-family: 'Noto Sans', sans-serif;"
+                 "background-color: white;"
+                 "}")
+            .arg (Constants::UI::DEFAULT_BORDER_RADIUS));
 
-    optionCButton = new ElaPushButton (centralWidget);
+    optionCButton = new QPushButton (centralWidget);
     optionCButton->setText (tr ("Option C"));
     optionCButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     optionCButton->setMinimumWidth (200);
     optionCButton->setSizePolicy (QSizePolicy::Expanding,
                                   QSizePolicy::MinimumExpanding);
-    optionCButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
+    optionCButton->setStyleSheet (
+        QString ("QPushButton {"
+                 "border: 2px solid #bdc3c7;"
+                 "border-radius: %1px;"
+                 "color: #2c3e50;"
+                 "font-family: 'Noto Sans', sans-serif;"
+                 "background-color: white;"
+                 "}")
+            .arg (Constants::UI::DEFAULT_BORDER_RADIUS));
 
-    optionDButton = new ElaPushButton (centralWidget);
+    optionDButton = new QPushButton (centralWidget);
     optionDButton->setText (tr ("Option D"));
     optionDButton->setMinimumHeight (Constants::UI::DEFAULT_BUTTON_HEIGHT);
     optionDButton->setMinimumWidth (200);
     optionDButton->setSizePolicy (QSizePolicy::Expanding,
                                   QSizePolicy::MinimumExpanding);
-    optionDButton->setBorderRadius (Constants::UI::DEFAULT_BORDER_RADIUS);
+    optionDButton->setStyleSheet (
+        QString ("QPushButton {"
+                 "border: 2px solid #bdc3c7;"
+                 "border-radius: %1px;"
+                 "color: #2c3e50;"
+                 "font-family: 'Noto Sans', sans-serif;"
+                 "background-color: white;"
+                 "}")
+            .arg (Constants::UI::DEFAULT_BORDER_RADIUS));
 
     mainLayout->addLayout (headerLayout);
     mainLayout->addWidget (separatorLine);
@@ -209,7 +244,7 @@ void QuizCard::initConnections ()
     connect (masterButton, &ElaIconButton::clicked, this,
              &QuizCard::onMasterButtonClicked);
 
-    connect (optionAButton, &ElaPushButton::clicked, this,
+    connect (optionAButton, &QPushButton::clicked, this,
              [this] ()
              {
                  bool isCorrect = validateAnswer (0);
@@ -219,7 +254,7 @@ void QuizCard::initConnections ()
                            << (isCorrect ? "Correct" : "Wrong");
              });
 
-    connect (optionBButton, &ElaPushButton::clicked, this,
+    connect (optionBButton, &QPushButton::clicked, this,
              [this] ()
              {
                  bool isCorrect = validateAnswer (1);
@@ -229,7 +264,7 @@ void QuizCard::initConnections ()
                            << (isCorrect ? "Correct" : "Wrong");
              });
 
-    connect (optionCButton, &ElaPushButton::clicked, this,
+    connect (optionCButton, &QPushButton::clicked, this,
              [this] ()
              {
                  bool isCorrect = validateAnswer (2);
@@ -239,7 +274,7 @@ void QuizCard::initConnections ()
                            << (isCorrect ? "Correct" : "Wrong");
              });
 
-    connect (optionDButton, &ElaPushButton::clicked, this,
+    connect (optionDButton, &QPushButton::clicked, this,
              [this] ()
              {
                  bool isCorrect = validateAnswer (3);
@@ -368,21 +403,29 @@ bool QuizCard::validateAnswer (int optionIndex) const
 
 void QuizCard::showAnswerFeedback (int selectedOptionIndex, bool isCorrect)
 {
-    std::vector<ElaPushButton *> buttons = {optionAButton, optionBButton,
-                                            optionCButton, optionDButton};
+    std::vector<QPushButton *> buttons = {optionAButton, optionBButton,
+                                          optionCButton, optionDButton};
 
     for (auto *button : buttons)
     {
         button->setEnabled (false);
     }
 
-    QString correctStyle = "background-color: #4CAF50;"
-                           "color: white;"
-                           "border: 2px solid #45a049;";
+    QString correctStyle = QString ("QPushButton {"
+                                    "background-color: #4CAF50;"
+                                    "color: white;"
+                                    "border: 2px solid #45a049;"
+                                    "border-radius: %1px;"
+                                    "}")
+                               .arg (Constants::UI::DEFAULT_BORDER_RADIUS);
 
-    QString wrongStyle = "background-color: #f44336;"
-                         "color: white;"
-                         "border: 2px solid #da190b;";
+    QString wrongStyle = QString ("QPushButton {"
+                                  "background-color: #f44336;"
+                                  "color: white;"
+                                  "border: 2px solid #da190b;"
+                                  "border-radius: %1px;"
+                                  "}")
+                             .arg (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     buttons[correctAnswerIndex]->setStyleSheet (correctStyle);
 
@@ -397,12 +440,21 @@ void QuizCard::showAnswerFeedback (int selectedOptionIndex, bool isCorrect)
 void QuizCard::resetButtonStates ()
 {
     // Reset button styles and enable them
-    std::vector<ElaPushButton *> buttons = {optionAButton, optionBButton,
-                                            optionCButton, optionDButton};
+    std::vector<QPushButton *> buttons = {optionAButton, optionBButton,
+                                          optionCButton, optionDButton};
+
+    QString defaultStyle = QString ("QPushButton {"
+                                   "border: 2px solid #bdc3c7;"
+                                   "border-radius: %1px;"
+                                   "color: #2c3e50;"
+                                   "font-family: 'Noto Sans', sans-serif;"
+                                   "background-color: white;"
+                                   "}")
+                              .arg (Constants::UI::DEFAULT_BORDER_RADIUS);
 
     for (auto *button : buttons)
     {
-        button->setStyleSheet (""); // Reset to default style
+        button->setStyleSheet (defaultStyle);
         button->setEnabled (true);
     }
 }

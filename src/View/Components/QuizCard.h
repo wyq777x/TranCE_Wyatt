@@ -65,10 +65,10 @@ private:
     QLabel *wordLabel;
     QFrame *separatorLine;
 
-    ElaPushButton *optionAButton;
-    ElaPushButton *optionBButton;
-    ElaPushButton *optionCButton;
-    ElaPushButton *optionDButton;
+    QPushButton *optionAButton;
+    QPushButton *optionBButton;
+    QPushButton *optionCButton;
+    QPushButton *optionDButton;
 
     ElaIconButton *add2FavoritesButton =
         new ElaIconButton (Constants::UI::UNLIKE_ICON);
