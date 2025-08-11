@@ -163,7 +163,7 @@ void RecitePage::initUI ()
     {
         favoritesPreviewLabels[i] = new QLabel (favoritesContentWidget);
         favoritesPreviewLabels[i]->setStyleSheet (
-            "font-size: 12px; color: #666; padding: 2px;");
+            "font-size: 20px; color: #666; padding: 2px;");
         favoritesPreviewLabels[i]->setAlignment (Qt::AlignCenter);
         favoritesPreviewLabels[i]->hide (); // Initially hidden
         favoritesLayout->addWidget (favoritesPreviewLabels[i]);
@@ -199,7 +199,7 @@ void RecitePage::initUI ()
     {
         masteredPreviewLabels[i] = new QLabel (masteredContentWidget);
         masteredPreviewLabels[i]->setStyleSheet (
-            "font-size: 12px; color: #666; padding: 2px;");
+            "font-size: 20px; color: #666; padding: 2px;");
         masteredPreviewLabels[i]->setAlignment (Qt::AlignCenter);
         masteredPreviewLabels[i]->hide (); // Initially hidden
         masteredLayout->addWidget (masteredPreviewLabels[i]);
