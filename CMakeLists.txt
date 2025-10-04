@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.21)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -50,6 +50,11 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_FILE:ElaWidgetTools>
         $<TARGET_FILE_DIR:TranCE_Wyatt>
+    )
+
+    add_custom_command(TARGET TranCE_Wyatt POST_BUILD
+        COMMAND windeployqt --no-translations --no-quick-import $<TARGET_FILE:TranCE_Wyatt>
+        COMMENT "auto set Qt dll to output dir"
     )
 endif()
 
