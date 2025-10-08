@@ -1872,6 +1872,33 @@ std::optional<WordEntry> DbModel::getRandomWord ()
     }
 }
 
+QString DbModel::resolveResourcePath (const QString &relativePath)
+{
+    QString normalized = relativePath;
+    if (normalized.startsWith ('/'))
+    {
+        normalized = normalized.mid (1);
+    }
+
+    QDir dir (QCoreApplication::applicationDirPath ());
+    constexpr int maxLevels = 6;
+    for (int i = 0; i < maxLevels; ++i)
+    {
+        const QString candidate = QDir::cleanPath (dir.filePath (normalized));
+        if (QFile::exists (candidate))
+        {
+            return candidate;
+        }
+        if (!dir.cdUp ())
+        {
+            break;
+        }
+    }
+
+    return QDir::cleanPath (
+        QDir (QCoreApplication::applicationDirPath ()).filePath (normalized));
+}
+
 WordEntry DbModel::parseCSVLineToWordEntry (const QString &csvLine)
 {
     WordEntry entry;
@@ -1952,9 +1979,8 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
         QString dictFilePath = dictPath;
         if (dictFilePath.isEmpty ())
         {
-            // Default CSV file path
-            dictFilePath = QCoreApplication::applicationDirPath () +
-                           "/../3rdpart/ECDICT/ecdict.csv";
+            dictFilePath =
+                resolveResourcePath (Constants::Database::ECDICT_CSV_PATH);
         }
 
         try

@@ -384,6 +384,8 @@ private:
         m_lastError = errMsg + " Exception:" + std::string (e.what ());
     }
 
+    static QString resolveResourcePath (const QString &relativePath);
+
     WordEntry parseCSVLineToWordEntry (const QString &csvLine);
 
     QStringList parseCSVLine (const QString &line);
