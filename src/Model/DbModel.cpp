@@ -6,6 +6,7 @@
 #include <random>
 #include <set>
 #include <stdexcept>
+#include <thread>
 
 bool DbModel::isUserDbOpen () const
 {
@@ -28,6 +29,222 @@ bool DbModel::isDictDbOpen () const
     else
     {
         return false;
+    }
+}
+
+bool DbModel::isDictionaryImportInProgress () const
+{
+    return m_dictImportState != nullptr &&
+           m_dictImportState->inProgress.load ();
+}
+
+bool DbModel::isDictionaryReady () const
+{
+    return m_dictImportState != nullptr && m_dictImportState->ready.load ();
+}
+
+void DbModel::refreshDictImportRequirement ()
+{
+    if (!dict_db)
+    {
+        m_needsDictImport = true;
+        if (m_dictImportState != nullptr)
+        {
+            m_dictImportState->ready.store (false);
+        }
+        return;
+    }
+
+    try
+    {
+        SQLite::Statement tableQuery (
+            *dict_db, "SELECT COUNT(*) FROM sqlite_master "
+                      "WHERE type = 'table' AND name = 'words'");
+        tableQuery.executeStep ();
+
+        if (tableQuery.getColumn (0).getInt () == 0)
+        {
+            initDictTable ();
+            m_needsDictImport = true;
+        }
+        else
+        {
+            m_needsDictImport = countDictionaryWords (*dict_db) == 0;
+        }
+
+        if (m_dictImportState != nullptr)
+        {
+            m_dictImportState->ready.store (!m_needsDictImport);
+        }
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error refreshing dictionary import state", e);
+        m_needsDictImport = true;
+        if (m_dictImportState != nullptr)
+        {
+            m_dictImportState->ready.store (false);
+        }
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error refreshing dictionary import state", e);
+        m_needsDictImport = true;
+        if (m_dictImportState != nullptr)
+        {
+            m_dictImportState->ready.store (false);
+        }
+    }
+    catch (...)
+    {
+        logErr ("Unknown error refreshing dictionary import state",
+                std::runtime_error ("Unknown exception"));
+        m_needsDictImport = true;
+        if (m_dictImportState != nullptr)
+        {
+            m_dictImportState->ready.store (false);
+        }
+    }
+}
+
+void DbModel::configureDictDatabasePragmas (SQLite::Database &database)
+{
+    database.exec ("PRAGMA journal_mode = WAL");
+    database.exec ("PRAGMA synchronous = NORMAL");
+    database.exec ("PRAGMA cache_size = 20000");
+    database.exec ("PRAGMA temp_store = MEMORY");
+    database.exec ("PRAGMA locking_mode = NORMAL");
+    database.exec ("PRAGMA page_size = 8192");
+    database.exec ("PRAGMA foreign_keys = ON");
+}
+
+int DbModel::countDictionaryWords (SQLite::Database &database)
+{
+    SQLite::Statement query (database, "SELECT COUNT(*) FROM words");
+    query.executeStep ();
+    return query.getColumn (0).getInt ();
+}
+
+void DbModel::insertWordBatchSyncInternal (
+    SQLite::Database &database, const std::vector<WordEntry> &batch)
+{
+    if (batch.empty ())
+    {
+        return;
+    }
+
+    SQLite::Statement wordsStmt (
+        database, "INSERT OR IGNORE INTO words "
+                  "(word, part_of_speech, pronunciation, frequency, notes) "
+                  "VALUES (?, ?, ?, ?, ?)");
+
+    SQLite::Statement translationsStmt (
+        database, "INSERT OR IGNORE INTO word_translations "
+                  "(source_word, source_language, target_word, "
+                  "target_language, confidence_score) "
+                  "VALUES (?, ?, ?, ?, ?)");
+
+    for (const auto &entry : batch)
+    {
+        wordsStmt.reset ();
+        wordsStmt.bind (1, entry.word.toStdString ());
+        wordsStmt.bind (2, entry.partOfSpeech.toStdString ());
+        wordsStmt.bind (3, entry.pronunciation.toStdString ());
+        wordsStmt.bind (4, entry.frequency);
+        wordsStmt.bind (5, entry.notes.toStdString ());
+        wordsStmt.exec ();
+
+        if (!entry.translation.isEmpty ())
+        {
+            translationsStmt.reset ();
+            translationsStmt.bind (1, entry.word.toStdString ());
+            translationsStmt.bind (2, entry.language.toStdString ());
+            translationsStmt.bind (3, entry.translation.toStdString ());
+            translationsStmt.bind (4, "zh");
+            translationsStmt.bind (5, 1.0);
+            translationsStmt.exec ();
+        }
+    }
+}
+
+void DbModel::importFromFileSyncInternal (
+    SQLite::Database &database, const QString &filePath,
+    std::function<void (int, int)> progressCallback)
+{
+    QFile csvFile (filePath);
+
+    if (!csvFile.open (QIODevice::ReadOnly | QIODevice::Text))
+    {
+        throw std::runtime_error ("File open failed");
+    }
+
+    QTextStream inputStream (&csvFile);
+    inputStream.setEncoding (QStringConverter::Utf8);
+
+    inputStream.readLine ();
+
+    constexpr int batchSize = 1000;
+    std::vector<WordEntry> batch;
+    batch.reserve (batchSize);
+
+    long long totalLines = 0;
+    long long processedLines = 0;
+    QTextStream countStream (&csvFile);
+    countStream.seek (inputStream.pos ());
+    while (!countStream.atEnd ())
+    {
+        countStream.readLine ();
+        totalLines++;
+    }
+
+    inputStream.seek (0);
+    inputStream.readLine ();
+
+    SQLite::Transaction transaction (database);
+    database.exec ("DELETE FROM examples");
+    database.exec ("DELETE FROM word_translations");
+    database.exec ("DELETE FROM words");
+
+    while (!inputStream.atEnd ())
+    {
+        QString line = inputStream.readLine ().trimmed ();
+        if (line.isEmpty ())
+        {
+            continue;
+        }
+
+        WordEntry entry = parseCSVLineToWordEntry (line);
+        if (!entry.word.isEmpty ())
+        {
+            batch.emplace_back (std::move (entry));
+        }
+
+        processedLines++;
+
+        if (batch.size () >= batchSize)
+        {
+            insertWordBatchSyncInternal (database, batch);
+            batch.clear ();
+
+            if (progressCallback)
+            {
+                progressCallback (static_cast<int> (processedLines),
+                                  static_cast<int> (totalLines));
+            }
+        }
+    }
+
+    if (!batch.empty ())
+    {
+        insertWordBatchSyncInternal (database, batch);
+    }
+
+    transaction.commit ();
+
+    if (progressCallback)
+    {
+        progressCallback (static_cast<int> (totalLines),
+                          static_cast<int> (totalLines));
     }
 }
 
@@ -838,108 +1055,78 @@ AsyncTask<void>
 DbModel::importFromFileAsync (const QString &filePath,
                               std::function<void (int, int)> progressCallback)
 {
-    if (!isDictDbOpen ())
+    if (filePath.isEmpty ())
     {
-        logErr ("Dictionary database is not open",
-                std::runtime_error ("Database connection is not established"));
+        logErr ("Dictionary file path is empty",
+                std::runtime_error ("Invalid file path"));
         co_return;
     }
 
-    try
+    const auto importState = m_dictImportState;
+    if (importState == nullptr)
     {
-        QFile csvFile (filePath);
-
-        if (!csvFile.open (QIODevice::ReadOnly | QIODevice::Text))
-        {
-            logErr ("Cannot open file",
-                    std::runtime_error ("File open failed"));
-            co_return;
-        }
-
-        QTextStream inputStream (&csvFile);
-        inputStream.setEncoding (QStringConverter::Utf8);
-
-        // Skip the format example header line
-        QString headerLine = inputStream.readLine ();
-
-        constexpr int batchSize = 1000;
-        std::vector<WordEntry> batch;
-        batch.reserve (batchSize);
-
-        // progress for callback
-        long long totalLines = 0;
-        long long processedLines = 0;
-        QTextStream countStream (&csvFile);
-        countStream.seek (inputStream.pos ());
-        while (!countStream.atEnd ())
-        {
-            countStream.readLine ();
-            totalLines++;
-        }
-
-        inputStream.seek (0); // Reset to the beginning of the file
-        inputStream.readLine ();
-
-        SQLite::Transaction transaction (*dict_db);
-
-        while (!inputStream.atEnd ())
-        {
-            QString line = inputStream.readLine ().trimmed ();
-            if (line.isEmpty ())
-                continue;
-
-            WordEntry entry = parseCSVLineToWordEntry (line);
-            if (!entry.word.isEmpty ())
-            {
-                batch.emplace_back (std::move (entry));
-            }
-
-            processedLines++;
-
-            if (batch.size () >= batchSize)
-            {
-                co_await insertWordBatch (batch);
-                batch.clear ();
-
-                if (progressCallback)
-                {
-                    progressCallback (processedLines, totalLines);
-                }
-
-                if (processedLines % 100 == 0)
-                {
-                    co_await std::suspend_always{};
-                }
-            }
-        }
-
-        if (!batch.empty ())
-        {
-            co_await insertWordBatch (batch);
-        }
-
-        transaction.commit ();
-
-        if (progressCallback)
-        {
-            progressCallback (totalLines, totalLines);
-        }
-
+        logErr ("Dictionary import state is not initialized",
+                std::runtime_error ("Invalid import state"));
         co_return;
     }
-    catch (const SQLite::Exception &e)
+
+    if (importState->inProgress.exchange (true))
     {
-        logErr ("Error importing from file", e);
+        qDebug () << "Dictionary import is already running";
+        co_return;
     }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error importing from file", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error importing from file",
-                std::runtime_error ("Unknown exception"));
-    }
+
+    importState->ready.store (false);
+
+    const QString dictDbPath = QDir (getDbDir ()).filePath ("dict.db");
+
+    std::thread (
+        [dictDbPath, filePath, progressCallback = std::move (progressCallback),
+         importState] () mutable
+        {
+            try
+            {
+                SQLite::Database backgroundDb (
+                    dictDbPath.toStdString (), SQLite::OPEN_READWRITE);
+                configureDictDatabasePragmas (backgroundDb);
+
+                qDebug () << "Background dictionary import started from:"
+                          << filePath;
+
+                importFromFileSyncInternal (backgroundDb, filePath,
+                                            std::move (progressCallback));
+
+                importState->ready.store (
+                    countDictionaryWords (backgroundDb) > 0);
+                qDebug () << "Dictionary import completed!";
+            }
+            catch (const SQLite::Exception &e)
+            {
+                qCritical () << "[DbModel] Error importing from file in "
+                                "background. Exception:"
+                            << e.what ();
+                importState->ready.store (false);
+            }
+            catch (const std::exception &e)
+            {
+                qCritical () << "[DbModel] Unknown error importing from file "
+                                "in background. Exception:"
+                            << e.what ();
+                importState->ready.store (false);
+            }
+            catch (...)
+            {
+                qCritical () << "[DbModel] Unknown error importing from file "
+                                "in background. Exception: Unknown "
+                                "exception";
+                importState->ready.store (false);
+            }
+
+            importState->inProgress.store (false);
+        })
+        .detach ();
+
+    co_return;
 }
 
 void DbModel::importFromFileSync (
@@ -954,77 +1141,12 @@ void DbModel::importFromFileSync (
 
     try
     {
-        QFile csvFile (filePath);
-
-        if (!csvFile.open (QIODevice::ReadOnly | QIODevice::Text))
+        importFromFileSyncInternal (*dict_db, filePath, progressCallback);
+        clearWordLookupCache ();
+        if (m_dictImportState != nullptr)
         {
-            logErr ("Cannot open file",
-                    std::runtime_error ("File open failed"));
-            return;
-        }
-
-        QTextStream inputStream (&csvFile);
-        inputStream.setEncoding (QStringConverter::Utf8);
-
-        // Skip the header line
-        QString headerLine = inputStream.readLine ();
-
-        constexpr int batchSize = 1000;
-        std::vector<WordEntry> batch;
-        batch.reserve (batchSize);
-
-        // Count lines for progress
-        long long totalLines = 0;
-        long long processedLines = 0;
-        QTextStream countStream (&csvFile);
-        countStream.seek (inputStream.pos ());
-        while (!countStream.atEnd ())
-        {
-            countStream.readLine ();
-            totalLines++;
-        }
-
-        inputStream.seek (0);
-        inputStream.readLine (); // Skip header again
-
-        SQLite::Transaction transaction (*dict_db);
-
-        while (!inputStream.atEnd ())
-        {
-            QString line = inputStream.readLine ().trimmed ();
-            if (line.isEmpty ())
-                continue;
-
-            WordEntry entry = parseCSVLineToWordEntry (line);
-            if (!entry.word.isEmpty ())
-            {
-                batch.emplace_back (std::move (entry));
-            }
-
-            processedLines++;
-
-            if (batch.size () >= batchSize)
-            {
-                insertWordBatchSync (batch);
-                batch.clear ();
-
-                if (progressCallback)
-                {
-                    progressCallback (processedLines, totalLines);
-                }
-            }
-        }
-
-        if (!batch.empty ())
-        {
-            insertWordBatchSync (batch);
-        }
-
-        transaction.commit ();
-
-        if (progressCallback)
-        {
-            progressCallback (totalLines, totalLines);
+            m_dictImportState->ready.store (countDictionaryWords (*dict_db) >
+                                            0);
         }
     }
     catch (const SQLite::Exception &e)
@@ -1052,40 +1174,7 @@ void DbModel::insertWordBatchSync (const std::vector<WordEntry> &batch)
 
     try
     {
-        SQLite::Statement wordsStmt (
-            *dict_db, "INSERT OR IGNORE INTO words "
-                      "(word, part_of_speech, pronunciation, frequency, notes) "
-                      "VALUES (?, ?, ?, ?, ?)");
-
-        SQLite::Statement translationsStmt (
-            *dict_db, "INSERT OR IGNORE INTO word_translations "
-                      "(source_word, source_language, target_word, "
-                      "target_language, confidence_score) "
-                      "VALUES (?, ?, ?, ?, ?)");
-
-        for (const auto &entry : batch)
-        {
-
-            wordsStmt.reset ();
-            wordsStmt.bind (1, entry.word.toStdString ());
-            wordsStmt.bind (2, entry.partOfSpeech.toStdString ());
-            wordsStmt.bind (3, entry.pronunciation.toStdString ());
-            wordsStmt.bind (4, entry.frequency);
-            wordsStmt.bind (5, entry.notes.toStdString ());
-            wordsStmt.exec ();
-
-            if (!entry.translation.isEmpty ())
-            {
-                translationsStmt.reset ();
-                translationsStmt.bind (1, entry.word.toStdString ());
-                translationsStmt.bind (2, entry.language.toStdString ());
-                translationsStmt.bind (3, entry.translation.toStdString ());
-                translationsStmt.bind (4, "zh");
-                translationsStmt.bind (5, 1.0);
-                translationsStmt.exec ();
-            }
-        }
-
+        insertWordBatchSyncInternal (*dict_db, batch);
         clearWordLookupCache ();
     }
     catch (const SQLite::Exception &e)
@@ -1874,6 +1963,10 @@ std::optional<WordEntry> DbModel::getRandomWord ()
                 queryRandomWord.getColumn (1).getString ());
             randomWordEntry.language = "en"; // Default language
         }
+        else
+        {
+            return std::nullopt;
+        }
 
         SQLite::Statement queryTranslation (
             *dict_db, "SELECT target_word, target_language "
@@ -2014,68 +2107,67 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
 {
     initDBs ();
 
-    if (m_needsDictImport && isDictDbOpen ())
+    if (!isDictDbOpen () || isDictionaryImportInProgress ())
     {
+        co_return;
+    }
 
-        QString dictFilePath = dictPath;
-        if (dictFilePath.isEmpty ())
+    QString dictFilePath = dictPath;
+    if (dictFilePath.isEmpty ())
+    {
+        dictFilePath = resolveResourcePath (Constants::Database::ECDICT_CSV_PATH);
+    }
+
+    try
+    {
+        const int wordCount = countDictionaryWords (*dict_db);
+        m_needsDictImport = wordCount == 0;
+
+        if (wordCount == 0 && QFile::exists (dictFilePath))
         {
-            dictFilePath =
-                resolveResourcePath (Constants::Database::ECDICT_CSV_PATH);
-        }
+            qDebug () << "Dictionary is empty, starting background import from:"
+                      << dictFilePath;
 
-        try
-        {
-            SQLite::Statement query (*dict_db, "SELECT COUNT(*) FROM words");
-            query.executeStep ();
-            int wordCount = query.getColumn (0).getInt ();
-
-            if (wordCount == 0 && QFile::exists (dictFilePath))
-            {
-                qDebug () << "Dictionary is empty, importing from:"
-                          << dictFilePath;
-
-                // Use synchronous import to ensure it works reliably
-                importFromFileSync (
-                    dictFilePath,
-                    [] (int current, int total)
+            importFromFileAsync (
+                dictFilePath,
+                [] (int current, int total)
+                {
+                    if (total > 0 &&
+                        (current % 5000 == 0 || current == total))
                     {
-                        if (current % 5000 == 0 || current == total)
-                        {
-                            qDebug () << "Dictionary import progress:"
-                                      << (current * 100 / total) << "%";
-                        }
-                    });
-                qDebug () << "Dictionary import completed!";
-            }
-            else if (wordCount > 0)
+                        qDebug () << "Dictionary import progress:"
+                                  << (current * 100 / total) << "%";
+                    }
+                });
+        }
+        else if (wordCount > 0)
+        {
+            if (m_dictImportState != nullptr)
             {
-                qDebug () << "Dictionary already contains" << wordCount
-                          << "words";
+                m_dictImportState->ready.store (true);
             }
-            else if (!QFile::exists (dictFilePath))
-            {
-                auto exception =
-                    std::runtime_error ("Dictionary file not found at: " +
-                                        dictFilePath.toStdString ());
-                logErr ("Dictionary file not found", exception);
-            }
+            qDebug () << "Dictionary already contains" << wordCount << "words";
         }
-        catch (const SQLite::Exception &e)
+        else if (!QFile::exists (dictFilePath))
         {
-            logErr ("Error checking/importing dictionary", e);
+            auto exception =
+                std::runtime_error ("Dictionary file not found at: " +
+                                    dictFilePath.toStdString ());
+            logErr ("Dictionary file not found", exception);
         }
-        catch (const std::exception &e)
-        {
-            logErr ("Unknown error checking/importing dictionary", e);
-        }
-        catch (...)
-        {
-            logErr ("Unknown error checking/importing dictionary",
-                    std::runtime_error ("Unknown exception"));
-        }
-
-        m_needsDictImport = false;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error checking/importing dictionary", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error checking/importing dictionary", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error checking/importing dictionary",
+                std::runtime_error ("Unknown exception"));
     }
 
     co_return;

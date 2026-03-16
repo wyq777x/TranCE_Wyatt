@@ -14,7 +14,7 @@ int main (int argc, char *argv[])
     ElaApplication::getInstance ()->init ();
 
     auto &dbManager = DbManager::getInstance ();
-    auto initTask = dbManager.initializeAsync ();
+    dbManager.initializeAsync ();
 
     MainWindow w;
     w.show ();

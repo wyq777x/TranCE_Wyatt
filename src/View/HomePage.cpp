@@ -457,6 +457,14 @@ void HomePage::initConnections ()
         recommendWordButton, &ElaPushButton::clicked,
         [=, this] ()
         {
+            if (!DbManager::getInstance ().isDictionaryReady ())
+            {
+                showDialog (tr ("Dictionary Importing"),
+                            tr ("The dictionary is still importing in the "
+                                "background. Please try again shortly."));
+                return;
+            }
+
             auto wordEntry = DbManager::getInstance ().getRandomWord ();
             if (wordEntry.has_value ())
             {

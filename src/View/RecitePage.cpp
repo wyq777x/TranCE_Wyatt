@@ -37,6 +37,11 @@ void RecitePage::onLoginSuccessful ()
         currentCardIndex = 0;
     }
 
+    if (Card_amount.empty () && DbManager::getInstance ().isDictionaryReady ())
+    {
+        initializeCardAmount ();
+    }
+
     // update Favorites and Mastered widgets
     updateFavoritesDisplay ();
     updateMasteredDisplay ();
@@ -54,6 +59,34 @@ void RecitePage::onLogoutSuccessful ()
 
 void RecitePage::onReciteButtonClicked ()
 {
+    if (!DbManager::getInstance ().isDictionaryReady ())
+    {
+        if (DbManager::getInstance ().isDictionaryImportInProgress ())
+        {
+            showDialog (tr ("Dictionary Importing"),
+                        tr ("The dictionary is still importing in the "
+                            "background. Please try again in a moment."));
+        }
+        else
+        {
+            showDialog (tr ("Dictionary Unavailable"),
+                        tr ("The dictionary is not ready yet."));
+        }
+        return;
+    }
+
+    if (Card_amount.empty ())
+    {
+        initializeCardAmount ();
+    }
+
+    if (Card_amount.empty ())
+    {
+        showDialog (tr ("No Words Available"),
+                    tr ("No recitable words are available right now."));
+        return;
+    }
+
     showNextQuizCard ();
 
     qDebug () << "Recite button clicked";
@@ -279,32 +312,53 @@ void RecitePage::initializeCardAmount ()
     Card_amount.clear ();
     Card_amount.reserve (totalProgress);
 
-    for (int i = 0; i < totalProgress; ++i)
+    if (!DbManager::getInstance ().isDictionaryReady ())
     {
+        return;
+    }
+
+    const bool isLoggedIn = AccountManager::getInstance ().isLoggedIn ();
+    const QString userId = isLoggedIn
+                               ? AccountManager::getInstance ().getUserUuid (
+                                     AccountManager::getInstance ()
+                                         .getUsername ())
+                               : QString ();
+    const int maxAttempts = totalProgress * 20;
+    int attempts = 0;
+
+    while (static_cast<int> (Card_amount.size ()) < totalProgress &&
+           attempts < maxAttempts)
+    {
+        attempts++;
 
         auto entry = DbManager::getInstance ().getRandomWord ();
-        if (AccountManager::getInstance ().isLoggedIn ())
+        if (!entry.has_value () || entry->word.isEmpty ())
         {
-            if (entry.has_value () &&
-                !DbManager::getInstance ().existsInMastered (
-                    AccountManager::getInstance ().getUserUuid (
-                        AccountManager::getInstance ().getUsername ()),
-                    entry.value ().word))
+            continue;
+        }
+
+        bool alreadyAdded = false;
+        for (const auto &existingEntry : Card_amount)
+        {
+            if (existingEntry.word == entry->word)
             {
-                Card_amount.emplace_back (entry.value ());
-            }
-            else
-            {
-                --i; // Retry if already mastered or no entry
+                alreadyAdded = true;
+                break;
             }
         }
-        else
+
+        if (alreadyAdded)
         {
-            if (entry.has_value ())
-            {
-                Card_amount.emplace_back (entry.value ());
-            }
+            continue;
         }
+
+        if (isLoggedIn && !userId.isEmpty () &&
+            DbManager::getInstance ().existsInMastered (userId, entry->word))
+        {
+            continue;
+        }
+
+        Card_amount.emplace_back (entry.value ());
     }
 }
 

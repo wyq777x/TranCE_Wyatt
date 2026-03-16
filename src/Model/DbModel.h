@@ -11,6 +11,7 @@
 #include <QString>
 #include <QUuid>
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <atomic>
 #include <cstddef>
 #include <memory>
 #include <optional>
@@ -83,6 +84,11 @@ public:
             dict_db = std::make_unique<SQLite::Database> (
                 dictDbPath.toStdString (), SQLite::OPEN_READWRITE);
         }
+
+        if (dict_db != nullptr)
+        {
+            refreshDictImportRequirement ();
+        }
     }
 
     // Asynchronous init method
@@ -91,6 +97,8 @@ public:
 
     bool isUserDbOpen () const;
     bool isDictDbOpen () const;
+    bool isDictionaryImportInProgress () const;
+    bool isDictionaryReady () const;
 
     // User
 
@@ -374,21 +382,37 @@ public:
                                 int limit = 3);
 
 private:
+    struct DictionaryImportState
+    {
+        std::atomic_bool inProgress = false;
+        std::atomic_bool ready = false;
+    };
+
     explicit DbModel ()
         : user_db (nullptr), dict_db (nullptr),
-          m_wordLookupCache (Constants::Settings::Cache::WORD_LOOKUP_MAX_BYTES)
+          m_wordLookupCache (Constants::Settings::Cache::WORD_LOOKUP_MAX_BYTES),
+          m_dictImportState (std::make_shared<DictionaryImportState> ())
     {
         initDBs ();
     }
 
     static std::string buildWordLookupCacheKey (const QString &word,
                                                 const QString &srcLang);
+    void refreshDictImportRequirement ();
+    static void configureDictDatabasePragmas (SQLite::Database &database);
+    static int countDictionaryWords (SQLite::Database &database);
+    static void insertWordBatchSyncInternal (
+        SQLite::Database &database, const std::vector<WordEntry> &batch);
+    static void importFromFileSyncInternal (
+        SQLite::Database &database, const QString &filePath,
+        std::function<void (int, int)> progressCallback = nullptr);
 
     std::unique_ptr<SQLite::Database> user_db;
     std::unique_ptr<SQLite::Database> dict_db;
     CacheModel<WordEntry> m_wordLookupCache;
     mutable std::string m_lastError;
     bool m_needsDictImport = false;
+    std::shared_ptr<DictionaryImportState> m_dictImportState;
 
     template <typename ExceptionT>
     void logErr (const std::string &errMsg, const ExceptionT &e) const
@@ -400,7 +424,7 @@ private:
 
     static QString resolveResourcePath (const QString &relativePath);
 
-    WordEntry parseCSVLineToWordEntry (const QString &csvLine);
+    static WordEntry parseCSVLineToWordEntry (const QString &csvLine);
 
-    QStringList parseCSVLine (const QString &line);
+    static QStringList parseCSVLine (const QString &line);
 };

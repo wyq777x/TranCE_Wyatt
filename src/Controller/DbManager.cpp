@@ -9,6 +9,16 @@ AsyncTask<void> DbManager::initializeAsync (const QString &dictPath)
     return DbModel::getInstance ().initializeAsync (dictPath);
 }
 
+bool DbManager::isDictionaryImportInProgress () const
+{
+    return DbModel::getInstance ().isDictionaryImportInProgress ();
+}
+
+bool DbManager::isDictionaryReady () const
+{
+    return DbModel::getInstance ().isDictionaryReady ();
+}
+
 void DbManager::deleteUser (const QString &username)
 {
     DbModel::getInstance ().deleteUser (username);

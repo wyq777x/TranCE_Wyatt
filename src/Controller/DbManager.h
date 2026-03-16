@@ -21,6 +21,8 @@ public:
 
     void initDBs ();
     AsyncTask<void> initializeAsync (const QString &dictPath = "");
+    bool isDictionaryImportInProgress () const;
+    bool isDictionaryReady () const;
 
     // User management functions
     RegisterUserResult registerUser (const QString &username,
