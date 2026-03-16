@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Def.h"
+#include <cstddef>
 #include <QString>
 
 namespace Constants
@@ -82,6 +83,12 @@ constexpr int DEFAULT_FONT_SIZE = 16;
 constexpr int TITLE_FONT_SIZE = 24;
 constexpr int SUBTITLE_FONT_SIZE = 20;
 constexpr int SMALL_FONT_SIZE = 14;
+
+namespace Cache
+{
+constexpr std::size_t WORD_LOOKUP_MAX_BYTES = 8 * 1024 * 1024;
+constexpr int WORD_LOOKUP_TTL_MINUTES = 10;
+} // namespace Cache
 } // namespace Settings
 
 namespace JsonFields

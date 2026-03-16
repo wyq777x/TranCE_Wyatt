@@ -111,6 +111,7 @@ void SettingPage::initUI ()
     clearCacheLayout->addWidget (clearCacheButton);
 
     settingPageLayout->addLayout (clearCacheLayout);
+    refreshCacheLabel ();
 
     addCentralWidget (centralWidget, true, true, 0);
 }
@@ -122,6 +123,8 @@ void SettingPage::initConnections ()
     connect (m_languageComboBox,
              QOverload<int>::of (&ElaComboBox::currentIndexChanged), this,
              &SettingPage::onLanguageChanged);
+    connect (clearCacheButton, &ElaPushButton::clicked, this,
+             &SettingPage::onClearCacheClicked);
 }
 
 void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
@@ -265,4 +268,21 @@ void SettingPage::onLanguageChanged (int index)
             qDebug () << "Language changed successfully to" << selectedLanguage;
         }
     }
+}
+
+void SettingPage::onClearCacheClicked ()
+{
+    DbManager::getInstance ().clearWordLookupCache ();
+    refreshCacheLabel ();
+    showDialog (tr ("Success"), tr ("Word lookup cache has been cleared."));
+}
+
+void SettingPage::refreshCacheLabel ()
+{
+    const double cacheSizeMb =
+        static_cast<double> (DbManager::getInstance ()
+                                 .getWordLookupCacheSizeBytes ()) /
+        (1024.0 * 1024.0);
+    clearCacheLabel->setText (
+        tr ("Clear Cache: %1 MB").arg (QString::number (cacheSizeMb, 'f', 2)));
 }

@@ -1,9 +1,12 @@
 #pragma once
 
+#include "WordEntry.h"
+#include <QByteArray>
 #include <QPixmap>
 #include <chrono>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 template <typename T>
@@ -71,6 +74,25 @@ public:
         else if constexpr (std::is_same_v<T, QByteArray>)
         {
             return value.size () + key.size ();
+        }
+        else if constexpr (std::is_same_v<T, QString>)
+        {
+            return key.size () + static_cast<std::size_t> (value.size ()) *
+                                    sizeof (QChar);
+        }
+        else if constexpr (std::is_same_v<T, WordEntry>)
+        {
+            return key.size () +
+                   static_cast<std::size_t> (value.word.size () +
+                                             value.translation.size () +
+                                             value.language.size () +
+                                             value.partOfSpeech.size () +
+                                             value.examples.size () +
+                                             value.exampleTranslation.size () +
+                                             value.pronunciation.size () +
+                                             value.notes.size ()) *
+                       sizeof (QChar) +
+                   sizeof (value.frequency);
         }
         else
         {

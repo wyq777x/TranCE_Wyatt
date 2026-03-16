@@ -31,6 +31,16 @@ std::vector<WordEntry> DbManager::searchWords (const QString &pattern,
     return DbModel::getInstance ().searchWords (pattern, lang, limit);
 }
 
+void DbManager::clearWordLookupCache ()
+{
+    DbModel::getInstance ().clearWordLookupCache ();
+}
+
+std::size_t DbManager::getWordLookupCacheSizeBytes () const
+{
+    return DbModel::getInstance ().getWordLookupCacheSizeBytes ();
+}
+
 ChangeResult DbManager::changeUsername (const QString &oldUsername,
                                         const QString &newUsername)
 {

@@ -769,6 +769,7 @@ AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
         }
 
         transaction.commit ();
+        clearWordLookupCache ();
         co_return;
     }
     catch (const SQLite::Exception &e)
@@ -1084,6 +1085,8 @@ void DbModel::insertWordBatchSync (const std::vector<WordEntry> &batch)
                 translationsStmt.exec ();
             }
         }
+
+        clearWordLookupCache ();
     }
     catch (const SQLite::Exception &e)
     {
@@ -1147,6 +1150,8 @@ AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
                 translationsStmt.exec ();
             }
         }
+
+        clearWordLookupCache ();
     }
     catch (const SQLite::Exception &e)
     {
@@ -1178,13 +1183,16 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
         return std::nullopt;
     }
 
-    if (word.isEmpty () || srcLang.isEmpty ())
+    const QString normalizedWord = word.trimmed ();
+    const QString normalizedSrcLang = srcLang.trimmed ();
+
+    if (normalizedWord.isEmpty () || normalizedSrcLang.isEmpty ())
     {
         logErr ("Word or source language is empty",
                 std::runtime_error ("Invalid input"));
         return std::nullopt; // Invalid input
     }
-    if (srcLang != "en" && srcLang != "zh")
+    if (normalizedSrcLang != "en" && normalizedSrcLang != "zh")
     {
         logErr ("Unsupported source language", std::runtime_error ("Invalid "
                                                                    "source "
@@ -1193,29 +1201,38 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
     }
     try
     {
+        const auto cacheKey =
+            buildWordLookupCacheKey (normalizedWord, normalizedSrcLang);
+        if (auto cachedEntry = m_wordLookupCache.get (cacheKey);
+            cachedEntry.has_value ())
+        {
+            return cachedEntry;
+        }
+
         WordEntry entry;
-        if (srcLang == "en")
+        bool found = false;
+        if (normalizedSrcLang == "en")
         {
             SQLite::Statement queryWordBasic (*dict_db,
                                               "SELECT word, pronunciation "
                                               "FROM words WHERE word = ?");
-            queryWordBasic.bind (1, word.toStdString ());
+            queryWordBasic.bind (1, normalizedWord.toStdString ());
             if (queryWordBasic.executeStep ())
             {
-
+                found = true;
                 entry.word = QString::fromStdString (
                     queryWordBasic.getColumn (0).getString ());
                 entry.pronunciation = QString::fromStdString (
                     queryWordBasic.getColumn (1).getString ());
-                entry.language = srcLang;
+                entry.language = normalizedSrcLang;
             }
 
             SQLite::Statement queryTranslation (
                 *dict_db, "SELECT target_word, target_language "
                           "FROM word_translations WHERE source_word = ? "
                           "AND source_language = ?");
-            queryTranslation.bind (1, word.toStdString ());
-            queryTranslation.bind (2, srcLang.toStdString ());
+            queryTranslation.bind (1, normalizedWord.toStdString ());
+            queryTranslation.bind (2, normalizedSrcLang.toStdString ());
             if (queryTranslation.executeStep ())
             {
                 entry.translation = QString::fromStdString (
@@ -1227,19 +1244,20 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
             }
         }
 
-        else if (srcLang == "zh")
+        else if (normalizedSrcLang == "zh")
         {
             SQLite::Statement queryWord (
                 *dict_db, "SELECT source_word FROM word_translations WHERE "
                           "target_word = ? AND target_language = ?");
-            queryWord.bind (1, word.toStdString ());
-            queryWord.bind (2, srcLang.toStdString ());
+            queryWord.bind (1, normalizedWord.toStdString ());
+            queryWord.bind (2, normalizedSrcLang.toStdString ());
             if (queryWord.executeStep ())
             {
-                entry.translation = word;
+                found = true;
+                entry.translation = normalizedWord;
                 entry.word = QString::fromStdString (
                     queryWord.getColumn (0).getString ());
-                entry.language = srcLang;
+                entry.language = normalizedSrcLang;
 
                 // get pronunciation
                 SQLite::Statement queryPronunciation (
@@ -1256,6 +1274,16 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
                 }
             }
         }
+
+        if (!found || entry.word.isEmpty ())
+        {
+            return std::nullopt;
+        }
+
+        m_wordLookupCache.put (
+            cacheKey, entry,
+            std::chrono::minutes (
+                Constants::Settings::Cache::WORD_LOOKUP_TTL_MINUTES));
 
         return entry;
     }
@@ -1276,6 +1304,19 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
         return std::nullopt;
     }
     return std::nullopt;
+}
+
+void DbModel::clearWordLookupCache () { m_wordLookupCache.clear (); }
+
+std::size_t DbModel::getWordLookupCacheSizeBytes () const
+{
+    return m_wordLookupCache.sizeBytes ();
+}
+
+std::string DbModel::buildWordLookupCacheKey (const QString &word,
+                                              const QString &srcLang)
+{
+    return QStringLiteral ("%1:{%2}").arg (srcLang, word).toStdString ();
 }
 
 std::vector<WordEntry> DbModel::searchWords (const QString &pattern,

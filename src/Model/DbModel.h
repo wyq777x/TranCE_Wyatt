@@ -1,4 +1,5 @@
 #pragma once
+#include "Model/CacheModel.h"
 #include "SQLiteCpp/Database.h"
 #include "Utility/AsyncTask.h"
 #include "Utility/Constants.h"
@@ -10,8 +11,10 @@
 #include <QString>
 #include <QUuid>
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <cstddef>
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -333,6 +336,8 @@ public:
                                          const QString &srcLang);
     std::vector<WordEntry> searchWords (const QString &pattern,
                                         const QString &srcLang, int limit = 10);
+    void clearWordLookupCache ();
+    std::size_t getWordLookupCacheSizeBytes () const;
 
     void addToUserFavorites (const QString &userId, const QString &word);
     void removeFromUserFavorites (const QString &userId, const QString &word);
@@ -369,10 +374,19 @@ public:
                                 int limit = 3);
 
 private:
-    explicit DbModel () : user_db (nullptr), dict_db (nullptr) { initDBs (); }
+    explicit DbModel ()
+        : user_db (nullptr), dict_db (nullptr),
+          m_wordLookupCache (Constants::Settings::Cache::WORD_LOOKUP_MAX_BYTES)
+    {
+        initDBs ();
+    }
+
+    static std::string buildWordLookupCacheKey (const QString &word,
+                                                const QString &srcLang);
 
     std::unique_ptr<SQLite::Database> user_db;
     std::unique_ptr<SQLite::Database> dict_db;
+    CacheModel<WordEntry> m_wordLookupCache;
     mutable std::string m_lastError;
     bool m_needsDictImport = false;
 

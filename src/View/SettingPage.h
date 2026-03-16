@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Controller/DbManager.h"
 #include "Utility/Constants.h"
 #include "View/TempPage.h"
 #include <Controller/SettingManager.h>
@@ -20,11 +21,13 @@ public:
 private slots:
     void onHistorySearchListEnabledToggled (bool enabled);
     void onLanguageChanged (int index);
+    void onClearCacheClicked ();
 
 private:
     void initUI ();
     void initConnections ();
     void updateStatusWithAnimation (bool enabled);
+    void refreshCacheLabel ();
 
     // change AppSettingModel through SettingManager controller
     ChangeResult changeHistorySearchListEnabled (bool enabled);

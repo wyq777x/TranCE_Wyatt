@@ -3,7 +3,10 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <chrono>
+#include <cstddef>
+#include <functional>
 #include <list>
+#include <optional>
 #include <tuple>
 #include <unordered_map>
 #include <utility>
@@ -59,20 +62,31 @@ public:
     void put (const std::string &key, T value,
               std::chrono::milliseconds ttl = std::chrono::minutes (5))
     {
+        auto entrySize = CacheEntry<T>::calculateSize (key, value);
+        if (entrySize >= maxSize)
+        {
+            remove (key);
+            missCount++;
+            return;
+        }
+
         // Check if the key already exists
         auto it = cacheMap.find (key);
         if (it != cacheMap.end ())
         {
             // If it exists, update the value and refresh the expiration time
+            currentSize -= it->second.size;
             it->second.value = std::move (value);
+            it->second.size = entrySize;
             it->second.refreshExpiration (ttl);
+            currentSize += entrySize;
             move2Front (key);
+            evict (0);
             return;
         }
 
         // If the key does not exist, forward the value to emplace into the
         // cache
-        auto entrySize = CacheEntry<T>::calculateSize (key, value);
         evict (entrySize);
 
         auto [iter, inserted] = cacheMap.emplace (
@@ -135,6 +149,10 @@ public:
             }
         }
     }
+
+    std::size_t sizeBytes () const { return currentSize; }
+
+    std::size_t entryCount () const { return cacheMap.size (); }
 
 private:
     void move2Front (const std::string &key)

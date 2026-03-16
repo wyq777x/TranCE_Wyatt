@@ -3,7 +3,9 @@
 #include "Utility/AsyncTask.h"
 #include "Utility/Result.h"
 #include "Utility/WordEntry.h"
+#include <cstddef>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -29,6 +31,8 @@ public:
                                          const QString &lang);
     std::vector<WordEntry> searchWords (const QString &pattern,
                                         const QString &lang, int limit = 10);
+    void clearWordLookupCache ();
+    std::size_t getWordLookupCacheSizeBytes () const;
 
     ChangeResult changeUsername (const QString &oldUsername,
                                  const QString &newUsername);
