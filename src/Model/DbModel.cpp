@@ -1,16 +1,291 @@
 #include "DbModel.h"
+#include "Model/CacheModel.h"
+#include "SQLiteCpp/Database.h"
 #include "SQLiteCpp/Exception.h"
+#include "SQLiteCpp/SQLiteCpp.h"
 #include "SQLiteCpp/Statement.h"
 #include "SQLiteCpp/Transaction.h"
+#include "Utility/Constants.h"
 #include "Utility/Result.h"
+#include <QCoreApplication>
+#include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QStringConverter>
+#include <QTextStream>
+#include <atomic>
 #include <random>
 #include <set>
 #include <stdexcept>
 #include <thread>
 
+struct DbModel::Impl
+{
+    struct DictionaryImportState
+    {
+        std::atomic_bool inProgress = false;
+        std::atomic_bool ready = false;
+    };
+
+    std::unique_ptr<SQLite::Database> user_db;
+    std::unique_ptr<SQLite::Database> dict_db;
+    CacheModel<WordEntry> m_wordLookupCache;
+    mutable std::string m_lastError;
+    bool m_needsDictImport = false;
+    std::shared_ptr<DictionaryImportState> m_dictImportState;
+
+    Impl ()
+        : user_db (nullptr), dict_db (nullptr),
+          m_wordLookupCache (Constants::Settings::Cache::WORD_LOOKUP_MAX_BYTES),
+          m_dictImportState (std::make_shared<DictionaryImportState> ())
+    {
+    }
+};
+
+DbModel::DbModel () : d (std::make_unique<Impl> ()) { initDBs (); }
+
+DbModel::DbModel (DbModel &&) noexcept = default;
+
+DbModel &DbModel::operator= (DbModel &&) noexcept = default;
+
+DbModel::~DbModel () = default;
+
+QString DbModel::getDbDir ()
+{
+    return QCoreApplication::applicationDirPath () + Constants::Paths::DB_DIR;
+}
+
+QString DbModel::getAvatarDir ()
+{
+    return QCoreApplication::applicationDirPath () +
+           Constants::Paths::AVATAR_DIR;
+}
+
+void DbModel::initDBs ()
+{
+    QDir dir (getDbDir ());
+    if (!dir.exists ())
+    {
+        dir.mkpath (".");
+    }
+
+    QString userDbPath = dir.filePath ("user.db");
+    if (!QFile::exists (userDbPath))
+    {
+        d->user_db = std::make_unique<SQLite::Database> (
+            userDbPath.toStdString (),
+            SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+        initUserTable ();
+    }
+    else if (!isUserDbOpen ())
+    {
+        d->user_db = std::make_unique<SQLite::Database> (
+            userDbPath.toStdString (), SQLite::OPEN_READWRITE);
+    }
+
+    QString dictDbPath = dir.filePath ("dict.db");
+    bool isNewDictDb = !QFile::exists (dictDbPath);
+    if (isNewDictDb)
+    {
+        d->dict_db = std::make_unique<SQLite::Database> (
+            dictDbPath.toStdString (),
+            SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+        initDictTable ();
+        d->m_needsDictImport = true;
+    }
+    else if (!isDictDbOpen ())
+    {
+        d->dict_db = std::make_unique<SQLite::Database> (
+            dictDbPath.toStdString (), SQLite::OPEN_READWRITE);
+    }
+
+    if (d->dict_db != nullptr)
+    {
+        refreshDictImportRequirement ();
+    }
+}
+
+void DbModel::initUserTable ()
+{
+    try
+    {
+        d->user_db->exec ("PRAGMA journal_mode = WAL");
+        d->user_db->exec ("PRAGMA synchronous = NORMAL");
+        d->user_db->exec ("PRAGMA cache_size = 10000");
+        d->user_db->exec ("PRAGMA temp_store = MEMORY");
+        d->user_db->exec ("PRAGMA locking_mode = NORMAL");
+        d->user_db->exec ("PRAGMA page_size = 4096");
+        d->user_db->exec ("PRAGMA foreign_keys = ON");
+
+        if (d->user_db != nullptr)
+        {
+            d->user_db->exec (
+                "CREATE TABLE IF NOT EXISTS users("
+                "user_id TEXT PRIMARY KEY,"
+                "username TEXT NOT NULL UNIQUE,"
+                "password_hash TEXT NOT NULL,"
+                "email TEXT UNIQUE,"
+                "avatar_path TEXT DEFAULT ':/image/DefaultUser.png');");
+
+            d->user_db->exec (
+                "CREATE TABLE IF NOT EXISTS user_search_history("
+                "search_history_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "user_id TEXT NOT NULL,"
+                "search_word TEXT NOT NULL,"
+                "FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                "ON DELETE CASCADE "
+                "ON UPDATE CASCADE );");
+
+            d->user_db->exec (
+                "CREATE TABLE IF NOT EXISTS user_recite_history("
+                " recite_history_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                " user_id TEXT NOT NULL,"
+                " recite_word TEXT NOT NULL,"
+                " FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                "ON DELETE CASCADE ON UPDATE CASCADE );");
+
+            d->user_db->exec ("CREATE TABLE IF NOT EXISTS user_progress("
+                              "user_id TEXT PRIMARY KEY,"
+                              "total_words INTEGER DEFAULT 15,"
+                              "current_progress INTEGER DEFAULT 0 CHECK "
+                              "(current_progress >= 0 AND current_progress <= "
+                              "total_words), "
+                              "FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                              "ON DELETE CASCADE ON UPDATE CASCADE);");
+
+            d->user_db->exec (
+                "CREATE TABLE IF NOT EXISTS user_favorites("
+                "favorites_word_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "user_id TEXT NOT NULL,"
+                "word TEXT NOT NULL,"
+                "FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                "ON DELETE CASCADE ON UPDATE CASCADE );");
+
+            d->user_db->exec ("CREATE TABLE IF NOT EXISTS user_vocabulary("
+                              "user_id TEXT NOT NULL,"
+                              "word TEXT NOT NULL,"
+                              "status INTEGER DEFAULT -1 CHECK (status IN ( "
+                              "0, 1)),"
+                              "FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                              "ON DELETE CASCADE ON UPDATE CASCADE,"
+                              "PRIMARY KEY (user_id, word));");
+
+            d->user_db->exec (
+                "CREATE INDEX IF NOT EXISTS idx_user_favorites ON "
+                "user_favorites(favorites_word_id, user_id);");
+
+            d->user_db->exec (
+                "CREATE INDEX IF NOT EXISTS idx_user_search_history "
+                "ON user_search_history(search_history_id, user_id);");
+
+            d->user_db->exec (
+                "CREATE INDEX IF NOT EXISTS idx_user_recite_history "
+                "ON user_recite_history(recite_history_id, user_id);");
+        }
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error creating user table", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error creating user table", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error creating user table",
+                std::runtime_error ("Unknown exception"));
+    }
+}
+
+void DbModel::initDictTable ()
+{
+    try
+    {
+        d->dict_db->exec ("PRAGMA journal_mode = WAL");
+        d->dict_db->exec ("PRAGMA synchronous = NORMAL");
+        d->dict_db->exec ("PRAGMA cache_size = 20000");
+        d->dict_db->exec ("PRAGMA temp_store = MEMORY");
+        d->dict_db->exec ("PRAGMA locking_mode = NORMAL");
+        d->dict_db->exec ("PRAGMA page_size = 8192");
+        d->dict_db->exec ("PRAGMA foreign_keys = ON");
+
+        if (d->dict_db != nullptr)
+        {
+            d->dict_db->exec ("CREATE TABLE IF NOT EXISTS users("
+                              "user_id TEXT PRIMARY KEY,"
+                              "username TEXT NOT NULL UNIQUE);");
+
+            d->dict_db->exec (
+                "CREATE TABLE IF NOT EXISTS words("
+                "word_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "word TEXT NOT NULL UNIQUE,"
+                "part_of_speech TEXT,"
+                "pronunciation TEXT,"
+                "frequency INTEGER DEFAULT 0,"
+                "notes TEXT,"
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);");
+
+            d->dict_db->exec (
+                "CREATE TABLE IF NOT EXISTS word_translations("
+                "translation_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "source_word TEXT NOT NULL,"
+                "target_word TEXT NOT NULL,"
+                "source_language TEXT NOT NULL,"
+                "target_language TEXT NOT NULL,"
+                "confidence_score REAL DEFAULT 1.0 CHECK (confidence_score "
+                ">= 0.0 AND confidence_score <= 1.0),"
+                "UNIQUE(source_word,target_word,source_language,target_"
+                "language));");
+
+            d->dict_db->exec ("CREATE TABLE IF NOT EXISTS examples("
+                              "example_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                              "word TEXT NOT NULL,"
+                              "example_sentence TEXT NOT NULL,"
+                              "translation TEXT,"
+                              "FOREIGN KEY(word) REFERENCES words(word)"
+                              "ON DELETE CASCADE ON UPDATE CASCADE);");
+
+            d->dict_db->exec (
+                "CREATE INDEX IF NOT EXISTS idx_words_word ON words(word);");
+            d->dict_db->exec (
+                "CREATE INDEX IF NOT EXISTS idx_translations_source ON "
+                "word_translations(source_word, source_language);");
+            d->dict_db->exec (
+                "CREATE INDEX IF NOT EXISTS idx_translations_target ON "
+                "word_translations(target_word, target_language);");
+            d->dict_db->exec ("CREATE INDEX IF NOT EXISTS idx_examples_word ON "
+                              "examples(word);");
+        }
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error creating dictionary table", e);
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error creating dictionary table", e);
+    }
+    catch (...)
+    {
+        logErr ("Unknown error creating dictionary table",
+                std::runtime_error ("Unknown exception"));
+    }
+}
+
+std::string DbModel::getLastError () const { return d->m_lastError; }
+
+void DbModel::logErr (const std::string &errMsg, const std::exception &e) const
+{
+    qCritical () << "[DbModel]" << QString::fromStdString (errMsg)
+                 << "Exception:" << e.what ();
+    d->m_lastError = errMsg + " Exception:" + std::string (e.what ());
+}
+
 bool DbModel::isUserDbOpen () const
 {
-    if (user_db)
+    if (d->user_db)
     {
         return true;
     }
@@ -22,7 +297,7 @@ bool DbModel::isUserDbOpen () const
 
 bool DbModel::isDictDbOpen () const
 {
-    if (dict_db)
+    if (d->dict_db)
     {
         return true;
     }
@@ -34,23 +309,24 @@ bool DbModel::isDictDbOpen () const
 
 bool DbModel::isDictionaryImportInProgress () const
 {
-    return m_dictImportState != nullptr &&
-           m_dictImportState->inProgress.load ();
+    return d->m_dictImportState != nullptr &&
+           d->m_dictImportState->inProgress.load ();
 }
 
 bool DbModel::isDictionaryReady () const
 {
-    return m_dictImportState != nullptr && m_dictImportState->ready.load ();
+    return d->m_dictImportState != nullptr &&
+           d->m_dictImportState->ready.load ();
 }
 
 void DbModel::refreshDictImportRequirement ()
 {
-    if (!dict_db)
+    if (!d->dict_db)
     {
-        m_needsDictImport = true;
-        if (m_dictImportState != nullptr)
+        d->m_needsDictImport = true;
+        if (d->m_dictImportState != nullptr)
         {
-            m_dictImportState->ready.store (false);
+            d->m_dictImportState->ready.store (false);
         }
         return;
     }
@@ -58,51 +334,51 @@ void DbModel::refreshDictImportRequirement ()
     try
     {
         SQLite::Statement tableQuery (
-            *dict_db, "SELECT COUNT(*) FROM sqlite_master "
-                      "WHERE type = 'table' AND name = 'words'");
+            *d->dict_db, "SELECT COUNT(*) FROM sqlite_master "
+                         "WHERE type = 'table' AND name = 'words'");
         tableQuery.executeStep ();
 
         if (tableQuery.getColumn (0).getInt () == 0)
         {
             initDictTable ();
-            m_needsDictImport = true;
+            d->m_needsDictImport = true;
         }
         else
         {
-            m_needsDictImport = countDictionaryWords (*dict_db) == 0;
+            d->m_needsDictImport = countDictionaryWords (*d->dict_db) == 0;
         }
 
-        if (m_dictImportState != nullptr)
+        if (d->m_dictImportState != nullptr)
         {
-            m_dictImportState->ready.store (!m_needsDictImport);
+            d->m_dictImportState->ready.store (!d->m_needsDictImport);
         }
     }
     catch (const SQLite::Exception &e)
     {
         logErr ("Error refreshing dictionary import state", e);
-        m_needsDictImport = true;
-        if (m_dictImportState != nullptr)
+        d->m_needsDictImport = true;
+        if (d->m_dictImportState != nullptr)
         {
-            m_dictImportState->ready.store (false);
+            d->m_dictImportState->ready.store (false);
         }
     }
     catch (const std::exception &e)
     {
         logErr ("Unknown error refreshing dictionary import state", e);
-        m_needsDictImport = true;
-        if (m_dictImportState != nullptr)
+        d->m_needsDictImport = true;
+        if (d->m_dictImportState != nullptr)
         {
-            m_dictImportState->ready.store (false);
+            d->m_dictImportState->ready.store (false);
         }
     }
     catch (...)
     {
         logErr ("Unknown error refreshing dictionary import state",
                 std::runtime_error ("Unknown exception"));
-        m_needsDictImport = true;
-        if (m_dictImportState != nullptr)
+        d->m_needsDictImport = true;
+        if (d->m_dictImportState != nullptr)
         {
-            m_dictImportState->ready.store (false);
+            d->m_dictImportState->ready.store (false);
         }
     }
 }
@@ -125,8 +401,8 @@ int DbModel::countDictionaryWords (SQLite::Database &database)
     return query.getColumn (0).getInt ();
 }
 
-void DbModel::insertWordBatchSyncInternal (
-    SQLite::Database &database, const std::vector<WordEntry> &batch)
+void DbModel::insertWordBatchSyncInternal (SQLite::Database &database,
+                                           const std::vector<WordEntry> &batch)
 {
     if (batch.empty ())
     {
@@ -260,7 +536,7 @@ bool DbModel::userExists (const QString &username) const
     try
     {
         SQLite::Statement query (
-            *user_db, "SELECT COUNT(*) FROM users WHERE username = ?");
+            *d->user_db, "SELECT COUNT(*) FROM users WHERE username = ?");
         query.bind (1, username.toStdString ());
         query.executeStep ();
         return query.getColumn (0).getInt () > 0;
@@ -295,7 +571,7 @@ bool DbModel::userIdExists (const QString &userId) const
     try
     {
         SQLite::Statement query (
-            *user_db, "SELECT COUNT(*) FROM users WHERE user_id = ?");
+            *d->user_db, "SELECT COUNT(*) FROM users WHERE user_id = ?");
         query.bind (1, userId.toStdString ());
         query.executeStep ();
         return query.getColumn (0).getInt () > 0;
@@ -335,7 +611,7 @@ RegisterUserResult DbModel::registerUser (const QString &username,
         QString userId = QUuid::createUuid ().toString (QUuid::WithoutBraces);
 
         SQLite::Statement query (
-            *(instance.user_db),
+            *(instance.d->user_db),
             "INSERT INTO users (user_id, username, password_hash) "
             "VALUES (?, ?, ?)");
         query.bind (1, userId.toStdString ());
@@ -379,8 +655,8 @@ UserAuthResult DbModel::verifyUser (const QString &username,
         {
             return UserAuthResult::StorageError;
         }
-        SQLite::Statement query (*user_db, "SELECT password_hash FROM users "
-                                           "WHERE username = ?");
+        SQLite::Statement query (*d->user_db, "SELECT password_hash FROM users "
+                                              "WHERE username = ?");
         query.bind (1, username.toStdString ());
         if (query.executeStep ())
         {
@@ -429,7 +705,7 @@ void DbModel::deleteUser (const QString &username)
 
     try
     {
-        SQLite::Statement query (*user_db,
+        SQLite::Statement query (*d->user_db,
                                  "DELETE FROM users WHERE username = ?");
         query.bind (1, username.toStdString ());
         query.exec ();
@@ -466,7 +742,7 @@ ChangeResult DbModel::updateUserPassword (const QString &username,
 
     try
     {
-        SQLite::Statement query (*user_db,
+        SQLite::Statement query (*d->user_db,
                                  "UPDATE users SET password_hash = ? "
                                  "WHERE username = ? AND password_hash = ?");
         query.bind (1, newPasswordHash.toStdString ());
@@ -529,8 +805,8 @@ ChangeResult DbModel::changeUsername (const QString &oldUsername,
 
     try
     {
-        SQLite::Statement query (*user_db, "UPDATE users SET username = ? "
-                                           "WHERE username = ?");
+        SQLite::Statement query (*d->user_db, "UPDATE users SET username = ? "
+                                              "WHERE username = ?");
 
         query.bind (1, newUsername.toStdString ());
         query.bind (2, oldUsername.toStdString ());
@@ -583,7 +859,7 @@ ChangeResult DbModel::changeEmail (const QString &username,
     try
     {
         SQLite::Statement query (
-            *user_db, "UPDATE users SET email = ? WHERE username = ?");
+            *d->user_db, "UPDATE users SET email = ? WHERE username = ?");
         query.bind (1, newEmail.toStdString ());
         query.bind (2, username.toStdString ());
         query.exec ();
@@ -643,7 +919,7 @@ ChangeResult DbModel::changeAvatar (const QString &username,
     try
     {
         SQLite::Statement query (
-            *user_db, "UPDATE users SET avatar_path = ? WHERE username = ?");
+            *d->user_db, "UPDATE users SET avatar_path = ? WHERE username = ?");
         query.bind (1, avatarPath.toStdString ());
         query.bind (2, username.toStdString ());
         query.exec ();
@@ -696,7 +972,7 @@ ChangeResult DbModel::updateReciteProgress (int current, int total,
 
     try
     {
-        SQLite::Statement query (*user_db,
+        SQLite::Statement query (*d->user_db,
                                  "INSERT OR REPLACE INTO user_progress "
                                  "(user_id, current_progress, total_words) "
                                  "VALUES (?, ?, ?)");
@@ -750,7 +1026,7 @@ std::optional<QString> DbModel::getUserId (const QString &username) const
     try
     {
         SQLite::Statement query (
-            *user_db, "SELECT user_id FROM users WHERE username = ?");
+            *d->user_db, "SELECT user_id FROM users WHERE username = ?");
         query.bind (1, username.toStdString ());
 
         if (query.executeStep ())
@@ -796,7 +1072,7 @@ std::optional<QString> DbModel::getUserName (const QString &userId) const
     try
     {
         SQLite::Statement query (
-            *user_db, "SELECT username FROM users WHERE user_id = ?");
+            *d->user_db, "SELECT username FROM users WHERE user_id = ?");
         query.bind (1, userId.toStdString ());
 
         if (query.executeStep ())
@@ -841,7 +1117,7 @@ QString DbModel::getUserEmail (const QString &username) const
 
     try
     {
-        SQLite::Statement query (*user_db,
+        SQLite::Statement query (*d->user_db,
                                  "SELECT email FROM users WHERE username = ?");
         query.bind (1, username.toStdString ());
 
@@ -894,7 +1170,7 @@ QString DbModel::getUserAvatarPath (const QString &username) const
     try
     {
         SQLite::Statement query (
-            *user_db, "SELECT avatar_path FROM users WHERE username = ?");
+            *d->user_db, "SELECT avatar_path FROM users WHERE username = ?");
         query.bind (1, username.toStdString ());
 
         if (query.executeStep ())
@@ -940,12 +1216,12 @@ AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
     {
 
         // Insert word entry into the words table
-        SQLite::Transaction transaction (*dict_db);
+        SQLite::Transaction transaction (*d->dict_db);
 
         SQLite::Statement wordsQuery (
-            *dict_db, "INSERT INTO words "
-                      "(word,part_of_speech,pronunciation,frequency,"
-                      "notes) VALUES (?,?,?,?,?)");
+            *d->dict_db, "INSERT INTO words "
+                         "(word,part_of_speech,pronunciation,frequency,"
+                         "notes) VALUES (?,?,?,?,?)");
 
         wordsQuery.bind (1, wordEntry.word.toStdString ());
         wordsQuery.bind (2, wordEntry.partOfSpeech.toStdString ());
@@ -959,10 +1235,10 @@ AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
         if (!wordEntry.translation.isEmpty ())
         {
             SQLite::Statement translationsQuery (
-                *dict_db, "INSERT INTO word_translations"
-                          "(source_word, source_language, "
-                          "target_word, target_language,confidence_score) "
-                          "VALUES (?,?,?,?,?)");
+                *d->dict_db, "INSERT INTO word_translations"
+                             "(source_word, source_language, "
+                             "target_word, target_language,confidence_score) "
+                             "VALUES (?,?,?,?,?)");
             translationsQuery.bind (1, wordEntry.word.toStdString ());
             translationsQuery.bind (2, wordEntry.language.toStdString ());
             translationsQuery.bind (3, wordEntry.translation.toStdString ());
@@ -975,7 +1251,7 @@ AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
 
         if (!wordEntry.examples.isEmpty ())
         {
-            SQLite::Statement examplesQuery (*dict_db,
+            SQLite::Statement examplesQuery (*d->dict_db,
                                              "INSERT INTO examples (word, "
                                              "example_sentence,translation) "
                                              "VALUES (?,?,?)");
@@ -1016,7 +1292,7 @@ DbModel::importWordEntriesAsync (const std::vector<WordEntry> &wordEntries)
 
     try
     {
-        SQLite::Transaction transaction (*dict_db);
+        SQLite::Transaction transaction (*d->dict_db);
 
         const int batchSize = 1000;
         for (size_t i = 0; i < wordEntries.size (); i += batchSize)
@@ -1062,7 +1338,7 @@ DbModel::importFromFileAsync (const QString &filePath,
         co_return;
     }
 
-    const auto importState = m_dictImportState;
+    const auto importState = d->m_dictImportState;
     if (importState == nullptr)
     {
         logErr ("Dictionary import state is not initialized",
@@ -1086,8 +1362,8 @@ DbModel::importFromFileAsync (const QString &filePath,
         {
             try
             {
-                SQLite::Database backgroundDb (
-                    dictDbPath.toStdString (), SQLite::OPEN_READWRITE);
+                SQLite::Database backgroundDb (dictDbPath.toStdString (),
+                                               SQLite::OPEN_READWRITE);
                 configureDictDatabasePragmas (backgroundDb);
 
                 qDebug () << "Background dictionary import started from:"
@@ -1096,22 +1372,22 @@ DbModel::importFromFileAsync (const QString &filePath,
                 importFromFileSyncInternal (backgroundDb, filePath,
                                             std::move (progressCallback));
 
-                importState->ready.store (
-                    countDictionaryWords (backgroundDb) > 0);
+                importState->ready.store (countDictionaryWords (backgroundDb) >
+                                          0);
                 qDebug () << "Dictionary import completed!";
             }
             catch (const SQLite::Exception &e)
             {
                 qCritical () << "[DbModel] Error importing from file in "
                                 "background. Exception:"
-                            << e.what ();
+                             << e.what ();
                 importState->ready.store (false);
             }
             catch (const std::exception &e)
             {
                 qCritical () << "[DbModel] Unknown error importing from file "
                                 "in background. Exception:"
-                            << e.what ();
+                             << e.what ();
                 importState->ready.store (false);
             }
             catch (...)
@@ -1141,12 +1417,12 @@ void DbModel::importFromFileSync (
 
     try
     {
-        importFromFileSyncInternal (*dict_db, filePath, progressCallback);
+        importFromFileSyncInternal (*d->dict_db, filePath, progressCallback);
         clearWordLookupCache ();
-        if (m_dictImportState != nullptr)
+        if (d->m_dictImportState != nullptr)
         {
-            m_dictImportState->ready.store (countDictionaryWords (*dict_db) >
-                                            0);
+            d->m_dictImportState->ready.store (
+                countDictionaryWords (*d->dict_db) > 0);
         }
     }
     catch (const SQLite::Exception &e)
@@ -1174,7 +1450,7 @@ void DbModel::insertWordBatchSync (const std::vector<WordEntry> &batch)
 
     try
     {
-        insertWordBatchSyncInternal (*dict_db, batch);
+        insertWordBatchSyncInternal (*d->dict_db, batch);
         clearWordLookupCache ();
     }
     catch (const SQLite::Exception &e)
@@ -1207,15 +1483,16 @@ AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
     {
 
         SQLite::Statement wordsStmt (
-            *dict_db, "INSERT OR IGNORE INTO words "
-                      "(word, part_of_speech, pronunciation, frequency, notes) "
-                      "VALUES (?, ?, ?, ?, ?)");
+            *d->dict_db,
+            "INSERT OR IGNORE INTO words "
+            "(word, part_of_speech, pronunciation, frequency, notes) "
+            "VALUES (?, ?, ?, ?, ?)");
 
         SQLite::Statement translationsStmt (
-            *dict_db, "INSERT OR IGNORE INTO word_translations "
-                      "(source_word, source_language, target_word, "
-                      "target_language, confidence_score) "
-                      "VALUES (?, ?, ?, ?, ?)");
+            *d->dict_db, "INSERT OR IGNORE INTO word_translations "
+                         "(source_word, source_language, target_word, "
+                         "target_language, confidence_score) "
+                         "VALUES (?, ?, ?, ?, ?)");
 
         for (const auto &entry : batch)
         {
@@ -1292,7 +1569,7 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
     {
         const auto cacheKey =
             buildWordLookupCacheKey (normalizedWord, normalizedSrcLang);
-        if (auto cachedEntry = m_wordLookupCache.get (cacheKey);
+        if (auto cachedEntry = d->m_wordLookupCache.get (cacheKey);
             cachedEntry.has_value ())
         {
             return cachedEntry;
@@ -1302,7 +1579,7 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
         bool found = false;
         if (normalizedSrcLang == "en")
         {
-            SQLite::Statement queryWordBasic (*dict_db,
+            SQLite::Statement queryWordBasic (*d->dict_db,
                                               "SELECT word, pronunciation "
                                               "FROM words WHERE word = ?");
             queryWordBasic.bind (1, normalizedWord.toStdString ());
@@ -1317,9 +1594,9 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
             }
 
             SQLite::Statement queryTranslation (
-                *dict_db, "SELECT target_word, target_language "
-                          "FROM word_translations WHERE source_word = ? "
-                          "AND source_language = ?");
+                *d->dict_db, "SELECT target_word, target_language "
+                             "FROM word_translations WHERE source_word = ? "
+                             "AND source_language = ?");
             queryTranslation.bind (1, normalizedWord.toStdString ());
             queryTranslation.bind (2, normalizedSrcLang.toStdString ());
             if (queryTranslation.executeStep ())
@@ -1336,8 +1613,8 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
         else if (normalizedSrcLang == "zh")
         {
             SQLite::Statement queryWord (
-                *dict_db, "SELECT source_word FROM word_translations WHERE "
-                          "target_word = ? AND target_language = ?");
+                *d->dict_db, "SELECT source_word FROM word_translations WHERE "
+                             "target_word = ? AND target_language = ?");
             queryWord.bind (1, normalizedWord.toStdString ());
             queryWord.bind (2, normalizedSrcLang.toStdString ());
             if (queryWord.executeStep ())
@@ -1350,7 +1627,8 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
 
                 // get pronunciation
                 SQLite::Statement queryPronunciation (
-                    *dict_db, "SELECT pronunciation FROM words WHERE word = ?");
+                    *d->dict_db,
+                    "SELECT pronunciation FROM words WHERE word = ?");
                 queryPronunciation.bind (1, entry.word.toStdString ());
                 if (queryPronunciation.executeStep ())
                 {
@@ -1369,7 +1647,7 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
             return std::nullopt;
         }
 
-        m_wordLookupCache.put (
+        d->m_wordLookupCache.put (
             cacheKey, entry,
             std::chrono::minutes (
                 Constants::Settings::Cache::WORD_LOOKUP_TTL_MINUTES));
@@ -1395,11 +1673,11 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
     return std::nullopt;
 }
 
-void DbModel::clearWordLookupCache () { m_wordLookupCache.clear (); }
+void DbModel::clearWordLookupCache () { d->m_wordLookupCache.clear (); }
 
 std::size_t DbModel::getWordLookupCacheSizeBytes () const
 {
-    return m_wordLookupCache.sizeBytes ();
+    return d->m_wordLookupCache.sizeBytes ();
 }
 
 std::string DbModel::buildWordLookupCacheKey (const QString &word,
@@ -1446,7 +1724,7 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
         if (srcLang == "en")
         {
             SQLite::Statement queryWordsBasic (
-                *dict_db,
+                *d->dict_db,
                 "SELECT word,pronunciation ,"
                 "CASE"
                 " WHEN word = ? THEN 1 "    // precise match
@@ -1480,9 +1758,9 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
 
                 // Fetch translation
                 SQLite::Statement queryTranslation (
-                    *dict_db, "SELECT target_word, target_language "
-                              "FROM word_translations WHERE source_word = ? "
-                              "AND source_language = ?");
+                    *d->dict_db, "SELECT target_word, target_language "
+                                 "FROM word_translations WHERE source_word = ? "
+                                 "AND source_language = ?");
                 queryTranslation.bind (1, entry.word.toStdString ());
                 queryTranslation.bind (2, srcLang.toStdString ());
 
@@ -1502,7 +1780,7 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
         else if (srcLang == "zh")
         {
             SQLite::Statement queryTranslations (
-                *dict_db,
+                *d->dict_db,
                 "SELECT source_word, target_word ,"
                 "CASE"
                 " WHEN target_word = ? THEN 1 " // precise match
@@ -1557,7 +1835,8 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
 
                 // Fetch pronunciation for the English word
                 SQLite::Statement queryPronunciation (
-                    *dict_db, "SELECT pronunciation FROM words WHERE word = ?");
+                    *d->dict_db,
+                    "SELECT pronunciation FROM words WHERE word = ?");
                 queryPronunciation.bind (1, entry.word.toStdString ());
 
                 if (queryPronunciation.executeStep ())
@@ -1612,7 +1891,7 @@ void DbModel::addToUserFavorites (const QString &userId, const QString &word)
     try
     {
         SQLite::Statement query (
-            *user_db,
+            *d->user_db,
             "INSERT INTO user_favorites (user_id, word) VALUES (?, ?)");
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
@@ -1646,7 +1925,7 @@ void DbModel::removeFromUserFavorites (const QString &userId,
     try
     {
         SQLite::Statement query (
-            *user_db,
+            *d->user_db,
             "DELETE FROM user_favorites WHERE user_id = ? AND word = ?");
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
@@ -1678,7 +1957,7 @@ bool DbModel::isWordFavorited (const QString &userId, const QString &word) const
 
     try
     {
-        SQLite::Statement query (*user_db,
+        SQLite::Statement query (*d->user_db,
                                  "SELECT COUNT(*) FROM user_favorites WHERE "
                                  "user_id = ? AND word = ?");
         query.bind (1, userId.toStdString ());
@@ -1716,7 +1995,7 @@ bool DbModel::existsInMastered (const QString &userId,
 
     try
     {
-        SQLite::Statement query (*user_db,
+        SQLite::Statement query (*d->user_db,
                                  "SELECT COUNT(*) FROM user_vocabulary WHERE "
                                  "user_id = ? AND word = ? AND status = 1");
         query.bind (1, userId.toStdString ());
@@ -1770,7 +2049,7 @@ ChangeResult DbModel::updateWordStatus (const QString &userId,
     try
     {
         SQLite::Statement query (
-            *user_db,
+            *d->user_db,
             "INSERT OR REPLACE INTO "
             "user_vocabulary (user_id, word, status) VALUES (?, ?, ?)");
         query.bind (1, userId.toStdString ());
@@ -1837,7 +2116,7 @@ std::vector<QString> DbModel::getUserVocabulary (const QString &userId,
         if (status == -1) // Get all
         {
             SQLite::Statement query (
-                *user_db,
+                *d->user_db,
                 "SELECT word, status FROM user_vocabulary WHERE user_id = ?");
             query.bind (1, userId.toStdString ());
 
@@ -1858,7 +2137,7 @@ std::vector<QString> DbModel::getUserVocabulary (const QString &userId,
         else
         {
             SQLite::Statement query (
-                *user_db,
+                *d->user_db,
                 "SELECT word FROM user_vocabulary WHERE user_id = ? AND "
                 "status = ?");
             query.bind (1, userId.toStdString ());
@@ -1909,7 +2188,7 @@ std::vector<QString> DbModel::getUserFavorites (const QString &userId)
     {
         std::vector<QString> favorites;
         SQLite::Statement query (
-            *user_db, "SELECT word FROM user_favorites WHERE user_id = ?");
+            *d->user_db, "SELECT word FROM user_favorites WHERE user_id = ?");
         query.bind (1, userId.toStdString ());
 
         while (query.executeStep ())
@@ -1952,8 +2231,8 @@ std::optional<WordEntry> DbModel::getRandomWord ()
         WordEntry randomWordEntry;
 
         SQLite::Statement queryRandomWord (
-            *dict_db, "SELECT word, pronunciation "
-                      "FROM words ORDER BY RANDOM() LIMIT 1");
+            *d->dict_db, "SELECT word, pronunciation "
+                         "FROM words ORDER BY RANDOM() LIMIT 1");
 
         if (queryRandomWord.executeStep ())
         {
@@ -1969,9 +2248,9 @@ std::optional<WordEntry> DbModel::getRandomWord ()
         }
 
         SQLite::Statement queryTranslation (
-            *dict_db, "SELECT target_word, target_language "
-                      "FROM word_translations WHERE source_word = ? "
-                      "AND source_language = ?");
+            *d->dict_db, "SELECT target_word, target_language "
+                         "FROM word_translations WHERE source_word = ? "
+                         "AND source_language = ?");
 
         queryTranslation.bind (1, randomWordEntry.word.toStdString ());
         queryTranslation.bind (2, "en"); // Default source language
@@ -2115,13 +2394,14 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
     QString dictFilePath = dictPath;
     if (dictFilePath.isEmpty ())
     {
-        dictFilePath = resolveResourcePath (Constants::Database::ECDICT_CSV_PATH);
+        dictFilePath =
+            resolveResourcePath (Constants::Database::ECDICT_CSV_PATH);
     }
 
     try
     {
-        const int wordCount = countDictionaryWords (*dict_db);
-        m_needsDictImport = wordCount == 0;
+        const int wordCount = countDictionaryWords (*d->dict_db);
+        d->m_needsDictImport = wordCount == 0;
 
         if (wordCount == 0 && QFile::exists (dictFilePath))
         {
@@ -2132,8 +2412,7 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
                 dictFilePath,
                 [] (int current, int total)
                 {
-                    if (total > 0 &&
-                        (current % 5000 == 0 || current == total))
+                    if (total > 0 && (current % 5000 == 0 || current == total))
                     {
                         qDebug () << "Dictionary import progress:"
                                   << (current * 100 / total) << "%";
@@ -2142,17 +2421,16 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
         }
         else if (wordCount > 0)
         {
-            if (m_dictImportState != nullptr)
+            if (d->m_dictImportState != nullptr)
             {
-                m_dictImportState->ready.store (true);
+                d->m_dictImportState->ready.store (true);
             }
             qDebug () << "Dictionary already contains" << wordCount << "words";
         }
         else if (!QFile::exists (dictFilePath))
         {
-            auto exception =
-                std::runtime_error ("Dictionary file not found at: " +
-                                    dictFilePath.toStdString ());
+            auto exception = std::runtime_error (
+                "Dictionary file not found at: " + dictFilePath.toStdString ());
             logErr ("Dictionary file not found", exception);
         }
     }
@@ -2184,7 +2462,7 @@ void DbModel::addToSearchHistory (const QString &userId, const QString &word)
 
     try
     {
-        SQLite::Statement query (*user_db,
+        SQLite::Statement query (*d->user_db,
                                  "INSERT INTO user_search_history (user_id, "
                                  "search_word) VALUES (?, ?)");
         query.bind (1, userId.toStdString ());
@@ -2219,8 +2497,8 @@ void DbModel::removeFromSearchHistory (const QString &userId,
     try
     {
         SQLite::Statement query (
-            *user_db, "DELETE FROM user_search_history WHERE user_id = ? "
-                      "AND search_word = ?");
+            *d->user_db, "DELETE FROM user_search_history WHERE user_id = ? "
+                         "AND search_word = ?");
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
         query.exec ();
@@ -2252,8 +2530,9 @@ void DbModel::addToReciteHistory (const QString &userId, const QString &word)
     try
     {
         SQLite::Statement query (
-            *user_db, "INSERT INTO user_recite_history (user_id, recite_word) "
-                      "VALUES (?, ?)");
+            *d->user_db,
+            "INSERT INTO user_recite_history (user_id, recite_word) "
+            "VALUES (?, ?)");
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
         query.exec ();
@@ -2286,8 +2565,8 @@ void DbModel::removeFromReciteHistory (const QString &userId,
     try
     {
         SQLite::Statement query (
-            *user_db, "DELETE FROM user_recite_history WHERE user_id = ? "
-                      "AND recite_word = ?");
+            *d->user_db, "DELETE FROM user_recite_history WHERE user_id = ? "
+                         "AND recite_word = ?");
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
         query.exec ();
@@ -2321,8 +2600,8 @@ std::vector<QString> DbModel::getUserSearchHistory (const QString &userId)
     try
     {
         SQLite::Statement query (
-            *user_db, "SELECT DISTINCT search_word FROM user_search_history "
-                      "WHERE user_id = ? ORDER BY search_history_id DESC");
+            *d->user_db, "SELECT DISTINCT search_word FROM user_search_history "
+                         "WHERE user_id = ? ORDER BY search_history_id DESC");
         query.bind (1, userId.toStdString ());
 
         while (query.executeStep ())
@@ -2362,8 +2641,8 @@ std::vector<QString> DbModel::getUserReciteHistory (const QString &userId)
     try
     {
         SQLite::Statement query (
-            *user_db, "SELECT DISTINCT recite_word FROM user_recite_history "
-                      "WHERE user_id = ? ORDER BY recite_history_id DESC");
+            *d->user_db, "SELECT DISTINCT recite_word FROM user_recite_history "
+                         "WHERE user_id = ? ORDER BY recite_history_id DESC");
         query.bind (1, userId.toStdString ());
 
         while (query.executeStep ())
@@ -2405,8 +2684,9 @@ std::pair<int, int> DbModel::getProgress (const QString &userId) const
     try
     {
         SQLite::Statement query (
-            *user_db, "SELECT current_progress,total_words FROM user_progress "
-                      "WHERE user_id = ?");
+            *d->user_db,
+            "SELECT current_progress,total_words FROM user_progress "
+            "WHERE user_id = ?");
 
         query.bind (1, userId.toStdString ());
 
@@ -2461,8 +2741,8 @@ DbModel::getRandomWrongTranslations (const QString &correctTranslation,
     try
     {
         SQLite::Statement query (
-            *dict_db, "SELECT MIN(translation_id), MAX(translation_id) FROM "
-                      "word_translations; ");
+            *d->dict_db, "SELECT MIN(translation_id), MAX(translation_id) FROM "
+                         "word_translations; ");
         query.executeStep ();
         int minId = query.getColumn (0).getInt ();
         int maxId = query.getColumn (1).getInt ();
@@ -2491,8 +2771,8 @@ DbModel::getRandomWrongTranslations (const QString &correctTranslation,
             usedIds.insert (randomId);
 
             SQLite::Statement translationQuery (
-                *dict_db, "SELECT target_word FROM word_translations "
-                          "WHERE translation_id = ? AND target_word != ?");
+                *d->dict_db, "SELECT target_word FROM word_translations "
+                             "WHERE translation_id = ? AND target_word != ?");
             translationQuery.bind (1, randomId);
             translationQuery.bind (2, correctTranslation.toStdString ());
 
