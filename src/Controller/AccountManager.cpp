@@ -1,6 +1,7 @@
 #include "AccountManager.h"
 #include "Controller/DbManager.h"
 #include "Model/AppSettingModel.h"
+#include "Model/UserModel.h"
 #include "Utility/PasswordHasher.h"
 #include "Utility/Result.h"
 #include <QDir>
@@ -125,12 +126,27 @@ bool AccountManager::verifyPassword (const QString &password,
 
 UserDataResult AccountManager::createUserData (const QString &username)
 {
-    auto result = UserModel::getInstance ().createUserData (
-        "profile_" + AccountManager::getInstance ().getUserUuid (username) +
-            ".json",
-        username);
+    if (userModel == nullptr)
+    {
+        auto exception =
+            std::runtime_error ("UserModel is not set in AccountManager");
+        logErr ("UserModel not set", exception);
+        return UserDataResult::UnknownError;
+    }
+
+    auto result = userModel->createUserData (username, *this);
 
     return result;
+}
+
+bool AccountManager::isLoggedIn () const
+{
+    return userModel != nullptr && userModel->isLoggedIn ();
+}
+
+bool AccountManager::isLoginExpired () const
+{
+    return userModel == nullptr || userModel->isLoginExpired ();
 }
 ChangeResult AccountManager::changeUsername (const QString &newUsername)
 {

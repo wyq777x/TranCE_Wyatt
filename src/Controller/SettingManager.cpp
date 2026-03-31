@@ -1,5 +1,4 @@
 #include "SettingManager.h"
-#include "View/SettingPage.h"
 
 void SettingManager::initConnections ()
 {

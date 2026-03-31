@@ -1,5 +1,4 @@
 #include "Model/UserModel.h"
-#include "Controller/AccountManager.h"
 #include "Controller/SettingManager.h"
 #include "Model/AppSettingModel.h"
 #include "Model/DbModel.h"
@@ -287,22 +286,44 @@ UserDataResult UserModel::loadUserData (const QString &userProfile)
     }
 }
 
-UserDataResult UserModel::createUserData (const QString &filename,
-                                          const QString &username)
+UserDataResult UserModel::createUserData (
+    const QString &username,
+    const IUserProfileContextProvider &profileContextProvider)
 {
     try
     {
         QJsonObject userData;
 
+        const QString userUuid = profileContextProvider.getUserUuid (username);
+        if (userUuid.isEmpty ())
+        {
+            getInstance ().logErr (
+                "User UUID is empty",
+                std::runtime_error (
+                    "Cannot create user data because user UUID is empty"));
+            return UserDataResult::InvalidData;
+        }
+
+        const QString language = profileContextProvider.getLanguage ();
+        if (language.isEmpty ())
+        {
+            getInstance ().logErr (
+                "Language is empty",
+                std::runtime_error (
+                    "Cannot create user data because language is empty"));
+            return UserDataResult::InvalidData;
+        }
+
+        const QString filename = "profile_" + userUuid + ".json";
+
         QJsonObject userAccount;
         userAccount["username"] = username;
-        userAccount["user_uuid"] =
-            AccountManager::getInstance ().getUserUuid (username);
+        userAccount["user_uuid"] = userUuid;
 
         userData["userAccount"] = userAccount;
 
         QJsonObject appSettings;
-        appSettings["language"] = AccountManager::getInstance ().getLanguage ();
+        appSettings["language"] = language;
         appSettings["HistoryListEnabled"] =
             AppSettingModel::getInstance ().isHistoryListEnabled ();
         userData["appSettings"] = appSettings;

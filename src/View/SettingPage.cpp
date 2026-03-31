@@ -1,5 +1,7 @@
 #include "SettingPage.h"
 #include "Controller/AccountManager.h"
+#include "Controller/DbManager.h"
+#include "Controller/SettingManager.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
 
@@ -280,8 +282,8 @@ void SettingPage::onClearCacheClicked ()
 void SettingPage::refreshCacheLabel ()
 {
     const double cacheSizeMb =
-        static_cast<double> (DbManager::getInstance ()
-                                 .getWordLookupCacheSizeBytes ()) /
+        static_cast<double> (
+            DbManager::getInstance ().getWordLookupCacheSizeBytes ()) /
         (1024.0 * 1024.0);
     clearCacheLabel->setText (
         tr ("Clear Cache: %1 MB").arg (QString::number (cacheSizeMb, 'f', 2)));

@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Components/QuizCard.h"
 #include "Utility/WordEntry.h"
 #include <QObject>
+
+class QuizCard;
+class QWidget;
 
 class UIController : public QObject
 {

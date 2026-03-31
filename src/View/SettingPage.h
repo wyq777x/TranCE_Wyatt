@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Controller/DbManager.h"
 #include "Utility/Constants.h"
+#include "Utility/Result.h"
 #include "View/TempPage.h"
-#include <Controller/SettingManager.h>
 
 class SettingPage : public TempPage
 {

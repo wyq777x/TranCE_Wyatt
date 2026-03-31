@@ -1,10 +1,14 @@
 #pragma once
-#include "Model/UserModel.h"
+#include "Utility/IUserProfileContextProvider.h"
 #include "Utility/Result.h"
+#include <QDebug>
+#include <QObject>
 #include <QString>
 #include <stdexcept>
 
-class AccountManager : public QObject
+class UserModel;
+
+class AccountManager : public QObject, public IUserProfileContextProvider
 {
     Q_OBJECT
 
@@ -52,11 +56,8 @@ public:
     static bool verifyPassword (const QString &password,
                                 const QString &storedHash);
 
-    bool isLoggedIn () const { return UserModel::getInstance ().isLoggedIn (); }
-    bool isLoginExpired () const
-    {
-        return UserModel::getInstance ().isLoginExpired ();
-    }
+    bool isLoggedIn () const;
+    bool isLoginExpired () const;
 
     UserDataResult createUserData (const QString &username);
 
@@ -76,11 +77,11 @@ public:
     ChangeResult changeLanguage_Json (const QString &lang,
                                       const QString &userProfile);
 
-    QString getUserUuid (const QString &username) const;
+    QString getUserUuid (const QString &username) const override;
     QString getUsername () const;
     QString getHashedPassword () const;
     QString getEmail () const;
-    QString getLanguage () const;
+    QString getLanguage () const override;
     QString getAvatarPath () const;
 
 signals:

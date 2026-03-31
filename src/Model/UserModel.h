@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Utility/Constants.h"
+#include "Utility/IUserProfileContextProvider.h"
 #include "Utility/Result.h"
 #include <QCoreApplication>
 #include <QDebug>
@@ -37,8 +38,9 @@ public:
 
     static UserDataResult loadUserData (const QString &userProfile);
 
-    UserDataResult createUserData (const QString &filename,
-                                   const QString &username);
+    UserDataResult
+    createUserData (const QString &username,
+                    const IUserProfileContextProvider &profileContextProvider);
 
     template <typename FieldT>
     ChangeResult changeUserProfileField (const QString &field,
