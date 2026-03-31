@@ -6,6 +6,7 @@
 #include "SQLiteCpp/Statement.h"
 #include "SQLiteCpp/Transaction.h"
 #include "Utility/Constants.h"
+#include "Utility/PasswordHasher.h"
 #include "Utility/Result.h"
 #include <QCoreApplication>
 #include <QDebug>
@@ -646,7 +647,7 @@ RegisterUserResult DbModel::registerUser (const QString &username,
 }
 
 UserAuthResult DbModel::verifyUser (const QString &username,
-                                    const QString &passwordHash) const
+                                    const QString &password) const
 {
 
     try
@@ -660,10 +661,30 @@ UserAuthResult DbModel::verifyUser (const QString &username,
         query.bind (1, username.toStdString ());
         if (query.executeStep ())
         {
-            std::string storedHash = query.getColumn (0).getString ();
+            const QString storedHash = QString::fromStdString (
+                query.getColumn (0).getString ());
 
-            if (storedHash == passwordHash.toStdString ())
+            if (PasswordHasher::verifyPassword (password, storedHash))
             {
+                if (PasswordHasher::needsRehash (storedHash))
+                {
+                    try
+                    {
+                        SQLite::Statement updateQuery (
+                            *d->user_db,
+                            "UPDATE users SET password_hash = ? "
+                            "WHERE username = ?");
+                        updateQuery.bind (
+                            1, PasswordHasher::hashPassword (password)
+                                   .toStdString ());
+                        updateQuery.bind (2, username.toStdString ());
+                        updateQuery.exec ();
+                    }
+                    catch (const SQLite::Exception &e)
+                    {
+                        logErr ("Failed to upgrade legacy password hash", e);
+                    }
+                }
                 return UserAuthResult::Success;
             }
             else
@@ -726,39 +747,49 @@ void DbModel::deleteUser (const QString &username)
 }
 
 ChangeResult DbModel::updateUserPassword (const QString &username,
-                                          const QString &oldPasswordHash,
-                                          const QString &newPasswordHash)
+                                          const QString &oldPassword,
+                                          const QString &newPassword)
 {
     if (!isUserDbOpen ())
     {
         return ChangeResult::DatabaseError;
     }
 
-    if (username.isEmpty () || oldPasswordHash.isEmpty () ||
-        newPasswordHash.isEmpty ())
+    if (username.isEmpty () || oldPassword.isEmpty () || newPassword.isEmpty ())
     {
         return ChangeResult::NullValue;
     }
 
     try
     {
-        SQLite::Statement query (*d->user_db,
-                                 "UPDATE users SET password_hash = ? "
-                                 "WHERE username = ? AND password_hash = ?");
-        query.bind (1, newPasswordHash.toStdString ());
-        query.bind (2, username.toStdString ());
-        query.bind (3, oldPasswordHash.toStdString ());
-        query.exec ();
-
-        if (query.getChanges () == 0)
+        SQLite::Statement query (*d->user_db, "SELECT password_hash FROM users "
+                                              "WHERE username = ?");
+        query.bind (1, username.toStdString ());
+        if (!query.executeStep ())
         {
             return ChangeResult::Password_OldIncorrect;
         }
 
-        if (oldPasswordHash == newPasswordHash)
+        const QString storedHash = QString::fromStdString (
+            query.getColumn (0).getString ());
+
+        if (!PasswordHasher::verifyPassword (oldPassword, storedHash))
+        {
+            return ChangeResult::Password_OldIncorrect;
+        }
+
+        if (PasswordHasher::verifyPassword (newPassword, storedHash))
         {
             return ChangeResult::StillSame;
         }
+
+        SQLite::Statement updateQuery (*d->user_db,
+                                       "UPDATE users SET password_hash = ? "
+                                       "WHERE username = ?");
+        updateQuery.bind (1, PasswordHasher::hashPassword (newPassword)
+                                 .toStdString ());
+        updateQuery.bind (2, username.toStdString ());
+        updateQuery.exec ();
 
         return ChangeResult::Success;
     }
@@ -1097,6 +1128,52 @@ std::optional<QString> DbModel::getUserName (const QString &userId) const
         logErr ("Unknown error getting username from database",
                 std::runtime_error ("Unknown exception"));
         return std::nullopt;
+    }
+}
+
+QString DbModel::getUserPasswordHash (const QString &username) const
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return QString ();
+    }
+
+    if (username.isEmpty ())
+    {
+        logErr ("Username is empty", std::runtime_error ("Invalid input"));
+        return QString ();
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *d->user_db, "SELECT password_hash FROM users WHERE username = ?");
+        query.bind (1, username.toStdString ());
+
+        if (query.executeStep ())
+        {
+            return QString::fromStdString (query.getColumn (0).getString ());
+        }
+
+        return QString ();
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error getting user password hash from database", e);
+        return QString ();
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting user password hash from database", e);
+        return QString ();
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting user password hash from database",
+                std::runtime_error ("Unknown exception"));
+        return QString ();
     }
 }
 

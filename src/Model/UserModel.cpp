@@ -16,8 +16,7 @@ UserAuthResult UserModel::login (const QString &username,
         return UserAuthResult::UserAlreadyLoggedIn;
     }
 
-    auto result = DbModel::getInstance ().verifyUser (
-        username, AccountManager::hashPassword (password));
+    auto result = DbModel::getInstance ().verifyUser (username, password);
 
     if (result == UserAuthResult::Success)
     {

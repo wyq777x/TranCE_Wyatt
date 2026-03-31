@@ -59,13 +59,13 @@ public:
                                             const QString &passwordHash);
 
     UserAuthResult verifyUser (const QString &username,
-                               const QString &passwordHash) const;
+                               const QString &password) const;
 
     void deleteUser (const QString &username);
 
     ChangeResult updateUserPassword (const QString &username,
-                                     const QString &oldPasswordHash,
-                                     const QString &newPasswordHash);
+                                     const QString &oldPassword,
+                                     const QString &newPassword);
 
     ChangeResult changeUsername (const QString &oldUsername,
                                  const QString &newUsername);
@@ -80,6 +80,7 @@ public:
 
     std::optional<QString> getUserId (const QString &username) const;
     std::optional<QString> getUserName (const QString &userId) const;
+    QString getUserPasswordHash (const QString &username) const;
     QString getUserEmail (const QString &username) const;
     QString getUserAvatarPath (const QString &username) const;
 

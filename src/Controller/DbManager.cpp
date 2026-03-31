@@ -97,6 +97,11 @@ std::optional<QString> DbManager::getUserId (const QString &username) const
     return DbModel::getInstance ().getUserId (username);
 }
 
+QString DbManager::getUserPasswordHash (const QString &username) const
+{
+    return DbModel::getInstance ().getUserPasswordHash (username);
+}
+
 QString DbManager::getUserEmail (const QString &username)
 {
     return DbModel::getInstance ().getUserEmail (username);

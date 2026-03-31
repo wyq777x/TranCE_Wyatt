@@ -3,7 +3,6 @@
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
 #include <QCoreApplication>
-#include <QCryptographicHash>
 #include <QDebug>
 #include <QDir>
 #include <QFile>

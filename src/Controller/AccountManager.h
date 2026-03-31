@@ -49,6 +49,8 @@ public:
                                      const QString &password);
 
     static QString hashPassword (const QString &password);
+    static bool verifyPassword (const QString &password,
+                                const QString &storedHash);
 
     bool isLoggedIn () const { return UserModel::getInstance ().isLoggedIn (); }
     bool isLoginExpired () const
@@ -60,8 +62,8 @@ public:
 
     ChangeResult changeUsername (const QString &newUsername);
 
-    ChangeResult changePassword (const QString &oldPasswordHash,
-                                 const QString &newPasswordHash);
+    ChangeResult changePassword (const QString &oldPassword,
+                                 const QString &newPassword);
 
     ChangeResult changeEmail (const QString &newEmail);
 

@@ -1,6 +1,7 @@
 #include "AccountManager.h"
 #include "Controller/DbManager.h"
 #include "Model/AppSettingModel.h"
+#include "Utility/PasswordHasher.h"
 #include "Utility/Result.h"
 #include <QDir>
 #include <QFileDialog>
@@ -31,7 +32,8 @@ UserAuthResult AccountManager::login (const QString &username,
             if (result == UserAuthResult::Success)
             {
                 this->username = username;
-                this->password_Hash = hashPassword (password);
+                this->password_Hash =
+                    DbManager::getInstance ().getUserPasswordHash (username);
                 this->email = DbManager::getInstance ().getUserEmail (username);
                 this->avatarPath =
                     DbManager::getInstance ().getUserAvatarPath (username);
@@ -112,11 +114,13 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
 
 QString AccountManager::hashPassword (const QString &password)
 {
-    QByteArray byteArray = password.toUtf8 ();
-    QByteArray hashed =
-        QCryptographicHash::hash (byteArray, QCryptographicHash::Sha256);
+    return PasswordHasher::hashPassword (password);
+}
 
-    return QString (hashed.toHex ());
+bool AccountManager::verifyPassword (const QString &password,
+                                     const QString &storedHash)
+{
+    return PasswordHasher::verifyPassword (password, storedHash);
 }
 
 UserDataResult AccountManager::createUserData (const QString &username)
@@ -160,17 +164,18 @@ ChangeResult AccountManager::changeUsername (const QString &newUsername)
     }
 }
 
-ChangeResult AccountManager::changePassword (const QString &oldPasswordHash,
-                                             const QString &newPasswordHash)
+ChangeResult AccountManager::changePassword (const QString &oldPassword,
+                                             const QString &newPassword)
 {
     try
     {
         auto result = DbManager::getInstance ().changePassword (
-            username, oldPasswordHash, newPasswordHash);
+            username, oldPassword, newPassword);
 
         if (result == ChangeResult::Success)
         {
-            password_Hash = newPasswordHash;
+            password_Hash =
+                DbManager::getInstance ().getUserPasswordHash (username);
         }
 
         return result;

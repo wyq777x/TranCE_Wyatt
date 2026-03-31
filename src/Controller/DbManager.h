@@ -54,6 +54,7 @@ public:
                                    int status);
 
     std::optional<QString> getUserId (const QString &username) const;
+    QString getUserPasswordHash (const QString &username) const;
     QString getUserEmail (const QString &username);
     QString getUserAvatarPath (const QString &username);
 

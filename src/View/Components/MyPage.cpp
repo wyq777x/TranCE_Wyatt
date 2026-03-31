@@ -247,15 +247,10 @@ void MyPage::initConnections ()
                              return;
                          }
 
-                         auto oldPasswordHash = AccountManager::hashPassword (
-                             oldPasswordLineEdit->text ());
-
-                         auto newPasswordHash = AccountManager::hashPassword (
-                             newPasswordLineEdit->text ());
-
                          auto result =
                              AccountManager::getInstance ().changePassword (
-                                 oldPasswordHash, newPasswordHash);
+                                 oldPasswordLineEdit->text (),
+                                 newPasswordLineEdit->text ());
 
                          if (result == ChangeResult::Success)
                          {
