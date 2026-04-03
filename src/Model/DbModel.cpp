@@ -14,11 +14,12 @@
 #include <QFile>
 #include <QStringConverter>
 #include <QTextStream>
+#include <algorithm>
 #include <atomic>
 #include <random>
-#include <set>
 #include <stdexcept>
 #include <thread>
+#include <unordered_set>
 
 struct DbModel::Impl
 {
@@ -71,33 +72,37 @@ void DbModel::initDBs ()
     }
 
     QString userDbPath = dir.filePath ("user.db");
-    if (!QFile::exists (userDbPath))
+    bool isNewUserDb = !QFile::exists (userDbPath);
+    if (!isUserDbOpen ())
     {
         d->user_db = std::make_unique<SQLite::Database> (
             userDbPath.toStdString (),
-            SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-        initUserTable ();
+            isNewUserDb ? (SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)
+                        : SQLite::OPEN_READWRITE);
     }
-    else if (!isUserDbOpen ())
+
+    if (d->user_db != nullptr)
     {
-        d->user_db = std::make_unique<SQLite::Database> (
-            userDbPath.toStdString (), SQLite::OPEN_READWRITE);
+        initUserTable ();
     }
 
     QString dictDbPath = dir.filePath ("dict.db");
     bool isNewDictDb = !QFile::exists (dictDbPath);
-    if (isNewDictDb)
+    if (!isDictDbOpen ())
     {
         d->dict_db = std::make_unique<SQLite::Database> (
             dictDbPath.toStdString (),
-            SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-        initDictTable ();
-        d->m_needsDictImport = true;
+            isNewDictDb ? (SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)
+                        : SQLite::OPEN_READWRITE);
     }
-    else if (!isDictDbOpen ())
+
+    if (d->dict_db != nullptr)
     {
-        d->dict_db = std::make_unique<SQLite::Database> (
-            dictDbPath.toStdString (), SQLite::OPEN_READWRITE);
+        initDictTable ();
+        if (isNewDictDb)
+        {
+            d->m_needsDictImport = true;
+        }
     }
 
     if (d->dict_db != nullptr)
@@ -171,17 +176,34 @@ void DbModel::initUserTable ()
                               "ON DELETE CASCADE ON UPDATE CASCADE,"
                               "PRIMARY KEY (user_id, word));");
 
+            SQLite::Transaction migration (*d->user_db);
             d->user_db->exec (
-                "CREATE INDEX IF NOT EXISTS idx_user_favorites ON "
-                "user_favorites(favorites_word_id, user_id);");
+                "DELETE FROM user_favorites "
+                "WHERE favorites_word_id NOT IN ("
+                "SELECT favorite_id FROM ("
+                "SELECT MIN(favorites_word_id) AS favorite_id "
+                "FROM user_favorites GROUP BY user_id, word));");
+            d->user_db->exec ("DROP INDEX IF EXISTS idx_user_favorites;");
+            d->user_db->exec (
+                "DROP INDEX IF EXISTS idx_user_search_history;");
+            d->user_db->exec (
+                "DROP INDEX IF EXISTS idx_user_recite_history;");
+            d->user_db->exec (
+                "CREATE UNIQUE INDEX IF NOT EXISTS idx_user_favorites ON "
+                "user_favorites(user_id, word);");
 
             d->user_db->exec (
                 "CREATE INDEX IF NOT EXISTS idx_user_search_history "
-                "ON user_search_history(search_history_id, user_id);");
+                "ON user_search_history(user_id, search_history_id DESC);");
 
             d->user_db->exec (
                 "CREATE INDEX IF NOT EXISTS idx_user_recite_history "
-                "ON user_recite_history(recite_history_id, user_id);");
+                "ON user_recite_history(user_id, recite_history_id DESC);");
+
+            d->user_db->exec (
+                "CREATE INDEX IF NOT EXISTS idx_user_vocabulary_user_status "
+                "ON user_vocabulary(user_id, status);");
+            migration.commit ();
         }
     }
     catch (const SQLite::Exception &e)
@@ -1802,27 +1824,37 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
         {
             SQLite::Statement queryWordsBasic (
                 *d->dict_db,
-                "SELECT word,pronunciation ,"
+                "SELECT w.word, w.pronunciation, COALESCE(wt.target_word, ''), "
                 "CASE"
-                " WHEN word = ? THEN 1 "    // precise match
-                " WHEN word LIKE ? THEN 2 " // prefix match
-                " WHEN word LIKE ? THEN 3 " // include match
+                " WHEN w.word = ? THEN 1 "    // precise match
+                " WHEN w.word LIKE ? THEN 2 " // prefix match
+                " WHEN w.word LIKE ? THEN 3 " // include match
                 " ELSE 4 "
                 " END AS match_priority "
-                " FROM words "
-                " WHERE word = ? OR "
-                " word LIKE ? OR "
-                " word LIKE ? "
-                " ORDER BY match_priority, word "
+                " FROM words w "
+                " LEFT JOIN ("
+                " SELECT source_word, MIN(translation_id) AS translation_id "
+                " FROM word_translations "
+                " WHERE source_language = ? "
+                " GROUP BY source_word"
+                " ) first_translation "
+                " ON first_translation.source_word = w.word "
+                " LEFT JOIN word_translations wt "
+                " ON wt.translation_id = first_translation.translation_id "
+                " WHERE w.word = ? OR "
+                " w.word LIKE ? OR "
+                " w.word LIKE ? "
+                " ORDER BY match_priority, w.word "
                 " LIMIT ? ; ");
 
-            queryWordsBasic.bind (1, pattern.toStdString ());
-            queryWordsBasic.bind (2, pattern.toStdString () + "%");
-            queryWordsBasic.bind (3, "%" + pattern.toStdString () + "%");
-            queryWordsBasic.bind (4, pattern.toStdString ());
-            queryWordsBasic.bind (5, pattern.toStdString () + "%");
-            queryWordsBasic.bind (6, "%" + pattern.toStdString () + "%");
-            queryWordsBasic.bind (7, limit);
+            queryWordsBasic.bind (1, srcLang.toStdString ());
+            queryWordsBasic.bind (2, pattern.toStdString ());
+            queryWordsBasic.bind (3, pattern.toStdString () + "%");
+            queryWordsBasic.bind (4, "%" + pattern.toStdString () + "%");
+            queryWordsBasic.bind (5, pattern.toStdString ());
+            queryWordsBasic.bind (6, pattern.toStdString () + "%");
+            queryWordsBasic.bind (7, "%" + pattern.toStdString () + "%");
+            queryWordsBasic.bind (8, limit);
 
             while (queryWordsBasic.executeStep ())
             {
@@ -1831,25 +1863,9 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
                     queryWordsBasic.getColumn (0).getString ());
                 entry.pronunciation = QString::fromStdString (
                     queryWordsBasic.getColumn (1).getString ());
+                entry.translation = QString::fromStdString (
+                    queryWordsBasic.getColumn (2).getString ());
                 entry.language = srcLang;
-
-                // Fetch translation
-                SQLite::Statement queryTranslation (
-                    *d->dict_db, "SELECT target_word, target_language "
-                                 "FROM word_translations WHERE source_word = ? "
-                                 "AND source_language = ?");
-                queryTranslation.bind (1, entry.word.toStdString ());
-                queryTranslation.bind (2, srcLang.toStdString ());
-
-                if (queryTranslation.executeStep ())
-                {
-                    entry.translation = QString::fromStdString (
-                        queryTranslation.getColumn (0).getString ());
-                }
-                else
-                {
-                    entry.translation = ""; // No translation found
-                }
 
                 results.emplace_back (entry);
             }
@@ -1858,31 +1874,35 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
         {
             SQLite::Statement queryTranslations (
                 *d->dict_db,
-                "SELECT source_word, target_word ,"
+                "SELECT wt.source_word, wt.target_word, "
+                "COALESCE(w.pronunciation, ''), "
                 "CASE"
-                " WHEN target_word = ? THEN 1 " // precise match
-                " WHEN target_word LIKE '_. %' AND target_word LIKE ? THEN "
+                " WHEN wt.target_word = ? THEN 1 " // precise match
+                " WHEN wt.target_word LIKE '_. %' AND wt.target_word LIKE ? "
+                "THEN "
                 "2 " // single letter+dot+space prefix (e.g., "a. xxx")
-                " WHEN target_word LIKE '__. %' AND target_word LIKE ? "
+                " WHEN wt.target_word LIKE '__. %' AND wt.target_word LIKE ? "
                 "THEN 3 " // two letters+dot+space prefix (e.g., "ad. xxx")
-                " WHEN target_word LIKE '___. %' AND target_word LIKE ? "
+                " WHEN wt.target_word LIKE '___. %' AND wt.target_word LIKE ? "
                 "THEN 4 " // three letters+dot+space prefix (e.g., "adj. xxx")
-                " WHEN target_word LIKE '. %' AND target_word LIKE ? THEN "
+                " WHEN wt.target_word LIKE '. %' AND wt.target_word LIKE ? "
+                "THEN "
                 "5 " // dot+space prefix (e.g., ". xxx")
-                " WHEN target_word LIKE ? THEN 6 " // normal prefix match
-                " WHEN target_word LIKE ? THEN 7 " // include match
+                " WHEN wt.target_word LIKE ? THEN 6 " // normal prefix match
+                " WHEN wt.target_word LIKE ? THEN 7 " // include match
                 " ELSE 8 "
                 " END AS match_priority "
-                " FROM word_translations "
-                " WHERE target_language = 'zh' AND ("
-                " target_word = ? OR "
-                " (target_word LIKE '_. %' AND target_word LIKE ?) OR "
-                " (target_word LIKE '__. %' AND target_word LIKE ?) OR "
-                " (target_word LIKE '___. %' AND target_word LIKE ?) OR "
-                " (target_word LIKE '. %' AND target_word LIKE ?) OR "
-                " target_word LIKE ? OR "
-                " target_word LIKE ? )"
-                " ORDER BY match_priority, target_word "
+                " FROM word_translations wt "
+                " LEFT JOIN words w ON w.word = wt.source_word "
+                " WHERE wt.target_language = 'zh' AND ("
+                " wt.target_word = ? OR "
+                " (wt.target_word LIKE '_. %' AND wt.target_word LIKE ?) OR "
+                " (wt.target_word LIKE '__. %' AND wt.target_word LIKE ?) OR "
+                " (wt.target_word LIKE '___. %' AND wt.target_word LIKE ?) OR "
+                " (wt.target_word LIKE '. %' AND wt.target_word LIKE ?) OR "
+                " wt.target_word LIKE ? OR "
+                " wt.target_word LIKE ? )"
+                " ORDER BY match_priority, wt.target_word "
                 " LIMIT ? ; ");
 
             queryTranslations.bind (1, pattern.toStdString ());
@@ -1908,23 +1928,9 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
                     queryTranslations.getColumn (0).getString ());
                 entry.translation = QString::fromStdString (
                     queryTranslations.getColumn (1).getString ());
+                entry.pronunciation = QString::fromStdString (
+                    queryTranslations.getColumn (2).getString ());
                 entry.language = srcLang;
-
-                // Fetch pronunciation for the English word
-                SQLite::Statement queryPronunciation (
-                    *d->dict_db,
-                    "SELECT pronunciation FROM words WHERE word = ?");
-                queryPronunciation.bind (1, entry.word.toStdString ());
-
-                if (queryPronunciation.executeStep ())
-                {
-                    entry.pronunciation = QString::fromStdString (
-                        queryPronunciation.getColumn (0).getString ());
-                }
-                else
-                {
-                    entry.pronunciation = ""; // No pronunciation found
-                }
 
                 results.emplace_back (entry);
             }
@@ -1960,16 +1966,12 @@ void DbModel::addToUserFavorites (const QString &userId, const QString &word)
         return;
     }
 
-    if (isWordFavorited (userId, word))
-    {
-        return;
-    }
-
     try
     {
         SQLite::Statement query (
             *d->user_db,
-            "INSERT INTO user_favorites (user_id, word) VALUES (?, ?)");
+            "INSERT OR IGNORE INTO user_favorites (user_id, word) "
+            "VALUES (?, ?)");
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
         query.exec ();
@@ -2307,9 +2309,39 @@ std::optional<WordEntry> DbModel::getRandomWord ()
     {
         WordEntry randomWordEntry;
 
+        SQLite::Statement countQuery (*d->dict_db,
+                                      "SELECT COUNT(*) FROM words");
+        if (!countQuery.executeStep ())
+        {
+            return std::nullopt;
+        }
+
+        int wordCount = countQuery.getColumn (0).getInt ();
+        if (wordCount <= 0)
+        {
+            return std::nullopt;
+        }
+
+        std::random_device rd;
+        std::mt19937 gen (rd ());
+        std::uniform_int_distribution<> dis (0, wordCount - 1);
+        int randomOffset = dis (gen);
+
         SQLite::Statement queryRandomWord (
-            *d->dict_db, "SELECT word, pronunciation "
-                         "FROM words ORDER BY RANDOM() LIMIT 1");
+            *d->dict_db,
+            "SELECT w.word, w.pronunciation, COALESCE(wt.target_word, '') "
+            "FROM words w "
+            "LEFT JOIN ("
+            "SELECT source_word, MIN(translation_id) AS translation_id "
+            "FROM word_translations "
+            "WHERE source_language = 'en' "
+            "GROUP BY source_word"
+            ") first_translation "
+            "ON first_translation.source_word = w.word "
+            "LEFT JOIN word_translations wt "
+            "ON wt.translation_id = first_translation.translation_id "
+            "ORDER BY w.word_id LIMIT 1 OFFSET ?");
+        queryRandomWord.bind (1, randomOffset);
 
         if (queryRandomWord.executeStep ())
         {
@@ -2317,29 +2349,13 @@ std::optional<WordEntry> DbModel::getRandomWord ()
                 queryRandomWord.getColumn (0).getString ());
             randomWordEntry.pronunciation = QString::fromStdString (
                 queryRandomWord.getColumn (1).getString ());
+            randomWordEntry.translation = QString::fromStdString (
+                queryRandomWord.getColumn (2).getString ());
             randomWordEntry.language = "en"; // Default language
         }
         else
         {
             return std::nullopt;
-        }
-
-        SQLite::Statement queryTranslation (
-            *d->dict_db, "SELECT target_word, target_language "
-                         "FROM word_translations WHERE source_word = ? "
-                         "AND source_language = ?");
-
-        queryTranslation.bind (1, randomWordEntry.word.toStdString ());
-        queryTranslation.bind (2, "en"); // Default source language
-
-        if (queryTranslation.executeStep ())
-        {
-            randomWordEntry.translation = QString::fromStdString (
-                queryTranslation.getColumn (0).getString ());
-        }
-        else
-        {
-            randomWordEntry.translation = ""; // No translation found
         }
 
         return randomWordEntry;
@@ -2676,15 +2692,19 @@ std::vector<QString> DbModel::getUserSearchHistory (const QString &userId)
 
     try
     {
+        std::unordered_set<std::string> seenWords;
         SQLite::Statement query (
-            *d->user_db, "SELECT DISTINCT search_word FROM user_search_history "
+            *d->user_db, "SELECT search_word FROM user_search_history "
                          "WHERE user_id = ? ORDER BY search_history_id DESC");
         query.bind (1, userId.toStdString ());
 
         while (query.executeStep ())
         {
-            history.emplace_back (
-                QString::fromStdString (query.getColumn (0).getString ()));
+            std::string historyWord = query.getColumn (0).getString ();
+            if (seenWords.insert (historyWord).second)
+            {
+                history.emplace_back (QString::fromStdString (historyWord));
+            }
         }
     }
     catch (const SQLite::Exception &e)
@@ -2717,15 +2737,19 @@ std::vector<QString> DbModel::getUserReciteHistory (const QString &userId)
 
     try
     {
+        std::unordered_set<std::string> seenWords;
         SQLite::Statement query (
-            *d->user_db, "SELECT DISTINCT recite_word FROM user_recite_history "
+            *d->user_db, "SELECT recite_word FROM user_recite_history "
                          "WHERE user_id = ? ORDER BY recite_history_id DESC");
         query.bind (1, userId.toStdString ());
 
         while (query.executeStep ())
         {
-            history.emplace_back (
-                QString::fromStdString (query.getColumn (0).getString ()));
+            std::string historyWord = query.getColumn (0).getString ();
+            if (seenWords.insert (historyWord).second)
+            {
+                history.emplace_back (QString::fromStdString (historyWord));
+            }
         }
     }
     catch (const SQLite::Exception &e)
@@ -2817,55 +2841,62 @@ DbModel::getRandomWrongTranslations (const QString &correctTranslation,
     }
     try
     {
-        SQLite::Statement query (
-            *d->dict_db, "SELECT MIN(translation_id), MAX(translation_id) FROM "
-                         "word_translations; ");
-        query.executeStep ();
-        int minId = query.getColumn (0).getInt ();
-        int maxId = query.getColumn (1).getInt ();
+        SQLite::Statement countQuery (
+            *d->dict_db,
+            "SELECT COUNT(*) FROM ("
+            "SELECT target_word FROM word_translations "
+            "WHERE target_word != ? GROUP BY target_word)");
+        countQuery.bind (1, correctTranslation.toStdString ());
+        countQuery.executeStep ();
+        int candidateCount = countQuery.getColumn (0).getInt ();
 
-        if (minId == maxId)
+        if (candidateCount <= 0)
         {
             logErr ("No translations found in the database",
                     std::runtime_error ("No translations available"));
             return std::vector<QString> ();
         }
 
-        // Generate random IDs excluding the correct translation
-
-        std::set<int> usedIds;
         std::random_device rd;
         std::mt19937 gen (rd ());
-        std::uniform_int_distribution<> dis (minId, maxId);
+        int candidatePoolSize = std::min (candidateCount, std::max (limit * 4,
+                                                                    limit + 8));
+        int maxOffset = std::max (0, candidateCount - candidatePoolSize);
+        std::uniform_int_distribution<> dis (0, maxOffset);
+        int randomOffset = dis (gen);
+        std::unordered_set<std::string> seenTranslations;
 
-        while (wrongTranslations.size () < limit)
+        auto appendCandidates = [&] (int offset)
         {
-            int randomId = dis (gen);
-            if (usedIds.count (randomId) > 0)
-            {
-                continue; // Already used this ID
-            }
-            usedIds.insert (randomId);
-
             SQLite::Statement translationQuery (
-                *d->dict_db, "SELECT target_word FROM word_translations "
-                             "WHERE translation_id = ? AND target_word != ?");
-            translationQuery.bind (1, randomId);
-            translationQuery.bind (2, correctTranslation.toStdString ());
+                *d->dict_db,
+                "SELECT target_word, MIN(translation_id) AS first_id "
+                "FROM word_translations "
+                "WHERE target_word != ? "
+                "GROUP BY target_word "
+                "ORDER BY first_id LIMIT ? OFFSET ?");
+            translationQuery.bind (1, correctTranslation.toStdString ());
+            translationQuery.bind (2, candidatePoolSize);
+            translationQuery.bind (3, offset);
 
-            if (translationQuery.executeStep ())
+            while (translationQuery.executeStep ())
             {
-                QString translation = QString::fromStdString (
-                    translationQuery.getColumn (0).getString ());
-                if (!translation.isEmpty ())
+                std::string translation = translationQuery.getColumn (0)
+                                              .getString ();
+                if (!translation.empty () &&
+                    seenTranslations.insert (translation).second)
                 {
-                    wrongTranslations.emplace_back (translation);
+                    wrongTranslations.emplace_back (
+                        QString::fromStdString (translation));
                 }
             }
-            if (wrongTranslations.size () >= limit)
-            {
-                break;
-            }
+        };
+
+        appendCandidates (randomOffset);
+        if (wrongTranslations.size () < static_cast<std::size_t> (limit) &&
+            randomOffset > 0)
+        {
+            appendCandidates (0);
         }
 
         if (wrongTranslations.empty ())
@@ -2873,6 +2904,12 @@ DbModel::getRandomWrongTranslations (const QString &correctTranslation,
             logErr ("No wrong translations found",
                     std::runtime_error ("No valid translations available"));
             return std::vector<QString> ();
+        }
+
+        std::shuffle (wrongTranslations.begin (), wrongTranslations.end (), gen);
+        if (wrongTranslations.size () > static_cast<std::size_t> (limit))
+        {
+            wrongTranslations.resize (limit);
         }
 
         return wrongTranslations;
