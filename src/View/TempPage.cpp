@@ -8,7 +8,8 @@ TempPage::TempPage (QWidget *parent) : ElaScrollPage (parent)
 TempPage::~TempPage () {}
 
 // for operation result message display
-void TempPage::showDialog (const QString &title, const QString &message)
+void TempPage::showDialog (const QString &title, const QString &message,
+                           bool closeParentOnAccept)
 {
 
     QDialog *Dialog = new QDialog (this);
@@ -50,15 +51,15 @@ void TempPage::showDialog (const QString &title, const QString &message)
     Layout->setAlignment (okButtonBox, Qt::AlignHCenter);
 
     connect (okButtonBox, &QDialogButtonBox::accepted, Dialog,
-             [=] ()
+             [Dialog, closeParentOnAccept] ()
              {
                  Dialog->close ();
                  Dialog->deleteLater ();
 
-                 QWidget *parentWidget = Dialog->parentWidget ();
-                 if (parentWidget)
+                 if (closeParentOnAccept)
                  {
-                     if (!title.contains (tr ("Error"), Qt::CaseInsensitive))
+                     QWidget *parentWidget = Dialog->parentWidget ();
+                     if (parentWidget)
                      {
                          parentWidget->close ();
                      }

@@ -51,7 +51,8 @@ public:
         return lang;
     };
 
-    void showDialog (const QString &title, const QString &message);
+    void showDialog (const QString &title, const QString &message,
+                     bool closeParentOnAccept = false);
 
     void showDialog (const QString &title, const QString &message,
                      std::function<void ()> onConfirm,

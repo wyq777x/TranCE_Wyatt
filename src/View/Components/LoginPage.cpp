@@ -119,7 +119,8 @@ void LoginPage::initConnections ()
                      else
                      {
                          showDialog (tr ("Login Success"),
-                                     tr ("Welcome back, %1!").arg (username));
+                                     tr ("Welcome back, %1!").arg (username),
+                                     true);
                      }
                  }
                  catch (const std::exception &e)

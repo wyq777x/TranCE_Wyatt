@@ -197,7 +197,8 @@ void RegisterPage::initConnections ()
 
                 showDialog (tr ("Register Success"),
                             tr ("User registered successfully.\n\nYou can now "
-                                "log in with your username and password."));
+                                "log in with your username and password."),
+                            true);
             }
         });
 
