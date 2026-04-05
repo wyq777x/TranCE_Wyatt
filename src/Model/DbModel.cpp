@@ -1671,8 +1671,10 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
         if (auto cachedEntry = d->m_wordLookupCache.get (cacheKey);
             cachedEntry.has_value ())
         {
+            qDebug () << "Cache get:" << QString::fromStdString (cacheKey) << "HIT";
             return cachedEntry;
         }
+        qDebug () << "Cache get:" << QString::fromStdString (cacheKey) << "MISS";
 
         WordEntry entry;
         bool found = false;
@@ -1750,6 +1752,9 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
             cacheKey, entry,
             std::chrono::minutes (
                 Constants::Settings::Cache::WORD_LOOKUP_TTL_MINUTES));
+
+        qDebug () << "Cache size after put:" << d->m_wordLookupCache.sizeBytes () 
+                 << "bytes";
 
         return entry;
     }

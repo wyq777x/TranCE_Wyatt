@@ -17,6 +17,9 @@ public:
                                                : Constants::UI::STATUS_OFF);
     }
 
+protected:
+    void showEvent (QShowEvent *event) override;
+
 private slots:
     void onHistorySearchListEnabledToggled (bool enabled);
     void onLanguageChanged (int index);
@@ -27,6 +30,7 @@ private:
     void initConnections ();
     void updateStatusWithAnimation (bool enabled);
     void refreshCacheLabel ();
+    static QString formatBytes (std::size_t bytes);
 
     // change AppSettingModel through SettingManager controller
     ChangeResult changeHistorySearchListEnabled (bool enabled);

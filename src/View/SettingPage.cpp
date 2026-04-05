@@ -4,6 +4,8 @@
 #include "Controller/SettingManager.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
+#include <QShowEvent>
+#include <cstddef>
 
 SettingPage::SettingPage (QWidget *parent) : TempPage (parent)
 {
@@ -98,7 +100,7 @@ void SettingPage::initUI ()
     clearCacheLayout = new QHBoxLayout (centralWidget);
 
     clearCacheLabel =
-        new QLabel (tr ("Clear Cache: %1 MB").arg (0), centralWidget);
+        new QLabel (tr ("Clear Cache: ..."), centralWidget);
     clearCacheLabel->setStyleSheet (
         QString ("font-size: %1px; font-weight: normal; color: #333;")
             .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
@@ -279,12 +281,45 @@ void SettingPage::onClearCacheClicked ()
     showDialog (tr ("Success"), tr ("Word lookup cache has been cleared."));
 }
 
+void SettingPage::showEvent (QShowEvent *event)
+{
+    TempPage::showEvent (event);
+    // Refresh cache label every time the page is shown
+    refreshCacheLabel ();
+}
+
+QString SettingPage::formatBytes (std::size_t bytes)
+{
+    const double KB = 1024.0;
+    const double MB = KB * 1024.0;
+    const double GB = MB * 1024.0;
+
+    if (bytes < KB)
+    {
+        return QString ("%1 B").arg (static_cast<unsigned long> (bytes));
+    }
+    else if (bytes < MB)
+    {
+        return QString ("%1 KB")
+            .arg (QString::number (bytes / KB, 'f', 2));
+    }
+    else if (bytes < GB)
+    {
+        return QString ("%1 MB")
+            .arg (QString::number (bytes / MB, 'f', 2));
+    }
+    else
+    {
+        return QString ("%1 GB")
+            .arg (QString::number (bytes / GB, 'f', 2));
+    }
+}
+
 void SettingPage::refreshCacheLabel ()
 {
-    const double cacheSizeMb =
-        static_cast<double> (
-            DbManager::getInstance ().getWordLookupCacheSizeBytes ()) /
-        (1024.0 * 1024.0);
+    const std::size_t cacheSizeBytes =
+        DbManager::getInstance ().getWordLookupCacheSizeBytes ();
+    const QString formattedSize = formatBytes (cacheSizeBytes);
     clearCacheLabel->setText (
-        tr ("Clear Cache: %1 MB").arg (QString::number (cacheSizeMb, 'f', 2)));
+        tr ("Clear Cache: %1").arg (formattedSize));
 }
