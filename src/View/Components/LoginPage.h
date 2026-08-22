@@ -1,7 +1,15 @@
 #pragma once
 
-#include "View/Components/RegisterPage.h"
 #include "View/TempPage.h"
+
+class ElaLineEdit;
+class ElaPushButton;
+class QHBoxLayout;
+class QLabel;
+class QPaintEvent;
+class QVBoxLayout;
+class QWidget;
+class RegisterPage;
 
 class LoginPage : public TempPage
 {

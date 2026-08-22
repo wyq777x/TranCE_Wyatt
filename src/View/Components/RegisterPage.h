@@ -2,6 +2,14 @@
 
 #include "View/TempPage.h"
 
+class ElaLineEdit;
+class ElaPushButton;
+class QHBoxLayout;
+class QLabel;
+class QPaintEvent;
+class QVBoxLayout;
+class QWidget;
+
 class RegisterPage : public TempPage
 {
     Q_OBJECT

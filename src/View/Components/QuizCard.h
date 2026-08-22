@@ -3,6 +3,15 @@
 #include "Utility/Constants.h"
 #include "Utility/WordEntry.h"
 #include "View/TempPage.h"
+#include <ElaIconButton.h>
+#include <vector>
+
+class QFrame;
+class QHBoxLayout;
+class QLabel;
+class QPushButton;
+class QVBoxLayout;
+class QWidget;
 
 class QuizCard : public TempPage
 

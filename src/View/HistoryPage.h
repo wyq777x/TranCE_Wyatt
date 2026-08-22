@@ -1,6 +1,12 @@
 #pragma once
 #include "View/TempPage.h"
 
+class ElaListView;
+class QLabel;
+class QStringListModel;
+class QVBoxLayout;
+class QWidget;
+
 class HistoryPage : public TempPage
 {
     Q_OBJECT

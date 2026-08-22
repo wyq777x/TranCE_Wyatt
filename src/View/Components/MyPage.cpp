@@ -2,6 +2,15 @@
 #include "Controller/AccountManager.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
+#include <ElaLineEdit.h>
+#include <ElaPushButton.h>
+#include <QFont>
+#include <QFrame>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPixmap>
+#include <QPushButton>
+#include <QVBoxLayout>
 
 MyPage::MyPage (QWidget *parent) : TempPage (parent)
 {

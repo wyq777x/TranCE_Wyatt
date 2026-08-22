@@ -1,9 +1,17 @@
 #pragma once
-#include "Utility/ClickableWidget.h"
 #include "Utility/WordEntry.h"
 #include "View/TempPage.h"
 #include <array>
 #include <utility>
+#include <vector>
+
+class ClickableWidget;
+class ElaPushButton;
+class QGridLayout;
+class QHBoxLayout;
+class QLabel;
+class QVBoxLayout;
+class QWidget;
 
 class QuizCard;
 

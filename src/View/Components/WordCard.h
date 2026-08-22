@@ -3,6 +3,13 @@
 #include "Utility/Constants.h"
 #include "Utility/WordEntry.h"
 #include "View/TempPage.h"
+#include <ElaIconButton.h>
+
+class QFrame;
+class QHBoxLayout;
+class QLabel;
+class QVBoxLayout;
+class QWidget;
 
 class WordCard : public TempPage
 {

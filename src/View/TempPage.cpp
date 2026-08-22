@@ -1,4 +1,15 @@
 #include "TempPage.h"
+#include "Utility/Constants.h"
+#include <ElaLineEdit.h>
+#include <ElaPushButton.h>
+#include <QDebug>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QIcon>
+#include <QLabel>
+#include <QVBoxLayout>
 
 TempPage::TempPage (QWidget *parent) : ElaScrollPage (parent)
 {

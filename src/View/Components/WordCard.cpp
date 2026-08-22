@@ -2,6 +2,10 @@
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
 #include "Utility/Constants.h"
+#include <QFrame>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QVBoxLayout>
 
 WordCard::WordCard (QWidget *parent) : TempPage (parent)
 {

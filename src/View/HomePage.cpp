@@ -3,6 +3,24 @@
 #include "Controller/DbManager.h"
 #include "Controller/UIController.h"
 #include "Utility/Constants.h"
+#include "View/Components/AINeonButton.h"
+#include <ElaComboBox.h>
+#include <ElaIcon.h>
+#include <ElaIconButton.h>
+#include <ElaLineEdit.h>
+#include <ElaListView.h>
+#include <ElaPushButton.h>
+#include <ElaRadioButton.h>
+#include <ElaToggleButton.h>
+#include <QAction>
+#include <QDesktopServices>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QStringListModel>
+#include <QUrl>
+#include <QVBoxLayout>
 
 HomePage::HomePage (QWidget *parent) : TempPage (parent)
 {
@@ -156,6 +174,12 @@ void HomePage::initUI ()
     randomRecommendationLayout->addWidget (recommendWordButton);
 
     homePageLayout->addLayout (randomRecommendationLayout);
+
+    // AI Mode neon button, placed right below "Recommend Word".
+    aiNeonButton = new AINeonButton (centralWidget);
+    aiNeonButton->setText (tr ("AI Mode"));
+    aiNeonButton->setFixedSize (600, 50);
+    homePageLayout->addWidget (aiNeonButton, 0, Qt::AlignHCenter);
 
     addCentralWidget (centralWidget, true, true, 0);
 }

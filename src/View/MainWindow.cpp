@@ -9,6 +9,7 @@
 #include "View/RecitePage.h"
 #include "View/SettingPage.h"
 #include "View/StatisticsPage.h"
+#include <ElaLineEdit.h>
 
 MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
 {

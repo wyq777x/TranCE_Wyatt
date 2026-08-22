@@ -2,6 +2,9 @@
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
 #include "Utility/Constants.h"
+#include <ElaIconButton.h>
+#include <QLabel>
+#include <QVBoxLayout>
 
 StatisticsPage::StatisticsPage (QWidget *parent) : TempPage (parent)
 {

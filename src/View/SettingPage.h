@@ -4,6 +4,16 @@
 #include "Utility/Result.h"
 #include "View/TempPage.h"
 
+class ElaComboBox;
+class ElaPushButton;
+class ElaToggleSwitch;
+class QFrame;
+class QHBoxLayout;
+class QLabel;
+class QShowEvent;
+class QVBoxLayout;
+class QWidget;
+
 class SettingPage : public TempPage
 {
     Q_OBJECT

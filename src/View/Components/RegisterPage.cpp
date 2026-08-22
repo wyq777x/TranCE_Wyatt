@@ -2,6 +2,14 @@
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
 #include "Utility/Constants.h"
+#include <ElaLineEdit.h>
+#include <ElaPushButton.h>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPainter>
+#include <QPaintEvent>
+#include <QVBoxLayout>
 
 RegisterPage::RegisterPage (QWidget *parent) : TempPage (parent)
 {

@@ -1,6 +1,14 @@
 #pragma once
 
 #include "View/TempPage.h"
+#include <QString>
+#include <QStringList>
+
+class ElaListView;
+class QModelIndex;
+class QStringListModel;
+class QVBoxLayout;
+class QWidget;
 
 class WordList : public TempPage
 {

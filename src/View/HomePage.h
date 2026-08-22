@@ -1,6 +1,21 @@
 #pragma once
 #include "View/TempPage.h"
 
+class AINeonButton;
+class ElaComboBox;
+class ElaIconButton;
+class ElaLineEdit;
+class ElaListView;
+class ElaPushButton;
+class ElaRadioButton;
+class ElaToggleButton;
+class QAction;
+class QHBoxLayout;
+class QLabel;
+class QStringListModel;
+class QVBoxLayout;
+class QWidget;
+
 class HomePage : public TempPage
 {
     Q_OBJECT
@@ -33,4 +48,5 @@ private:
     ElaRadioButton *searchMode_fuzzy;
     QLabel *randomRecommendationLabel;
     ElaPushButton *recommendWordButton;
+    AINeonButton *aiNeonButton;
 };

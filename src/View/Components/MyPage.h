@@ -1,6 +1,14 @@
 #pragma once
 
 #include "View/TempPage.h"
+#include <QLabel>
+
+class ElaLineEdit;
+class ElaPushButton;
+class QPixmap;
+class QPushButton;
+class QVBoxLayout;
+class QWidget;
 
 class MyPage : public TempPage
 {

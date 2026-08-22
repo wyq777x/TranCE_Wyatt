@@ -1,6 +1,11 @@
 #pragma once
 #include "View/TempPage.h"
 
+class ElaIconButton;
+class QLabel;
+class QVBoxLayout;
+class QWidget;
+
 class StatisticsPage : public TempPage
 {
     Q_OBJECT

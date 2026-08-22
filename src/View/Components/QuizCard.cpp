@@ -3,7 +3,12 @@
 #include "Controller/DbManager.h"
 #include "Controller/UIController.h"
 #include "Utility/Constants.h"
+#include <QFrame>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
 #include <QTimer>
+#include <QVBoxLayout>
 #include <algorithm>
 #include <random>
 

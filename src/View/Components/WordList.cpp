@@ -1,6 +1,10 @@
 #include "WordList.h"
 #include "Controller/DbManager.h"
 #include "Controller/UIController.h"
+#include "Utility/Constants.h"
+#include <ElaListView.h>
+#include <QStringListModel>
+#include <QVBoxLayout>
 
 WordList::WordList (QWidget *parent) : TempPage (parent)
 {

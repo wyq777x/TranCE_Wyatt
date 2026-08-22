@@ -4,7 +4,17 @@
 #include "Controller/SettingManager.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
+#include <ElaComboBox.h>
+#include <ElaPushButton.h>
+#include <ElaToggleSwitch.h>
+#include <QFont>
+#include <QFrame>
+#include <QGraphicsOpacityEffect>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPropertyAnimation>
 #include <QShowEvent>
+#include <QVBoxLayout>
 #include <cstddef>
 
 SettingPage::SettingPage (QWidget *parent) : TempPage (parent)

@@ -2,6 +2,15 @@
 #include "Controller/AccountManager.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
+#include "View/Components/RegisterPage.h"
+#include <ElaLineEdit.h>
+#include <ElaPushButton.h>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPainter>
+#include <QPaintEvent>
+#include <QVBoxLayout>
 
 LoginPage::LoginPage (QWidget *parent) : TempPage (parent)
 {

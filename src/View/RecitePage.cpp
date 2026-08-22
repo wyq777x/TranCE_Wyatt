@@ -7,8 +7,16 @@
 #include "Utility/Result.h"
 #include "View/Components/QuizCard.h"
 #include "View/Components/WordList.h"
+#include <ElaPushButton.h>
+#include <QFont>
+#include <QGraphicsBlurEffect>
+#include <QGridLayout>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QMessageBox>
 #include <QTimer>
+#include <QVBoxLayout>
+#include <algorithm>
 #include <array>
 
 RecitePage::RecitePage (QWidget *parent) : TempPage (parent)

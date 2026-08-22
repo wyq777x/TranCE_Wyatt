@@ -2,6 +2,12 @@
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
 #include "Controller/UIController.h"
+#include "Utility/Constants.h"
+#include <ElaListView.h>
+#include <QFont>
+#include <QLabel>
+#include <QStringListModel>
+#include <QVBoxLayout>
 
 HistoryPage::HistoryPage (QWidget *parent) : TempPage (parent)
 {
