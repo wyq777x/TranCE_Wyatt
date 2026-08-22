@@ -31,6 +31,19 @@ class Session:
 # Single-user local sidecar: one live session at a time.
 _session = Session()
 
+# Read-only path to the host's dictionary DB, used by the RAG corpus
+# builder. Kept outside Session because it is host state, not user state.
+_dict_db_path = ""
+
+
+def set_dict_db_path(path: str) -> None:
+    global _dict_db_path
+    _dict_db_path = path
+
+
+def get_dict_db_path() -> str:
+    return _dict_db_path
+
 
 def set_session(session: Session) -> None:
     global _session

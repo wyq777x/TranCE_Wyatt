@@ -80,7 +80,15 @@ cd server
   - `GET/PUT /api/memory/profile` 学习者画像（narrative）查看/编辑；
     `POST /api/memory/consolidate` LLM 固化画像
   - `/api/chat` 默认注入画像 + 弱项词上下文（`use_memory` 可关）
-- P2：Native RAG（FTS5 + sqlite-vec 混合检索：概念反查/场景检索）
+- P2（当前）：Native RAG（FTS5 trigram + sqlite-vec → RRF 融合）
+  - `POST /api/rag/build` 构建共享语料库：dict.db 高频子集（只读
+    打开）+ 内置场景表达库；embedding 走供应商 `/embeddings`，内容
+    哈希缓存避免重复付费；未配置 embedding 模型时降级为纯 BM25
+  - `POST /api/lookup/concept` 模糊概念反查（中文语义描述 → 英文词），
+    `refine=true` 时 LLM 精选并解释
+  - `POST /api/lookup/scene` 场景表达检索（business_email/academic/
+    daily，中英文子串 + 语义双通道）
+  - `TRANCE_AI_EMBED_MOCK=1` 用确定性哈希向量测试全管线（零 API 成本）
 - P3：词根/词缀/近反义网状发散（图谱 + ECharts）
 - P4：LightRAG 弱项故事/完形出题
 - P5：MCP client 宿主

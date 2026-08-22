@@ -5,6 +5,7 @@
 #include "Controller/AiProviderManager.h"
 #include "Controller/DbManager.h"
 #include "Controller/SettingManager.h"
+#include "Model/DbModel.h"
 #include "Utility/Constants.h"
 #include <QCoreApplication>
 #include <QDateTime>
@@ -406,6 +407,12 @@ void AiSidecarManager::pushSession ()
     session["username"] = AccountManager::getInstance ().getUsername ();
     session["language"] = SettingManager::getInstance ().getLanguage ();
     session["provider"] = provider;
+
+    // Read-only dictionary DB for the sidecar's native RAG corpus build.
+    // The sidecar opens it with SQLite read-only mode; it never writes
+    // application databases.
+    session["dict_db_path"] =
+        QDir (DbModel::getDbDir ()).filePath (Constants::Database::DICT_DB_NAME);
 
     QNetworkRequest request (QUrl (baseUrl () + "/api/session"));
     request.setHeader (QNetworkRequest::ContentTypeHeader, "application/json");

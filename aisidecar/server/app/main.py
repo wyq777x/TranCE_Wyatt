@@ -14,7 +14,13 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .api import chat_router, memory_router, session_router, sync_router
+from .api import (
+    chat_router,
+    memory_router,
+    rag_router,
+    session_router,
+    sync_router,
+)
 from .config import VERSION, Config
 
 STATIC_OPEN_PREFIXES = ("/healthz", "/assets", "/favicon")
@@ -63,6 +69,7 @@ def create_app(config: Config) -> FastAPI:
     app.include_router(chat_router)
     app.include_router(sync_router)
     app.include_router(memory_router)
+    app.include_router(rag_router)
 
     if (config.web_dist_dir / "index.html").exists():
         app.mount(

@@ -23,6 +23,7 @@ class SessionPayload(BaseModel):
     user_uuid: str
     username: str
     language: str = "en_US"
+    dict_db_path: str = ""
     provider: ProviderPayload | None = None
 
 
@@ -47,6 +48,7 @@ def set_session(payload: SessionPayload) -> dict:
     )
 
     session_store.set_session(updated)
+    session_store.set_dict_db_path(payload.dict_db_path)
 
     provider_changed = (
         previous.provider is None and updated.provider is not None

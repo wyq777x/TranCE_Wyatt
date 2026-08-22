@@ -94,6 +94,101 @@ export async function consolidateMemory(): Promise<string> {
   return body.narrative as string;
 }
 
+// ---------------- native RAG (P2) ----------------
+
+export interface RagStatus {
+  built: boolean;
+  total: number;
+  dict_entries: number;
+  scene_entries: number;
+  embedded: number;
+  embedding_model: string;
+  dim: number;
+  building: boolean;
+  progress: number;
+  stage: string;
+  done: number;
+  total_build: number;
+  error: string;
+}
+
+export interface LookupHit {
+  entry_id: number;
+  kind: string;
+  word: string;
+  translation: string;
+  note: string;
+  frequency: number;
+  scene: string;
+  score: number;
+  sources: string[];
+  vec_distance: number | null;
+}
+
+export interface ConceptResult {
+  query: string;
+  results: LookupHit[];
+  refinement: string | null;
+  refinement_error?: string;
+}
+
+export interface SceneResult {
+  query: string;
+  scene: string;
+  scene_label: string;
+  results: LookupHit[];
+}
+
+export async function fetchRagStatus(): Promise<RagStatus> {
+  const response = await request("/api/rag/status");
+  if (!response.ok) {
+    throw new Error(`rag status failed: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function buildRag(topN = 30000): Promise<void> {
+  const response = await request("/api/rag/build", {
+    method: "POST",
+    body: JSON.stringify({ top_n: topN }),
+  });
+  if (!response.ok) {
+    throw new Error(`rag build failed: ${response.status}`);
+  }
+}
+
+export async function lookupConcept(
+  query: string,
+  refine = false,
+  topK = 10,
+): Promise<ConceptResult> {
+  const response = await request("/api/lookup/concept", {
+    method: "POST",
+    body: JSON.stringify({ query, refine, top_k: topK }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail ?? `concept lookup failed`);
+  }
+  return response.json();
+}
+
+export async function lookupScene(
+  scene: string,
+  query: string,
+  topK = 30,
+): Promise<SceneResult> {
+  const response = await request("/api/lookup/scene", {
+    method: "POST",
+    body: JSON.stringify({ scene, query, top_k: topK }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail ?? `scene lookup failed`);
+  }
+  return response.json();
+}
+
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
