@@ -17,6 +17,19 @@ project(TranCE_Wyatt LANGUAGES CXX)
 
 find_package(Qt6 COMPONENTS Core Widgets Quick QuickControls2 LinguistTools REQUIRED)
 
+# AI mode: QtWebEngine is an optional dependency. When unavailable the app
+# degrades gracefully and opens the sidecar web UI in the system browser.
+option(TRANCE_AI_WEBENGINE "Embed the AI mode web UI with QtWebEngine" ON)
+if(TRANCE_AI_WEBENGINE)
+    find_package(Qt6 QUIET COMPONENTS WebEngineWidgets)
+    if(Qt6WebEngineWidgets_FOUND)
+        message(STATUS "AI mode: QtWebEngine found - embedding web UI")
+        set(TRANCE_AI_HAVE_WEBENGINE ON)
+    else()
+        message(STATUS "AI mode: Qt6WebEngineWidgets NOT found - AI page will fall back to the system browser")
+    endif()
+endif()
+
 file(GLOB_RECURSE PROJECT_SOURCES
 
     src/*.cpp
@@ -35,6 +48,11 @@ add_subdirectory(3rdpart/SQLiteCpp)
 target_include_directories(TranCE_Wyatt PRIVATE
     src
     3rdpart/Ela/ElaWidgetTools/include)
+
+if(TRANCE_AI_HAVE_WEBENGINE)
+    target_link_libraries(TranCE_Wyatt PRIVATE Qt6::WebEngineWidgets)
+    target_compile_definitions(TranCE_Wyatt PRIVATE TRANCE_AI_WEBENGINE=1)
+endif()
 
 if(WIN32)
     target_link_libraries(TranCE_Wyatt PRIVATE

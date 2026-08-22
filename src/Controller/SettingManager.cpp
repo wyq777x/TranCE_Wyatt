@@ -14,6 +14,13 @@ ChangeResult SettingManager::setHistorySearchListEnabled (bool enabled)
     return result;
 }
 
+ChangeResult SettingManager::setAiModeEnabled (bool enabled)
+{
+    auto result = AppSettingModel::getInstance ().setAiModeEnabled (enabled);
+
+    return result;
+}
+
 ChangeResult SettingManager::setLanguage (const QString &lang)
 {
     auto result = AppSettingModel::getInstance ().setLanguage (lang);

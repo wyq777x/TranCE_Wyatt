@@ -21,3 +21,16 @@ out/
 # Ignore .cache files
 *.cache
 .cache/
+# AI sidecar
+aisidecar/server/.venv/
+aisidecar/server/dev-data/
+aisidecar/server/build/
+aisidecar/server/dist/
+**/__pycache__/
+*.py[cod]
+aisidecar/web/node_modules/
+aisidecar/web/dist/
+*.tsbuildinfo
+
+# Local agent state
+.workbuddy/

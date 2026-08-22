@@ -22,6 +22,11 @@ class HomePage : public TempPage
 public:
     explicit HomePage (QWidget *parent = nullptr);
 
+signals:
+    // Emitted when the AI mode neon button is clicked; MainWindow decides
+    // whether AI mode may open (enabled + configured) and navigates.
+    void aiModeRequested ();
+
 private:
     void initUI ();
     void initConnections ();

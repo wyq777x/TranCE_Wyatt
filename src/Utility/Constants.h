@@ -106,6 +106,7 @@ namespace appSettings
 const QString FIELDNAME = QStringLiteral ("appSettings");
 const QString LANGUAGE = QStringLiteral ("language");
 const QString HISTORY_LIST_ENABLED = QStringLiteral ("HistoryListEnabled");
+const QString AI_MODE_ENABLED = QStringLiteral ("AiModeEnabled");
 } // namespace appSettings
 
 } // namespace JsonFields
@@ -127,6 +128,7 @@ constexpr int DIALOG_MAX_HEIGHT = 350;
 const QString HISTORY_SEARCH_TEXT =
     QStringLiteral ("Enable History Search List");
 const QString LANGUAGE_SETTING_TEXT = QStringLiteral ("Software Language");
+const QString AI_MODE_SETTING_TEXT = QStringLiteral ("Enable AI Mode");
 const QString STATUS_ON = QStringLiteral ("ON");
 const QString STATUS_OFF = QStringLiteral ("OFF");
 

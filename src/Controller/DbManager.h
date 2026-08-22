@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Utility/AiProviderConfig.h"
 #include "Utility/AsyncTask.h"
 #include "Utility/Result.h"
 #include "Utility/WordEntry.h"
@@ -58,6 +59,22 @@ public:
     QString getUserEmail (const QString &username);
     QString getUserAvatarPath (const QString &username);
 
+    // AI providers
+
+    std::vector<AiProviderConfig> getAiProviders (const QString &userId);
+
+    std::optional<AiProviderConfig>
+    getActiveAiProvider (const QString &userId);
+
+    ChangeResult upsertAiProvider (const QString &userId,
+                                   AiProviderConfig &provider);
+
+    ChangeResult deleteAiProvider (const QString &userId,
+                                   qlonglong providerId);
+
+    ChangeResult setActiveAiProvider (const QString &userId,
+                                      qlonglong providerId);
+
     std::optional<WordEntry> getRandomWord ();
 
     void addToUserFavorites (const QString &userId, const QString &word);
@@ -76,6 +93,9 @@ public:
     std::vector<WordEntry>
     getUserHistorySearchVector (const QString &user_uuid);
     std::vector<QString> getUserReciteHistory (const QString &userId);
+
+    std::vector<QString> getUserVocabulary (const QString &userId,
+                                            int status = -1);
 
     std::pair<int, int> getProgress (const QString &userId) const;
 

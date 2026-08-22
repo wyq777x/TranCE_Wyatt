@@ -36,3 +36,13 @@ ChangeResult AppSettingModel::setHistorySearchListEnabled (bool enabled)
     qDebug () << "History search list enabled set to" << enabled;
     return ChangeResult::Success;
 }
+
+ChangeResult AppSettingModel::setAiModeEnabled (bool enabled)
+{
+    aiModeEnabled = enabled;
+
+    emit aiModeEnabledChanged (enabled);
+
+    qDebug () << "AI mode enabled set to" << enabled;
+    return ChangeResult::Success;
+}

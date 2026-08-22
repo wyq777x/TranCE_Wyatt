@@ -23,18 +23,24 @@ public:
 
     ChangeResult setHistorySearchListEnabled (bool enabled);
 
+    ChangeResult setAiModeEnabled (bool enabled);
+
     QString getLanguage () const { return language; }
 
     bool isHistoryListEnabled () const { return historySearchEnabled; }
 
+    bool isAiModeEnabled () const { return aiModeEnabled; }
+
 signals:
     void languageChanged (const QString &language);
     void historySearchListEnabledChanged (bool enabled);
+    void aiModeEnabledChanged (bool enabled);
 
 private:
     AppSettingModel () = default;
 
     bool historySearchEnabled = true;
+    bool aiModeEnabled = false;
 
     QString language = "en_US";
     // en_US : English

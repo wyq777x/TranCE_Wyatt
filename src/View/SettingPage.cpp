@@ -1,9 +1,12 @@
 #include "SettingPage.h"
 #include "Controller/AccountManager.h"
+#include "Controller/AiProviderManager.h"
+#include "Controller/AiSidecarManager.h"
 #include "Controller/DbManager.h"
 #include "Controller/SettingManager.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
+#include "View/Components/AiProviderDialog.h"
 #include <ElaComboBox.h>
 #include <ElaPushButton.h>
 #include <ElaToggleSwitch.h>
@@ -12,6 +15,8 @@
 #include <QGraphicsOpacityEffect>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QListWidget>
+#include <QListWidgetItem>
 #include <QPropertyAnimation>
 #include <QShowEvent>
 #include <QVBoxLayout>
@@ -107,6 +112,63 @@ void SettingPage::initUI ()
     splitLine2->setFrameShadow (QFrame::Sunken);
     settingPageLayout->addWidget (splitLine2);
 
+    // AI mode section
+    aiModeLayout = new QHBoxLayout (centralWidget);
+
+    aiModeLabel =
+        new QLabel (Constants::UI::AI_MODE_SETTING_TEXT, centralWidget);
+    aiModeLabel->setStyleSheet (
+        QString ("font-size: %1px; font-weight: normal; color: #333;")
+            .arg (Constants::Settings::SUBTITLE_FONT_SIZE));
+    aiModeLabel->setSizePolicy (QSizePolicy::Expanding, QSizePolicy::Preferred);
+    aiModeLabel->setFont (QFont (Constants::Settings::DEFAULT_FONT_FAMILY,
+                                 Constants::Settings::SUBTITLE_FONT_SIZE,
+                                 QFont::Normal));
+    aiModeLayout->addWidget (aiModeLabel);
+
+    m_aiModeStatusLabel = new QLabel (Constants::UI::STATUS_OFF, centralWidget);
+    m_aiModeStatusLabel->setStyleSheet (
+        QString ("font-size: %1px; font-weight: bold; color: #F44336;")
+            .arg (Constants::Settings::DEFAULT_FONT_SIZE));
+    m_aiModeStatusLabel->setAlignment (Qt::AlignCenter);
+    m_aiModeStatusLabel->setMinimumWidth (40);
+    aiModeLayout->addWidget (m_aiModeStatusLabel);
+
+    m_aiModeSwitch = new ElaToggleSwitch (centralWidget);
+    m_aiModeSwitch->setFixedSize (60, 30);
+    m_aiModeSwitch->setIsToggled (
+        SettingManager::getInstance ().isAiModeEnabled ());
+    aiModeLayout->addWidget (m_aiModeSwitch);
+
+    settingPageLayout->addLayout (aiModeLayout);
+
+    m_aiProviderList = new QListWidget (centralWidget);
+    m_aiProviderList->setMinimumHeight (140);
+    m_aiProviderList->setMaximumHeight (220);
+    settingPageLayout->addWidget (m_aiProviderList);
+
+    QHBoxLayout *providerButtonLayout = new QHBoxLayout (centralWidget);
+    providerButtonLayout->setSpacing (12);
+
+    m_addProviderButton = new ElaPushButton (tr ("Add"), centralWidget);
+    m_addProviderButton->setMinimumWidth (110);
+    m_editProviderButton = new ElaPushButton (tr ("Edit"), centralWidget);
+    m_editProviderButton->setMinimumWidth (110);
+    m_removeProviderButton = new ElaPushButton (tr ("Remove"), centralWidget);
+    m_removeProviderButton->setMinimumWidth (110);
+
+    providerButtonLayout->addWidget (m_addProviderButton);
+    providerButtonLayout->addWidget (m_editProviderButton);
+    providerButtonLayout->addWidget (m_removeProviderButton);
+    providerButtonLayout->addStretch (1);
+
+    settingPageLayout->addLayout (providerButtonLayout);
+
+    splitLine3 = new QFrame (centralWidget);
+    splitLine3->setFrameShape (QFrame::HLine);
+    splitLine3->setFrameShadow (QFrame::Sunken);
+    settingPageLayout->addWidget (splitLine3);
+
     clearCacheLayout = new QHBoxLayout (centralWidget);
 
     clearCacheLabel =
@@ -139,6 +201,16 @@ void SettingPage::initConnections ()
              &SettingPage::onLanguageChanged);
     connect (clearCacheButton, &ElaPushButton::clicked, this,
              &SettingPage::onClearCacheClicked);
+    connect (m_aiModeSwitch, &ElaToggleSwitch::toggled, this,
+             &SettingPage::onAiModeToggled);
+    connect (m_addProviderButton, &ElaPushButton::clicked, this,
+             &SettingPage::onAddProviderClicked);
+    connect (m_editProviderButton, &ElaPushButton::clicked, this,
+             &SettingPage::onEditProviderClicked);
+    connect (m_removeProviderButton, &ElaPushButton::clicked, this,
+             &SettingPage::onRemoveProviderClicked);
+    connect (m_aiProviderList, &QListWidget::itemDoubleClicked, this,
+             &SettingPage::onProviderItemActivated);
 }
 
 void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
@@ -291,11 +363,234 @@ void SettingPage::onClearCacheClicked ()
     showDialog (tr ("Success"), tr ("Word lookup cache has been cleared."));
 }
 
+void SettingPage::onAiModeToggled (bool enabled)
+{
+    m_aiModeStatusLabel->setText (enabled ? Constants::UI::STATUS_ON
+                                          : Constants::UI::STATUS_OFF);
+    m_aiModeStatusLabel->setStyleSheet (
+        QString ("font-size: 16px; font-weight: bold; color: %1;")
+            .arg (enabled ? "#4CAF50" : "#F44336"));
+
+    if (!enabled)
+    {
+        // Tearing the sidecar down keeps the "offline-first" guarantee:
+        // with AI mode off no AI process is left running.
+        AiSidecarManager::getInstance ().shutdown ();
+    }
+
+    if (AccountManager::getInstance ().isLoggedIn ())
+    {
+        auto changeJsonResult = changeAiModeEnabled_Json (
+            enabled,
+            "profile_"
+                + AccountManager::getInstance ().getUserUuid (
+                      AccountManager::getInstance ().getUsername ())
+                + ".json");
+
+        if (changeJsonResult != ChangeResult::Success)
+        {
+            QString errorMsg = QString::fromStdString (
+                getErrorMessage (changeJsonResult, ChangeResultMessage));
+            showDialog (tr ("Error"), errorMsg);
+        }
+    }
+
+    auto changeSettingsResult = changeAiModeEnabled (enabled);
+
+    if (changeSettingsResult != ChangeResult::Success)
+    {
+        QString errorMsg = QString::fromStdString (
+            getErrorMessage (changeSettingsResult, ChangeResultMessage));
+        showDialog (tr ("Error"), errorMsg);
+
+        m_aiModeSwitch->blockSignals (true);
+        m_aiModeSwitch->setIsToggled (!enabled);
+        m_aiModeSwitch->blockSignals (false);
+        m_aiModeStatusLabel->setText (enabled ? Constants::UI::STATUS_OFF
+                                              : Constants::UI::STATUS_ON);
+        m_aiModeStatusLabel->setStyleSheet (
+            QString ("font-size: 16px; font-weight: bold; color: %1;")
+                .arg (enabled ? "#F44336" : "#4CAF50"));
+    }
+
+    setAiProviderControlsEnabled (
+        enabled && AccountManager::getInstance ().isLoggedIn ());
+}
+
+ChangeResult SettingPage::changeAiModeEnabled (bool enabled)
+{
+    return SettingManager::getInstance ().setAiModeEnabled (enabled);
+}
+
+ChangeResult SettingPage::changeAiModeEnabled_Json (bool enabled,
+                                                    const QString &userProfile)
+{
+    return AccountManager::getInstance ().changeAiModeEnabled_Json (
+        enabled, userProfile);
+}
+
+void SettingPage::refreshAiProviderList ()
+{
+    m_aiProviderList->clear ();
+
+    if (!AccountManager::getInstance ().isLoggedIn ())
+    {
+        QListWidgetItem *hint = new QListWidgetItem (
+            tr ("Log in to manage AI providers bound to your profile."));
+        hint->setFlags (hint->flags () & ~Qt::ItemIsEnabled);
+        m_aiProviderList->addItem (hint);
+        setAiProviderControlsEnabled (false);
+        return;
+    }
+
+    const QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+
+    const QVector<AiProviderConfig> providers =
+        AiProviderManager::getInstance ().getProviders (userId);
+
+    for (const AiProviderConfig &provider : providers)
+    {
+        QString display = QString ("%1  -  %2  [%3]")
+                              .arg (provider.isActive ? "★" : "·")
+                              .arg (provider.name, provider.chatModel);
+        QListWidgetItem *item = new QListWidgetItem (display,
+                                                     m_aiProviderList);
+        item->setData (Qt::UserRole,
+                       QVariant::fromValue (provider));
+        item->setToolTip (provider.baseUrl);
+    }
+
+    if (providers.isEmpty ())
+    {
+        QListWidgetItem *hint =
+            new QListWidgetItem (tr ("No AI provider configured yet."));
+        hint->setFlags (hint->flags () & ~Qt::ItemIsEnabled);
+        m_aiProviderList->addItem (hint);
+    }
+
+    setAiProviderControlsEnabled (
+        SettingManager::getInstance ().isAiModeEnabled ());
+}
+
+void SettingPage::setAiProviderControlsEnabled (bool enabled)
+{
+    m_aiProviderList->setEnabled (enabled);
+    m_addProviderButton->setEnabled (enabled);
+    m_editProviderButton->setEnabled (enabled);
+    m_removeProviderButton->setEnabled (enabled);
+}
+
+void SettingPage::onAddProviderClicked ()
+{
+    AiProviderDialog dialog (this);
+
+    if (dialog.exec () != QDialog::Accepted)
+    {
+        return;
+    }
+
+    AiProviderConfig provider = dialog.config ();
+    const QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+
+    const ChangeResult result = AiProviderManager::getInstance ().saveProvider (
+        userId, provider, dialog.apiKeyInput ());
+
+    if (result != ChangeResult::Success)
+    {
+        showDialog (tr ("Error"),
+                    QString::fromStdString (
+                        getErrorMessage (result, ChangeResultMessage)));
+        return;
+    }
+
+    refreshAiProviderList ();
+}
+
+void SettingPage::onEditProviderClicked ()
+{
+    QListWidgetItem *current = m_aiProviderList->currentItem ();
+
+    if (current == nullptr
+        || !current->data (Qt::UserRole).isValid ())
+    {
+        return;
+    }
+
+    onProviderItemActivated (current);
+}
+
+void SettingPage::onProviderItemActivated (QListWidgetItem *item)
+{
+    const AiProviderConfig existing =
+        item->data (Qt::UserRole).value<AiProviderConfig> ();
+    AiProviderDialog dialog (this, existing);
+
+    if (dialog.exec () != QDialog::Accepted)
+    {
+        return;
+    }
+
+    AiProviderConfig provider = dialog.config ();
+    const QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+
+    const ChangeResult result = AiProviderManager::getInstance ().saveProvider (
+        userId, provider, dialog.apiKeyInput ());
+
+    if (result != ChangeResult::Success)
+    {
+        showDialog (tr ("Error"),
+                    QString::fromStdString (
+                        getErrorMessage (result, ChangeResultMessage)));
+        return;
+    }
+
+    refreshAiProviderList ();
+}
+
+void SettingPage::onRemoveProviderClicked ()
+{
+    QListWidgetItem *current = m_aiProviderList->currentItem ();
+
+    if (current == nullptr || !current->data (Qt::UserRole).isValid ())
+    {
+        return;
+    }
+
+    const AiProviderConfig provider =
+        current->data (Qt::UserRole).value<AiProviderConfig> ();
+    const QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+
+    showDialog (tr ("Remove AI Provider"),
+                tr ("Remove \"%1\"?").arg (provider.name),
+                [this, userId, provider] ()
+                {
+                    const ChangeResult result =
+                        AiProviderManager::getInstance ().removeProvider (
+                            userId, provider);
+
+                    if (result != ChangeResult::Success)
+                    {
+                        showDialog (
+                            tr ("Error"),
+                            QString::fromStdString (getErrorMessage (
+                                result, ChangeResultMessage)));
+                    }
+
+                    refreshAiProviderList ();
+                });
+}
+
 void SettingPage::showEvent (QShowEvent *event)
 {
     TempPage::showEvent (event);
     // Refresh cache label every time the page is shown
     refreshCacheLabel ();
+    // AI provider list reflects login state and provider edits
+    refreshAiProviderList ();
 }
 
 QString SettingPage::formatBytes (std::size_t bytes)

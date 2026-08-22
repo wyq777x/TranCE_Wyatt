@@ -1,7 +1,11 @@
 #include "MainWindow.h"
 #include "Controller/AccountManager.h"
+#include "Controller/AiProviderManager.h"
+#include "Controller/AiSidecarManager.h"
+#include "Controller/SettingManager.h"
 #include "Utility/Constants.h"
 #include "View/AboutPage.h"
+#include "View/AIPage.h"
 #include "View/Components/LoginPage.h"
 #include "View/Components/MyPage.h"
 #include "View/HistoryPage.h"
@@ -10,6 +14,7 @@
 #include "View/SettingPage.h"
 #include "View/StatisticsPage.h"
 #include <ElaLineEdit.h>
+#include <QMessageBox>
 
 MainWindow::MainWindow (QWidget *parent) : ElaWindow (parent)
 {
@@ -46,6 +51,10 @@ void MainWindow::initPages ()
 
     // FooterNodes
 
+    aiPage = new AIPage ();
+    addFooterNode (tr ("AI Mode"), aiPage, aiPageKey, 0,
+                   ElaIconType::MicrochipAi);
+
     settingPage = new SettingPage ();
     QString settingPageKey;
     addFooterNode (tr ("Settings"), settingPage, settingPageKey, 0,
@@ -63,8 +72,49 @@ void MainWindow::initPages ()
     myPage = new MyPage ();
 }
 
+bool MainWindow::openAiMode ()
+{
+    if (!SettingManager::getInstance ().isAiModeEnabled ())
+    {
+        QMessageBox::information (
+            this, tr ("AI Mode"),
+            tr ("AI mode is disabled. Enable it in Settings to use AI "
+                "features. All offline features keep working without it."));
+        return false;
+    }
+
+    if (!AccountManager::getInstance ().isLoggedIn ())
+    {
+        QMessageBox::information (
+            this, tr ("AI Mode"),
+            tr ("AI mode is bound to your profile. Please log in first."));
+        return false;
+    }
+
+    const QString userId = AccountManager::getInstance ().getUserUuid (
+        AccountManager::getInstance ().getUsername ());
+
+    if (!AiProviderManager::getInstance ()
+             .getActiveProvider (userId)
+             .has_value ())
+    {
+        QMessageBox::information (
+            this, tr ("AI Mode"),
+            tr ("No active AI provider configured. Add an OpenAI-compatible "
+                "provider (base URL + API key) in Settings first."));
+        return false;
+    }
+
+    navigation (aiPageKey);
+    aiPage->activateAiMode ();
+    return true;
+}
+
 void MainWindow::initConnections ()
 {
+    connect (homePage, &HomePage::aiModeRequested, this,
+             &MainWindow::openAiMode);
+
     connect (this, &ElaWindow::userInfoCardClicked, this,
              [this] ()
              {
@@ -124,6 +174,10 @@ void MainWindow::onLoginSuccessful (const QString &username)
 
 void MainWindow::onLogoutSuccessful ()
 {
+    // The sidecar holds the logged-in user's session in memory; tear it
+    // down so the next login starts from a clean state.
+    AiSidecarManager::getInstance ().shutdown ();
+
     setUserInfoCardTitle (tr ("User"));
     setUserInfoCardSubTitle (tr ("Click to login"));
 

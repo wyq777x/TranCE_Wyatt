@@ -1,5 +1,6 @@
 #include "RecitePage.h"
 #include "Controller/AccountManager.h"
+#include "Controller/AiEventTap.h"
 #include "Controller/DbManager.h"
 #include "Controller/UIController.h"
 #include "Utility/ClickableWidget.h"
@@ -405,6 +406,9 @@ void RecitePage::handleQuizCardOptionSelected (int optionIndex, bool isCorrect)
         qDebug () << "Answer selected for word:" << currentWordEntry.word
                   << "Option:" << optionIndex
                   << "Correct:" << (isCorrect ? "Yes" : "No");
+
+        // Learner-model signal for the AI subsystem (no-op when AI is off).
+        AiEventTap::notifyQuizAnswered (currentWordEntry.word, isCorrect);
 
         if (AccountManager::getInstance ().isLoggedIn ())
         {

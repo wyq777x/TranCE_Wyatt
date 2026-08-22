@@ -22,6 +22,13 @@ public:
 
     ChangeResult setHistorySearchListEnabled (bool enabled);
 
+    bool isAiModeEnabled () const
+    {
+        return AppSettingModel::getInstance ().isAiModeEnabled ();
+    }
+
+    ChangeResult setAiModeEnabled (bool enabled);
+
     QString getLanguage () const
     {
         return AppSettingModel::getInstance ().getLanguage ();

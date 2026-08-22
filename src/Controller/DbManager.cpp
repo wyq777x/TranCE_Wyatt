@@ -112,6 +112,36 @@ QString DbManager::getUserAvatarPath (const QString &username)
     return DbModel::getInstance ().getUserAvatarPath (username);
 }
 
+std::vector<AiProviderConfig>
+DbManager::getAiProviders (const QString &userId)
+{
+    return DbModel::getInstance ().getAiProviders (userId);
+}
+
+std::optional<AiProviderConfig>
+DbManager::getActiveAiProvider (const QString &userId)
+{
+    return DbModel::getInstance ().getActiveAiProvider (userId);
+}
+
+ChangeResult DbManager::upsertAiProvider (const QString &userId,
+                                          AiProviderConfig &provider)
+{
+    return DbModel::getInstance ().upsertAiProvider (userId, provider);
+}
+
+ChangeResult DbManager::deleteAiProvider (const QString &userId,
+                                          qlonglong providerId)
+{
+    return DbModel::getInstance ().deleteAiProvider (userId, providerId);
+}
+
+ChangeResult DbManager::setActiveAiProvider (const QString &userId,
+                                             qlonglong providerId)
+{
+    return DbModel::getInstance ().setActiveAiProvider (userId, providerId);
+}
+
 std::optional<WordEntry> DbManager::getRandomWord ()
 {
     return DbModel::getInstance ().getRandomWord ();
@@ -187,6 +217,12 @@ DbManager::getUserHistorySearchVector (const QString &user_uuid)
 std::vector<QString> DbManager::getUserReciteHistory (const QString &userId)
 {
     return DbModel::getInstance ().getUserReciteHistory (userId);
+}
+
+std::vector<QString> DbManager::getUserVocabulary (const QString &userId,
+                                                   int status)
+{
+    return DbModel::getInstance ().getUserVocabulary (userId, status);
 }
 
 std::pair<int, int> DbManager::getProgress (const QString &userId) const

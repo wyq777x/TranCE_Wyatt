@@ -1,4 +1,5 @@
 #include "DbModel.h"
+#include "Controller/AiEventTap.h"
 #include "Model/CacheModel.h"
 #include "SQLiteCpp/Database.h"
 #include "SQLiteCpp/Exception.h"
@@ -175,6 +176,20 @@ void DbModel::initUserTable ()
                               "FOREIGN KEY(user_id) REFERENCES users(user_id) "
                               "ON DELETE CASCADE ON UPDATE CASCADE,"
                               "PRIMARY KEY (user_id, word));");
+
+            d->user_db->exec (
+                "CREATE TABLE IF NOT EXISTS ai_providers("
+                "provider_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "user_id TEXT NOT NULL,"
+                "name TEXT NOT NULL,"
+                "base_url TEXT NOT NULL,"
+                "api_key_ref TEXT DEFAULT '',"
+                "chat_model TEXT NOT NULL,"
+                "embedding_model TEXT DEFAULT '',"
+                "is_active INTEGER DEFAULT 0 CHECK (is_active IN (0, 1)),"
+                "FOREIGN KEY(user_id) REFERENCES users(user_id) "
+                "ON DELETE CASCADE ON UPDATE CASCADE,"
+                "UNIQUE (user_id, name));");
 
             SQLite::Transaction migration (*d->user_db);
             d->user_db->exec (
@@ -1302,6 +1317,270 @@ QString DbModel::getUserAvatarPath (const QString &username) const
     }
 }
 
+std::vector<AiProviderConfig>
+DbModel::getAiProviders (const QString &userId)
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return {};
+    }
+
+    try
+    {
+        SQLite::Statement query (
+            *d->user_db,
+            "SELECT provider_id, name, base_url, api_key_ref, chat_model, "
+            "embedding_model, is_active FROM ai_providers WHERE user_id = ? "
+            "ORDER BY is_active DESC, provider_id ASC");
+        query.bind (1, userId.toStdString ());
+
+        std::vector<AiProviderConfig> providers;
+
+        while (query.executeStep ())
+        {
+            AiProviderConfig provider;
+            provider.id = query.getColumn (0).getInt64 ();
+            provider.name = QString::fromStdString (
+                query.getColumn (1).getString ());
+            provider.baseUrl = QString::fromStdString (
+                query.getColumn (2).getString ());
+            provider.apiKeyRef = QString::fromStdString (
+                query.getColumn (3).getString ());
+            provider.chatModel = QString::fromStdString (
+                query.getColumn (4).getString ());
+            provider.embeddingModel = QString::fromStdString (
+                query.getColumn (5).getString ());
+            provider.isActive = query.getColumn (6).getInt () == 1;
+            providers.push_back (provider);
+        }
+
+        return providers;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error getting AI providers", e);
+        return {};
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error getting AI providers", e);
+        return {};
+    }
+    catch (...)
+    {
+        logErr ("Unknown error getting AI providers",
+                std::runtime_error ("Unknown exception"));
+        return {};
+    }
+}
+
+std::optional<AiProviderConfig>
+DbModel::getActiveAiProvider (const QString &userId)
+{
+    const auto providers = getAiProviders (userId);
+
+    for (const auto &provider : providers)
+    {
+        if (provider.isActive)
+        {
+            return provider;
+        }
+    }
+
+    return std::nullopt;
+}
+
+ChangeResult DbModel::upsertAiProvider (const QString &userId,
+                                        AiProviderConfig &provider)
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return ChangeResult::DatabaseError;
+    }
+
+    if (userId.isEmpty () || !provider.isValid ())
+    {
+        logErr ("Invalid AI provider configuration",
+                std::runtime_error ("Invalid input"));
+        return ChangeResult::InvalidInput;
+    }
+
+    try
+    {
+        SQLite::Transaction transaction (*d->user_db);
+
+        if (provider.id < 0)
+        {
+            SQLite::Statement query (
+                *d->user_db,
+                "INSERT INTO ai_providers (user_id, name, base_url, "
+                "api_key_ref, chat_model, embedding_model, is_active) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)");
+            query.bind (1, userId.toStdString ());
+            query.bind (2, provider.name.toStdString ());
+            query.bind (3, provider.baseUrl.toStdString ());
+            query.bind (4, provider.apiKeyRef.toStdString ());
+            query.bind (5, provider.chatModel.toStdString ());
+            query.bind (6, provider.embeddingModel.toStdString ());
+            query.bind (7, provider.isActive ? 1 : 0);
+            query.exec ();
+            provider.id =
+                static_cast<qlonglong> (d->user_db->getLastInsertRowid ());
+        }
+        else
+        {
+            SQLite::Statement query (
+                *d->user_db,
+                "UPDATE ai_providers SET name = ?, base_url = ?, "
+                "api_key_ref = ?, chat_model = ?, embedding_model = ? "
+                "WHERE provider_id = ? AND user_id = ?");
+            query.bind (1, provider.name.toStdString ());
+            query.bind (2, provider.baseUrl.toStdString ());
+            query.bind (3, provider.apiKeyRef.toStdString ());
+            query.bind (4, provider.chatModel.toStdString ());
+            query.bind (5, provider.embeddingModel.toStdString ());
+            query.bind (6, static_cast<long long> (provider.id));
+            query.bind (7, userId.toStdString ());
+            query.exec ();
+
+            if (query.getChanges () == 0)
+            {
+                logErr ("AI provider not found for this user",
+                        std::runtime_error ("No matching row"));
+                return ChangeResult::InvalidInput;
+            }
+        }
+
+        if (provider.isActive)
+        {
+            SQLite::Statement deactivate (*d->user_db,
+                                          "UPDATE ai_providers SET is_active "
+                                          "= 0 WHERE user_id = ? AND "
+                                          "provider_id != ?");
+            deactivate.bind (1, userId.toStdString ());
+            deactivate.bind (
+                2, static_cast<long long> (provider.id));
+            deactivate.exec ();
+        }
+
+        transaction.commit ();
+        return ChangeResult::Success;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error upserting AI provider", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error upserting AI provider", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error upserting AI provider",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::DatabaseError;
+    }
+}
+
+ChangeResult DbModel::deleteAiProvider (const QString &userId,
+                                        qlonglong providerId)
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return ChangeResult::DatabaseError;
+    }
+
+    try
+    {
+        SQLite::Statement query (*d->user_db,
+                                 "DELETE FROM ai_providers WHERE provider_id "
+                                 "= ? AND user_id = ?");
+        query.bind (1, static_cast<long long> (providerId));
+        query.bind (2, userId.toStdString ());
+        query.exec ();
+        return ChangeResult::Success;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error deleting AI provider", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error deleting AI provider", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error deleting AI provider",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::DatabaseError;
+    }
+}
+
+ChangeResult DbModel::setActiveAiProvider (const QString &userId,
+                                           qlonglong providerId)
+{
+    if (!isUserDbOpen ())
+    {
+        logErr ("User database is not open",
+                std::runtime_error ("Database connection is not established"));
+        return ChangeResult::DatabaseError;
+    }
+
+    try
+    {
+        SQLite::Transaction transaction (*d->user_db);
+
+        SQLite::Statement deactivate (*d->user_db,
+                                      "UPDATE ai_providers SET is_active = 0 "
+                                      "WHERE user_id = ?");
+        deactivate.bind (1, userId.toStdString ());
+        deactivate.exec ();
+
+        SQLite::Statement query (*d->user_db,
+                                 "UPDATE ai_providers SET is_active = 1 "
+                                 "WHERE provider_id = ? AND user_id = ?");
+        query.bind (1, static_cast<long long> (providerId));
+        query.bind (2, userId.toStdString ());
+        query.exec ();
+
+        if (query.getChanges () == 0)
+        {
+            logErr ("AI provider not found for this user",
+                    std::runtime_error ("No matching row"));
+            return ChangeResult::InvalidInput;
+        }
+
+        transaction.commit ();
+        return ChangeResult::Success;
+    }
+    catch (const SQLite::Exception &e)
+    {
+        logErr ("Error activating AI provider", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (const std::exception &e)
+    {
+        logErr ("Unknown error activating AI provider", e);
+        return ChangeResult::DatabaseError;
+    }
+    catch (...)
+    {
+        logErr ("Unknown error activating AI provider",
+                std::runtime_error ("Unknown exception"));
+        return ChangeResult::DatabaseError;
+    }
+}
+
 AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
 {
     if (!isDictDbOpen ())
@@ -1980,6 +2259,11 @@ void DbModel::addToUserFavorites (const QString &userId, const QString &word)
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
         query.exec ();
+
+        if (query.getChanges () > 0)
+        {
+            AiEventTap::notifyFavoriteChanged (word, true);
+        }
     }
     catch (const SQLite::Exception &e)
     {
@@ -2014,6 +2298,11 @@ void DbModel::removeFromUserFavorites (const QString &userId,
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
         query.exec ();
+
+        if (query.getChanges () > 0)
+        {
+            AiEventTap::notifyFavoriteChanged (word, false);
+        }
     }
     catch (const SQLite::Exception &e)
     {
@@ -2147,6 +2436,8 @@ ChangeResult DbModel::updateWordStatus (const QString &userId,
                     std::runtime_error ("Word already has the same status"));
             return ChangeResult::StillSame;
         }
+
+        AiEventTap::notifyWordStatusChanged (word, status);
 
         return ChangeResult::Success;
     }
@@ -2566,6 +2857,8 @@ void DbModel::addToSearchHistory (const QString &userId, const QString &word)
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
         query.exec ();
+
+        AiEventTap::notifyWordLookedUp (word);
     }
     catch (const SQLite::Exception &e)
     {
@@ -2634,6 +2927,8 @@ void DbModel::addToReciteHistory (const QString &userId, const QString &word)
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
         query.exec ();
+
+        AiEventTap::notifyWordRecited (word);
     }
     catch (const SQLite::Exception &e)
     {

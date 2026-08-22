@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Utility/AsyncTask.h"
+#include "Utility/AiProviderConfig.h"
 #include "Utility/Result.h"
 #include "Utility/WordEntry.h"
 #include <QString>
@@ -83,6 +84,25 @@ public:
     QString getUserPasswordHash (const QString &username) const;
     QString getUserEmail (const QString &username) const;
     QString getUserAvatarPath (const QString &username) const;
+
+    // AI providers (OpenAI-compatible endpoints bound to a user profile).
+    // The API key is stored outside the database via SecretStore; only the
+    // SecretStore reference (api_key_ref) is persisted here.
+
+    std::vector<AiProviderConfig> getAiProviders (const QString &userId);
+
+    std::optional<AiProviderConfig>
+    getActiveAiProvider (const QString &userId);
+
+    // Inserts when provider.id < 0, otherwise updates. On success the row id
+    // is written back into provider.id. Returns Success or DatabaseError.
+    ChangeResult upsertAiProvider (const QString &userId,
+                                   AiProviderConfig &provider);
+
+    ChangeResult deleteAiProvider (const QString &userId, qlonglong providerId);
+
+    ChangeResult setActiveAiProvider (const QString &userId,
+                                      qlonglong providerId);
 
     // import single WordEntry
     AsyncTask<void> importWordEntry (const WordEntry &wordEntry);

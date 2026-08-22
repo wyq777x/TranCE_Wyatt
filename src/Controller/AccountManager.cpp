@@ -355,6 +355,16 @@ ChangeResult AccountManager::changeLanguage_Json (const QString &lang,
     return result;
 }
 
+ChangeResult AccountManager::changeAiModeEnabled_Json (bool enabled,
+                                                       const QString &userProfile)
+{
+    auto result =
+        UserModel::getInstance ().changeAiModeEnabled_Json (enabled,
+                                                            userProfile);
+
+    return result;
+}
+
 QString AccountManager::getUserUuid (const QString &username) const
 {
     auto UUID = DbManager::getInstance ().getUserId (username);

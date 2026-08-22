@@ -186,6 +186,9 @@ void HomePage::initUI ()
 
 void HomePage::initConnections ()
 {
+    connect (aiNeonButton, &AINeonButton::clicked, this,
+             &HomePage::aiModeRequested);
+
     connect (swapButton, &ElaIconButton::clicked,
              [=, this] ()
              {

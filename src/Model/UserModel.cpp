@@ -523,6 +523,14 @@ UserModel::changeHistorySearchListEnabled_Json (bool enabled,
         userProfile);
 }
 
+ChangeResult UserModel::changeAiModeEnabled_Json (bool enabled,
+                                                  const QString &userProfile)
+{
+    return changeUserProfileField (
+        Constants::JsonFields::appSettings::AI_MODE_ENABLED, enabled,
+        userProfile);
+}
+
 ChangeResult UserModel::changeLanguage_Json (const QString &lang,
                                              const QString &userProfile)
 {
