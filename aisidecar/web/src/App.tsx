@@ -3,14 +3,16 @@ import { fetchSessionState, type SessionState } from "./api";
 import ChatPage from "./chat/ChatPage";
 import LookupPage from "./lookup/LookupPage";
 import MemoryPage from "./memory/MemoryPage";
+import MeshPage from "./mesh/MeshPage";
+import QuizPage from "./quiz/QuizPage";
 
 type NavKey = "chat" | "mesh" | "lookup" | "quiz" | "memory";
 
 const NAV_ITEMS: { key: NavKey; label: string; hint: string }[] = [
   { key: "chat", label: "AI 助手", hint: "" },
-  { key: "mesh", label: "词网发散", hint: "P3" },
+  { key: "mesh", label: "词网发散", hint: "" },
   { key: "lookup", label: "概念检索", hint: "" },
-  { key: "quiz", label: "弱项出题", hint: "P4" },
+  { key: "quiz", label: "弱项出题", hint: "" },
   { key: "memory", label: "记忆档案", hint: "" },
 ];
 
@@ -72,6 +74,12 @@ export default function App() {
         )}
         {active === "lookup" && (
           <LookupPage providerReady={!!session?.provider_configured} />
+        )}
+        {active === "mesh" && (
+          <MeshPage providerReady={!!session?.provider_configured} />
+        )}
+        {active === "quiz" && (
+          <QuizPage providerReady={!!session?.provider_configured} />
         )}
       </main>
     </div>

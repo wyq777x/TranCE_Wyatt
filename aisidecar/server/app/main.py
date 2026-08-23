@@ -17,6 +17,8 @@ from fastapi.staticfiles import StaticFiles
 from .api import (
     chat_router,
     memory_router,
+    mesh_router,
+    quiz_router,
     rag_router,
     session_router,
     sync_router,
@@ -70,6 +72,8 @@ def create_app(config: Config) -> FastAPI:
     app.include_router(sync_router)
     app.include_router(memory_router)
     app.include_router(rag_router)
+    app.include_router(mesh_router)
+    app.include_router(quiz_router)
 
     if (config.web_dist_dir / "index.html").exists():
         app.mount(

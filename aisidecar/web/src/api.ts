@@ -189,6 +189,143 @@ export async function lookupScene(
   return response.json();
 }
 
+// ---------------- word mesh (P3) ----------------
+
+export interface MeshNode {
+  id: string;
+  label: string;
+  type: string; // center | prefix | root | suffix | synonym | antonym | related | family
+  meaning: string;
+  detail: string;
+}
+
+export interface MeshEdge {
+  source: string;
+  target: string;
+  relation: string;
+}
+
+export interface MeshExpandResult {
+  word: string;
+  nodes: MeshNode[];
+  edges: MeshEdge[];
+  definition: string;
+  morphemes: { text: string; kind: string; meaning: string }[];
+  llm_used: boolean;
+  llm_error: string;
+}
+
+export async function expandMesh(word: string): Promise<MeshExpandResult> {
+  const response = await request("/api/mesh/expand", {
+    method: "POST",
+    body: JSON.stringify({ word, include_llm: true }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail ?? `mesh expand failed`);
+  }
+  return response.json();
+}
+
+export async function explainMesh(
+  word: string,
+  morphemes: MeshExpandResult["morphemes"],
+): Promise<string> {
+  const response = await request("/api/mesh/explain", {
+    method: "POST",
+    body: JSON.stringify({ word, morphemes }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.detail ?? `mesh explain failed`);
+  }
+  return body.markdown as string;
+}
+
+// ---------------- quiz (P4) ----------------
+
+export interface QuizItem {
+  index: number;
+  word: string;
+  options: string[];
+  explanation: string;
+}
+
+export interface Quiz {
+  type: "cloze" | "story";
+  title: string;
+  passage: string;
+  items: QuizItem[];
+  glossary: { word: string; meaning: string }[];
+  target_words: string[];
+}
+
+export interface QuizGenerateResult {
+  quiz_id: number;
+  quiz: Quiz;
+  rag_used: boolean;
+}
+
+export interface QuizScore {
+  results: {
+    index: number;
+    word: string;
+    chosen: string;
+    correct: boolean;
+    explanation: string;
+  }[];
+  correct_count: number;
+  total: number;
+}
+
+export interface QuizHistoryEntry {
+  quiz_id: number;
+  created_at: string;
+  mode: string;
+  words: string[];
+  submitted: boolean;
+  score: QuizScore | null;
+}
+
+export async function generateQuiz(
+  mode: "cloze" | "story",
+  count: number,
+  words: string[] = [],
+): Promise<QuizGenerateResult> {
+  const response = await request("/api/quiz/generate", {
+    method: "POST",
+    body: JSON.stringify({ mode, count, words }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.detail ?? `quiz generate failed`);
+  }
+  return body;
+}
+
+export async function submitQuiz(
+  quizId: number,
+  answers: Record<string, string>,
+): Promise<QuizScore> {
+  const response = await request("/api/quiz/submit", {
+    method: "POST",
+    body: JSON.stringify({ quiz_id: quizId, answers }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.detail ?? `quiz submit failed`);
+  }
+  return body;
+}
+
+export async function fetchQuizHistory(): Promise<QuizHistoryEntry[]> {
+  const response = await request("/api/quiz/history");
+  if (!response.ok) {
+    throw new Error(`quiz history failed`);
+  }
+  return (await response.json()).quizzes;
+}
+
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;

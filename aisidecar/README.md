@@ -89,6 +89,24 @@ cd server
   - `POST /api/lookup/scene` 场景表达检索（business_email/academic/
     daily，中英文子串 + 语义双通道）
   - `TRANCE_AI_EMBED_MOCK=1` 用确定性哈希向量测试全管线（零 API 成本）
-- P3：词根/词缀/近反义网状发散（图谱 + ECharts）
-- P4：LightRAG 弱项故事/完形出题
-- P5：MCP client 宿主
+- P3（当前）：词网发散（mesh）
+  - 离线层：内置词根/词缀静态表（44 前缀 + 34 后缀 + 64 词根），
+    贪心最长匹配形态分解（unpredictable → un+pre+dict+able），
+    词素 → 词族（共享词素的示例词）
+  - LLM 层：同义/反义/联想词生成（结构化 JSON），结果永久缓存于
+    mesh.db（词义稳定不重复付费）；无供应商时自动降级为纯离线网络
+  - `POST /api/mesh/expand` 图谱（节点/边），`POST /api/mesh/explain`
+    词源故事 + 记忆路径（markdown）
+  - Web：ECharts 力导向图，节点按类型着色，点击查看详情、可递归发散
+- P4（当前）：弱项出题（quiz）
+  - 选词：弱项优先（掌握度 < 0.45 或答错 ≥ 2），自动排除最近 3 次
+    出题用过的词；小词库时放宽排除保证可用
+  - 生成：`POST /api/quiz/generate`（mode=cloze 完形填空 / story 情境
+    故事），结构化 JSON + 严格消毒（占位符重编号、选项数校验、
+    目标词覆盖校验）；画像注入使主题贴合学习者
+  - LightRAG 增强层：配置 embedding 模型时启用（per-user 工作区，
+    ingest 画像与既往故事，`only_need_context` 检索语境供出题延续
+    主题、避免重复）；任何失败降级为直连生成，出题不依赖它
+  - 判分闭环：`POST /api/quiz/submit` → 逐词回写掌握度
+    （答对 +25% 递进 / 答错 ×0.55），`GET /api/quiz/history` 出题记录
+- P5：MCP client 宿主 + 打包（PyInstaller onedir + Inno Setup 组件）

@@ -14,7 +14,9 @@ Mastery values are heuristic [0, 1] scores; wrong answers dominate
 
 from __future__ import annotations
 
+import json
 import sqlite3
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -48,11 +50,33 @@ CREATE TABLE IF NOT EXISTS kv(
 );
 CREATE INDEX IF NOT EXISTS idx_mastery_weak
     ON word_mastery(mastery ASC, wrong_count DESC);
+CREATE TABLE IF NOT EXISTS quiz_history(
+    quiz_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL,
+    mode TEXT NOT NULL,             -- cloze | story
+    words_json TEXT NOT NULL,       -- target words of this quiz
+    quiz_json TEXT NOT NULL,       -- full generated quiz object
+    submitted INTEGER NOT NULL DEFAULT 0,
+    score_json TEXT DEFAULT ''
+);
 """
 
 # mastery thresholds
 WEAK_MASTERY = 0.45
 WEAK_MIN_WRONG = 2
+
+def _locked(fn):
+    """Serialize DB access across threads (see class docstring)."""
+    import functools
+
+    @functools.wraps(fn)
+    def wrapper(self, *args, **kwargs):
+        with self.lock:
+            return fn(self, *args, **kwargs)
+
+    return wrapper
+
+
 DEFAULT_SNAPSHOT_LEARNING = 0.25
 DEFAULT_SNAPSHOT_MASTERED = 0.9
 
@@ -74,14 +98,29 @@ class WordStats:
 
 
 class LearnerStore:
+    """Per-user mastery store.
+
+    Connections use check_same_thread=False plus this lock: sync
+    endpoints (thread pool) and async endpoints (event loop) share one
+    store, so access must be serialized.
+    """
+
     def __init__(self, db_path: Path) -> None:
         db_path.parent.mkdir(parents=True, exist_ok=True)
-        self.db = sqlite3.connect(db_path)
+        self.lock = threading.RLock()
+        self.db = sqlite3.connect(db_path, timeout=10,
+                                  check_same_thread=False)
         self.db.row_factory = sqlite3.Row
-        self.db.executescript(SCHEMA)
-        self.db.commit()
+        self.db.execute("PRAGMA journal_mode=WAL")
+        self.db.execute("PRAGMA busy_timeout=10000")
+
+        with self.lock:
+            self.db.executescript(SCHEMA)
+            self.db.commit()
 
     # ---------- low-level helpers ----------
+
+    @_locked
 
     def _touch(self, word: str, source: str) -> sqlite3.Row:
         row = self.db.execute(
@@ -100,6 +139,8 @@ class LearnerStore:
             ).fetchone()
 
         return row
+
+    @_locked
 
     def _update(
         self,
@@ -140,6 +181,8 @@ class LearnerStore:
         )
 
     # ---------- snapshot ----------
+
+    @_locked
 
     def apply_snapshot(self, snapshot: dict) -> None:
         """Reset the mastery table from the host's vocabulary state.
@@ -183,6 +226,8 @@ class LearnerStore:
 
     # ---------- events ----------
 
+    @_locked
+
     def apply_event(self, event_type: str, word: str, **fields: object) -> None:
         correct = fields.get("correct")
 
@@ -216,6 +261,8 @@ class LearnerStore:
                     srs_stage=2 if mastered else 0,
                 )
 
+    @_locked
+
     def _apply_quiz(self, word: str, correct: bool) -> None:
         row = self._touch(word, "quiz")
 
@@ -239,6 +286,8 @@ class LearnerStore:
                 d_wrong=1,
             )
 
+    @_locked
+
     def _apply_seen(
         self, word: str, source: str, *, d_lookups: int = 0,
         d_recites: int = 0, gain: float = 0.02,
@@ -255,6 +304,8 @@ class LearnerStore:
 
     # ---------- queries ----------
 
+    @_locked
+
     def weak_words(self, limit: int = 30) -> list[WordStats]:
         rows = self.db.execute(
             "SELECT * FROM word_mastery "
@@ -264,12 +315,16 @@ class LearnerStore:
         ).fetchall()
         return [self._to_stats(r) for r in rows]
 
+    @_locked
+
     def all_words(self, limit: int = 500) -> list[WordStats]:
         rows = self.db.execute(
             "SELECT * FROM word_mastery ORDER BY last_seen DESC LIMIT ?",
             (limit,),
         ).fetchall()
         return [self._to_stats(r) for r in rows]
+
+    @_locked
 
     def stats(self) -> dict:
         row = self.db.execute(
@@ -304,11 +359,15 @@ class LearnerStore:
 
     # ---------- narrative (LLM memory profile) ----------
 
+    @_locked
+
     def get_narrative(self) -> str:
         row = self.db.execute(
             "SELECT value FROM kv WHERE key='narrative'"
         ).fetchone()
         return row["value"] if row else ""
+
+    @_locked
 
     def set_narrative(self, text: str) -> None:
         with self.db:
@@ -318,11 +377,15 @@ class LearnerStore:
                 (text,),
             )
 
+    @_locked
+
     def narrative_updated_at(self) -> str:
         row = self.db.execute(
             "SELECT value FROM kv WHERE key='narrative_updated_at'"
         ).fetchone()
         return row["value"] if row else ""
+
+    @_locked
 
     def set_narrative_updated_at(self, ts: str) -> None:
         with self.db:
@@ -331,3 +394,85 @@ class LearnerStore:
                 "VALUES ('narrative_updated_at', ?)",
                 (ts,),
             )
+
+    # ---------- quiz history (P4) ----------
+
+    @_locked
+
+    def record_quiz(self, mode: str, words: list[str], quiz: dict) -> int:
+        with self.db:
+            cur = self.db.execute(
+                "INSERT INTO quiz_history(created_at, mode, words_json, "
+                "quiz_json) VALUES (?, ?, ?, ?)",
+                (
+                    _now(),
+                    mode,
+                    json.dumps(words, ensure_ascii=False),
+                    json.dumps(quiz, ensure_ascii=False),
+                ),
+            )
+            return cur.lastrowid
+
+    @_locked
+
+    def mark_quiz_submitted(self, quiz_id: int, score: dict) -> None:
+        with self.db:
+            self.db.execute(
+                "UPDATE quiz_history SET submitted=1, score_json=? "
+                "WHERE quiz_id=?",
+                (json.dumps(score, ensure_ascii=False), quiz_id),
+            )
+
+    @_locked
+
+    def get_quiz(self, quiz_id: int) -> Optional[dict]:
+        row = self.db.execute(
+            "SELECT quiz_json FROM quiz_history WHERE quiz_id=?",
+            (quiz_id,),
+        ).fetchone()
+
+        if not row:
+            return None
+
+        try:
+            return json.loads(row["quiz_json"])
+        except json.JSONDecodeError:
+            return None
+
+    @_locked
+
+    def list_quizzes(self, limit: int = 10) -> list[dict]:
+        rows = self.db.execute(
+            "SELECT quiz_id, created_at, mode, words_json, submitted, "
+            "score_json FROM quiz_history "
+            "ORDER BY quiz_id DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [
+            {
+                "quiz_id": r["quiz_id"],
+                "created_at": r["created_at"],
+                "mode": r["mode"],
+                "words": json.loads(r["words_json"]),
+                "submitted": bool(r["submitted"]),
+                "score": json.loads(r["score_json"]) if r["score_json"] else None,
+            }
+            for r in rows
+        ]
+
+    @_locked
+
+    def recent_quiz_words(self, count: int = 3) -> set[str]:
+        """Words used in the most recent quizzes - excluded from new
+        quizzes so generation doesn't repeat itself."""
+        rows = self.db.execute(
+            "SELECT words_json FROM quiz_history "
+            "ORDER BY quiz_id DESC LIMIT ?",
+            (count,),
+        ).fetchall()
+        used: set[str] = set()
+
+        for r in rows:
+            used.update(json.loads(r["words_json"]))
+
+        return used
