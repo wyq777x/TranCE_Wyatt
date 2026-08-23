@@ -326,6 +326,71 @@ export async function fetchQuizHistory(): Promise<QuizHistoryEntry[]> {
   return (await response.json()).quizzes;
 }
 
+// ---------------- MCP (P5) ----------------
+
+export interface McpServerConfig {
+  name: string;
+  transport: "stdio" | "http";
+  command: string;
+  args: string[];
+  env: Record<string, string>;
+  url: string;
+  enabled: boolean;
+  env_keys?: string[];
+}
+
+export interface McpTestResult {
+  ok: boolean;
+  error?: string;
+  tools?: { name: string; description: string }[];
+}
+
+export async function fetchMcpServers(): Promise<McpServerConfig[]> {
+  const response = await request("/api/mcp/servers");
+  if (!response.ok) {
+    throw new Error(`mcp servers failed`);
+  }
+  return (await response.json()).servers;
+}
+
+export async function saveMcpServers(
+  servers: McpServerConfig[],
+): Promise<McpServerConfig[]> {
+  const response = await request("/api/mcp/servers", {
+    method: "PUT",
+    body: JSON.stringify({ servers }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.detail ?? `mcp save failed`);
+  }
+  return body.servers;
+}
+
+export async function testMcpServer(
+  server: McpServerConfig,
+): Promise<McpTestResult> {
+  const response = await request("/api/mcp/test", {
+    method: "POST",
+    body: JSON.stringify(server),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    return { ok: false, error: body.detail ?? `mcp test failed` };
+  }
+  return response.json();
+}
+
+export async function fetchMcpTools(): Promise<
+  { name: string; description: string }[]
+> {
+  const response = await request("/api/mcp/tools");
+  if (!response.ok) {
+    throw new Error(`mcp tools failed`);
+  }
+  return (await response.json()).tools;
+}
+
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -337,10 +402,15 @@ export async function streamChat(
   messages: ChatMessage[],
   onDelta: (text: string) => void,
   useMemory = true,
+  useTools = false,
 ): Promise<string> {
   const response = await request("/api/chat", {
     method: "POST",
-    body: JSON.stringify({ messages, use_memory: useMemory }),
+    body: JSON.stringify({
+      messages,
+      use_memory: useMemory,
+      use_tools: useTools,
+    }),
   });
 
   if (!response.ok || !response.body) {

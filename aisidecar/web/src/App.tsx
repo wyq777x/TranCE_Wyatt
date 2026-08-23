@@ -5,8 +5,9 @@ import LookupPage from "./lookup/LookupPage";
 import MemoryPage from "./memory/MemoryPage";
 import MeshPage from "./mesh/MeshPage";
 import QuizPage from "./quiz/QuizPage";
+import SettingsPage from "./settings/SettingsPage";
 
-type NavKey = "chat" | "mesh" | "lookup" | "quiz" | "memory";
+type NavKey = "chat" | "mesh" | "lookup" | "quiz" | "memory" | "settings";
 
 const NAV_ITEMS: { key: NavKey; label: string; hint: string }[] = [
   { key: "chat", label: "AI 助手", hint: "" },
@@ -14,6 +15,7 @@ const NAV_ITEMS: { key: NavKey; label: string; hint: string }[] = [
   { key: "lookup", label: "概念检索", hint: "" },
   { key: "quiz", label: "弱项出题", hint: "" },
   { key: "memory", label: "记忆档案", hint: "" },
+  { key: "settings", label: "设置", hint: "" },
 ];
 
 export default function App() {
@@ -81,6 +83,7 @@ export default function App() {
         {active === "quiz" && (
           <QuizPage providerReady={!!session?.provider_configured} />
         )}
+        {active === "settings" && <SettingsPage />}
       </main>
     </div>
   );

@@ -294,7 +294,7 @@ void RecitePage::initConnections ()
                     {
                         qWarning ()
                             << "Failed to update progress in database:"
-                            << getErrorMessage (result, ChangeResultMessage);
+                            << QString::fromStdString (getErrorMessage (result, ChangeResultMessage));
 
                         return;
                     }
@@ -432,7 +432,7 @@ void RecitePage::handleQuizCardOptionSelected (int optionIndex, bool isCorrect)
                 {
                     qWarning ()
                         << "Failed to update word status in database:"
-                        << getErrorMessage (result, ChangeResultMessage);
+                        << QString::fromStdString (getErrorMessage (result, ChangeResultMessage));
                 }
             }
         }

@@ -5,6 +5,7 @@ from .memory_api import router as memory_router
 from .rag_api import router as rag_router
 from .mesh_api import router as mesh_router
 from .quiz_api import router as quiz_router
+from .mcp_api import router as mcp_router
 
 __all__ = [
     "session_router",
@@ -14,4 +15,5 @@ __all__ = [
     "rag_router",
     "mesh_router",
     "quiz_router",
+    "mcp_router",
 ]

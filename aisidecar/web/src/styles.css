@@ -1006,6 +1006,65 @@ button:disabled {
   white-space: nowrap;
 }
 
+/* ---------- settings / MCP (P5) ---------- */
+
+.settings-page {
+  height: 100%;
+  overflow-y: auto;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 28px;
+}
+
+.mcp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(143, 163, 189, 0.1);
+}
+
+.mcp-info {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+}
+
+.mcp-info .dim {
+  display: block;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mcp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mcp-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  color: #8fa3bd;
+}
+
+.mcp-form select {
+  background: rgba(23, 34, 56, 0.9);
+  border: 1px solid rgba(143, 163, 189, 0.3);
+  border-radius: 8px;
+  color: #dbe4f0;
+  padding: 9px 10px;
+  font-size: 13.5px;
+}
+
+.mcp-form .memory-actions {
+  justify-content: flex-start;
+}
+
 /* scrollbar */
 
 .chat-scroll::-webkit-scrollbar {

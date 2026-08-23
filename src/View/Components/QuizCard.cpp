@@ -393,7 +393,8 @@ void QuizCard::onMasterButtonClicked ()
         if (result != ChangeResult::Success)
         {
             qWarning () << "Failed to update word status in database:"
-                        << getErrorMessage (result, ChangeResultMessage);
+                        << QString::fromStdString (
+                            getErrorMessage (result, ChangeResultMessage));
             return;
         }
 

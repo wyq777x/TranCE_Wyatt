@@ -1443,7 +1443,7 @@ ChangeResult DbModel::upsertAiProvider (const QString &userId,
             query.bind (3, provider.apiKeyRef.toStdString ());
             query.bind (4, provider.chatModel.toStdString ());
             query.bind (5, provider.embeddingModel.toStdString ());
-            query.bind (6, static_cast<long long> (provider.id));
+            query.bind (6, static_cast<int64_t> (provider.id));
             query.bind (7, userId.toStdString ());
             query.exec ();
 
@@ -1463,7 +1463,7 @@ ChangeResult DbModel::upsertAiProvider (const QString &userId,
                                           "provider_id != ?");
             deactivate.bind (1, userId.toStdString ());
             deactivate.bind (
-                2, static_cast<long long> (provider.id));
+                2, static_cast<int64_t> (provider.id));
             deactivate.exec ();
         }
 
@@ -1503,7 +1503,7 @@ ChangeResult DbModel::deleteAiProvider (const QString &userId,
         SQLite::Statement query (*d->user_db,
                                  "DELETE FROM ai_providers WHERE provider_id "
                                  "= ? AND user_id = ?");
-        query.bind (1, static_cast<long long> (providerId));
+        query.bind (1, static_cast<int64_t> (providerId));
         query.bind (2, userId.toStdString ());
         query.exec ();
         return ChangeResult::Success;
@@ -1549,7 +1549,7 @@ ChangeResult DbModel::setActiveAiProvider (const QString &userId,
         SQLite::Statement query (*d->user_db,
                                  "UPDATE ai_providers SET is_active = 1 "
                                  "WHERE provider_id = ? AND user_id = ?");
-        query.bind (1, static_cast<long long> (providerId));
+        query.bind (1, static_cast<int64_t> (providerId));
         query.bind (2, userId.toStdString ());
         query.exec ();
 

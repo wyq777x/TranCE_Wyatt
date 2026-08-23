@@ -109,4 +109,22 @@ cd server
     主题、避免重复）；任何失败降级为直连生成，出题不依赖它
   - 判分闭环：`POST /api/quiz/submit` → 逐词回写掌握度
     （答对 +25% 递进 / 答错 ×0.55），`GET /api/quiz/history` 出题记录
-- P5：MCP client 宿主 + 打包（PyInstaller onedir + Inno Setup 组件）
+- P5（当前）：MCP client 宿主
+  - `mcp` 官方 SDK（pin 1.x，2.x 尚不稳）；stdio 与 streamable HTTP
+    双 transport；per-user 配置 `users/<uuid>/mcp.json`（env 支持脱敏
+    回显保留）
+  - 连接模型：每请求连接池（规避 anyio cancel scope 跨任务关闭问
+    题）；单个 server 故障不影响其余
+  - 聊天集成：`use_tools` 时代理循环把工具以 `mcp__<server>__<tool>`
+    前缀桥接给 OpenAI function calling，最多 5 轮工具调用，最终回答
+    保持 SSE 契约（工具轮次为整段输出）
+  - API：`GET/PUT /api/mcp/servers`、`POST /api/mcp/test`（连接并
+    列工具）、`GET /api/mcp/tools`
+  - Web：设置页管理 MCP servers（增删改/启用/测试）；聊天页
+    "工具调用"开关
+
+## 平台支持
+
+- Windows（开发主机）：MinGW GCC 15 / Qt 6.8，全套功能验证
+- Linux（Ubuntu 24.04 / Qt 6.4.2 / GCC 13）：sidecar 依赖与
+  sqlite-vec、C++ configure/build、QtWebEngine 嵌入均验证通过

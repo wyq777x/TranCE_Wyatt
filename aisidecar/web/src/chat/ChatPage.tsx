@@ -29,6 +29,7 @@ export default function ChatPage({
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [useMemory, setUseMemory] = useState(true);
+  const [useTools, setUseTools] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,6 +85,7 @@ export default function ChatPage({
           });
         },
         useMemory,
+        useTools,
       );
       setMessages((prev) => {
         const copy = [...prev];
@@ -143,13 +145,27 @@ export default function ChatPage({
           rows={3}
         />
         <div className="send-column">
-          <label className="memory-toggle" title="将学习者画像与弱项词注入上下文，使回答个性化">
+          <label
+            className="memory-toggle"
+            title="将学习者画像与弱项词注入上下文，使回答个性化"
+          >
             <input
               type="checkbox"
               checked={useMemory}
               onChange={(e) => setUseMemory(e.target.checked)}
             />
             记忆增强
+          </label>
+          <label
+            className="memory-toggle"
+            title="将已启用的 MCP 服务器工具桥接给 AI（在设置中配置）；工具模式下回复为整段输出"
+          >
+            <input
+              type="checkbox"
+              checked={useTools}
+              onChange={(e) => setUseTools(e.target.checked)}
+            />
+            工具调用
           </label>
           <button
             className="send-btn"

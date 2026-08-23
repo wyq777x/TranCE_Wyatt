@@ -34,3 +34,5 @@ aisidecar/web/dist/
 
 # Local agent state
 .workbuddy/
+aisidecar/server/.venv-linux/
+build/linux-verify/
