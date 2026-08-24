@@ -13,13 +13,30 @@ This is a project to help the Chinese users to learn English.In other words, it 
 
 # TECHNOLOGIES USED
 
-- **Languages**: `C++`,`SQLite`
-- **Dependencies**: `Qt`,`ElaWidgetsTools`,`SQLiteCpp`,`ECDICT`
+- **Languages**: `C++`,`SQLite`,`Python`,`TypeScript`
+- **Dependencies**: `Qt`,`ElaWidgetsTools`,`SQLiteCpp`,`ECDICT`,`FastAPI`,`React`
 - **Build System**: `CMake`
 - **Pack-up Tools**: `Inno Setup`
 - **Operating System**: `Linux` & `Windows`
 - **Version Control**: `Git`
 - **Database**: `SQLite`
+
+
+# BUILD
+
+The AI sidecar environment is set up automatically during the build:
+
+- The Python virtualenv (`aisidecar/server/.venv`) is created and
+  `requirements.txt` installed when missing.
+- The web frontend (`aisidecar/web/dist`) is built with `npm install &&
+  npm run build` when missing.
+
+Prerequisites: **Python 3.11+** and **npm** on PATH - the configure step
+fails without them. Both steps are self-healing and skipped when their
+outputs already exist; force a re-run by deleting `.venv` / `web/dist`.
+Release/packaging builds that bundle a PyInstaller sidecar can skip this
+with `-DTRANCE_AI_SETUP_SIDECAR=OFF`. See `aisidecar/README.md` for
+details.
 
 
 

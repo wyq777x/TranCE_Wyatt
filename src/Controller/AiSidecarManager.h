@@ -99,4 +99,5 @@ private:
     int m_port = -1;
     int m_restartAttempts = 0;
     bool m_shutdownRequested = false;
+    QByteArray m_processOutput;
 };

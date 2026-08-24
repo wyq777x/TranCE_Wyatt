@@ -20,6 +20,20 @@ aisidecar/
 
 ## 开发环境
 
+主 CMake 构建会自动准备本目录的开发环境（`TRANCE_AI_SETUP_SIDECAR`，
+默认 ON）：
+
+- `server/.venv` 缺失时用 PATH 上的 Python 3.11+ 创建并安装
+  `requirements.txt`（stamp 文件 `.venv/.trance-deps-stamp` 标记完成）；
+- `web/dist/index.html` 缺失或前端源码变化时自动
+  `npm install && npm run build`。
+
+两步均为自愈式：产物已存在则跳过；删掉 `.venv` / `web/dist` 即可强制
+重跑。configure 阶段缺 Python 3.11+ 或 npm 会直接报错。打包构建可
+`-DTRANCE_AI_SETUP_SIDECAR=OFF` 跳过（改用 PyInstaller 产物，见下文）。
+
+需要手动操作时（例如调试 sidecar 本体）：
+
 ```bash
 # 1) 后端
 cd server
@@ -35,6 +49,7 @@ npm run build          # 产物 web/dist 由 sidecar 静态托管
 cd ../server
 TRANCE_AI_TOKEN=dev .venv/Scripts/python run.py --port 9721 --data-dir <绝对路径>
 # 前端热更新开发：cd web && npm run dev （已代理 /api 到 9721）
+# 宿主开发回退也会优先使用 server/.venv 里的解释器（按 pyvenv.cfg 识别）
 ```
 
 ## 与 Qt 宿主的启动协议

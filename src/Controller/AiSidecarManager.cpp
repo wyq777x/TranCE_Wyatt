@@ -53,6 +53,44 @@ findDevSidecarScript ()
 
     return QString ();
 }
+
+QString
+findVenvPython (const QString &scriptPath)
+{
+    // A virtualenv is identified by its pyvenv.cfg, so we don't blindly
+    // trust a fixed relative path. Prefer the project's ".venv" (per the
+    // sidecar README), then a sibling "venv", before falling back to the
+    // system interpreter.
+    const QDir scriptDir = QFileInfo (scriptPath).dir ();
+
+    const QStringList venvDirs = {
+        scriptDir.filePath (".venv"),
+        scriptDir.filePath ("venv"),
+    };
+
+    for (const QString &dir : venvDirs)
+    {
+        if (!QFile::exists (QDir (dir).filePath ("pyvenv.cfg")))
+        {
+            continue;
+        }
+
+        const QString python = QDir (dir).filePath (
+#ifdef Q_OS_WIN
+            "Scripts/python.exe"
+#else
+            "bin/python"
+#endif
+        );
+
+        if (QFile::exists (python))
+        {
+            return python;
+        }
+    }
+
+    return QString ();
+}
 } // namespace
 
 AiSidecarManager::AiSidecarManager ()
@@ -200,7 +238,15 @@ bool AiSidecarManager::resolveExecutable (QString &program,
 
     if (!script.isEmpty ())
     {
+        // Prefer the project virtualenv next to run.py so the sidecar's
+        // dependencies (uvicorn/fastapi/...) are found without relying on
+        // the system interpreter. $TRANCE_AI_PYTHON still wins if set.
         QString python = qEnvironmentVariable ("TRANCE_AI_PYTHON");
+
+        if (python.isEmpty ())
+        {
+            python = findVenvPython (script);
+        }
 
         if (python.isEmpty ())
         {
@@ -234,12 +280,17 @@ void AiSidecarManager::ensureRunning ()
         return;
     }
 
+    // A manual (re)start from the UI gets a fresh restart budget, so Retry
+    // works even after the automatic backoff has given up.
+    m_restartAttempts = 0;
+
     spawnProcess ();
 }
 
 void AiSidecarManager::spawnProcess ()
 {
     m_shutdownRequested = false;
+    m_processOutput.clear ();
 
     if (!AccountManager::getInstance ().isLoggedIn ())
     {
@@ -282,6 +333,8 @@ void AiSidecarManager::spawnProcess ()
                      const QByteArray out =
                          m_process->readAllStandardOutput ();
 
+                     m_processOutput.append (out);
+
                      for (const QByteArray &line : out.split ('\n'))
                      {
                          if (line.startsWith (STDOUT_READY_TAG))
@@ -315,11 +368,23 @@ void AiSidecarManager::spawnProcess ()
                          return;
                      }
 
-                     const QString reason =
+                     QString reason =
                          QString ("AI sidecar exited unexpectedly (code %1, "
                                   "status %2)")
                              .arg (exitCode)
                              .arg (static_cast<int> (status));
+
+                     // The Python sidecar writes its tracebacks to stderr,
+                     // which is otherwise invisible. Surface the tail so the
+                     // user (and we) can see why it died instead of a bare
+                     // exit code.
+                     QByteArray output = m_processOutput.trimmed ();
+
+                     if (!output.isEmpty ())
+                     {
+                         reason += "\n" + QString::fromUtf8 (output);
+                     }
+
                      scheduleRestart (reason);
                  });
 
