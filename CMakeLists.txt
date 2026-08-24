@@ -15,7 +15,7 @@ include_directories(${CMAKE_SOURCE_DIR}/3rdpart/Ela/ElaWidgetTools/include)
 
 project(TranCE_Wyatt LANGUAGES CXX)
 
-find_package(Qt6 COMPONENTS Core Widgets Quick QuickControls2 LinguistTools REQUIRED)
+find_package(Qt6 COMPONENTS Concurrent Core Widgets Quick QuickControls2 LinguistTools REQUIRED)
 
 # AI mode: QtWebEngine is an optional dependency. When unavailable the app
 # degrades gracefully and opens the sidecar web UI in the system browser.
@@ -128,6 +128,7 @@ endif()
 
 if(WIN32)
     target_link_libraries(TranCE_Wyatt PRIVATE
+        Qt6::Concurrent
         Qt6::Core
         Qt6::Widgets
         Qt6::Quick
@@ -150,6 +151,7 @@ endif()
 
 if(NOT WIN32)
     target_link_libraries(TranCE_Wyatt PRIVATE
+        Qt6::Concurrent
         Qt6::Core
         Qt6::Widgets
         Qt6::Quick

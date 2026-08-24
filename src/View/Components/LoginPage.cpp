@@ -6,6 +6,7 @@
 #include <ElaLineEdit.h>
 #include <ElaPushButton.h>
 #include <QFont>
+#include <QFutureWatcher>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
@@ -111,31 +112,43 @@ void LoginPage::initConnections ()
                      return;
                  }
 
-                 try
-                 {
-                     auto result = AccountManager::getInstance ().login (
-                         username, password);
+                 // PBKDF2 verification is deliberately slow; run it off the
+                 // GUI thread and disable the button while it is in flight.
+                 loginButton->setEnabled (false);
+                 registerButton->setEnabled (false);
 
-                     if (result != UserAuthResult::Success)
-                     {
-                         QString errorMsg = QString::fromStdString (
-                             getErrorMessage (result, UserAuthResultMessage));
+                 auto *watcher = new QFutureWatcher<UserAuthResult> (this);
 
-                         showDialog (tr ("Login Error"), errorMsg);
+                 connect (watcher, &QFutureWatcherBase::finished, this,
+                          [this, watcher, username] ()
+                          {
+                              watcher->deleteLater ();
+                              loginButton->setEnabled (true);
+                              registerButton->setEnabled (true);
 
-                         return;
-                     }
-                     else
-                     {
-                         showDialog (tr ("Login Success"),
-                                     tr ("Welcome back, %1!").arg (username),
-                                     true);
-                     }
-                 }
-                 catch (const std::exception &e)
-                 {
-                     qCritical () << "Login error:" << e.what ();
-                 }
+                              const auto result = watcher->result ();
+
+                              if (result != UserAuthResult::Success)
+                              {
+                                  QString errorMsg = QString::fromStdString (
+                                      getErrorMessage (result,
+                                                       UserAuthResultMessage));
+
+                                  showDialog (tr ("Login Error"), errorMsg);
+
+                                  return;
+                              }
+                              else
+                              {
+                                  showDialog (tr ("Login Success"),
+                                              tr ("Welcome back, %1!")
+                                                  .arg (username),
+                                              true);
+                              }
+                          });
+
+                 watcher->setFuture (AccountManager::getInstance ().loginAsync (
+                     username, password));
              });
 
     connect (registerButton, &ElaPushButton::clicked,

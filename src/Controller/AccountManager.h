@@ -2,6 +2,7 @@
 #include "Utility/IUserProfileContextProvider.h"
 #include "Utility/Result.h"
 #include <QDebug>
+#include <QFuture>
 #include <QObject>
 #include <QString>
 #include <stdexcept>
@@ -46,6 +47,16 @@ public:
         }
     }
     UserAuthResult login (const QString &username, const QString &password);
+
+    // Off-thread variants: password hashing (PBKDF2) is deliberately slow,
+    // so these run the same logic on a worker thread and deliver the result
+    // through the returned future, keeping the GUI thread responsive.
+    QFuture<UserAuthResult> loginAsync (const QString &username,
+                                        const QString &password);
+    QFuture<RegisterUserResult> registerUserAsync (const QString &username,
+                                                   const QString &password);
+    QFuture<ChangeResult> changePasswordAsync (const QString &oldPassword,
+                                               const QString &newPassword);
 
     void logout ();
 

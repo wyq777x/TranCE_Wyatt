@@ -6,6 +6,7 @@
 #include <ElaPushButton.h>
 #include <QFont>
 #include <QFrame>
+#include <QFutureWatcher>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPixmap>
@@ -256,23 +257,46 @@ void MyPage::initConnections ()
                              return;
                          }
 
-                         auto result =
-                             AccountManager::getInstance ().changePassword (
-                                 oldPasswordLineEdit->text (),
-                                 newPasswordLineEdit->text ());
+                         // PBKDF2 hashing is deliberately slow; run it off
+                         // the GUI thread while the dialog stays responsive.
+                         changePasswordButton->setEnabled (false);
 
-                         if (result == ChangeResult::Success)
-                         {
-                             showDialog (tr ("Success"),
-                                         tr ("Password changed successfully."));
-                         }
-                         else
-                         {
-                             QString errorMsg = QString::fromStdString (
-                                 getErrorMessage (result, ChangeResultMessage));
-                             showDialog (tr ("Change Password Error"),
-                                         errorMsg);
-                         }
+                         auto *watcher =
+                             new QFutureWatcher<ChangeResult> (this);
+
+                         connect (watcher, &QFutureWatcherBase::finished,
+                                  this,
+                                  [this, watcher] ()
+                                  {
+                                      watcher->deleteLater ();
+                                      changePasswordButton->setEnabled (true);
+
+                                      const auto result = watcher->result ();
+
+                                      if (result == ChangeResult::Success)
+                                      {
+                                          showDialog (
+                                              tr ("Success"),
+                                              tr ("Password changed "
+                                                  "successfully."));
+                                      }
+                                      else
+                                      {
+                                          QString errorMsg =
+                                              QString::fromStdString (
+                                                  getErrorMessage (
+                                                      result,
+                                                      ChangeResultMessage));
+                                          showDialog (
+                                              tr ("Change Password Error"),
+                                              errorMsg);
+                                      }
+                                  });
+
+                         watcher->setFuture (
+                             AccountManager::getInstance ().changePasswordAsync (
+                                 oldPasswordLineEdit->text (),
+                                 newPasswordLineEdit->text ()));
                      });
              });
 

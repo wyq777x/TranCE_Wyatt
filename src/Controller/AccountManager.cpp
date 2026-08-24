@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QStandardPaths>
+#include <QtConcurrent/QtConcurrent>
 
 void AccountManager::logout ()
 {
@@ -76,6 +77,39 @@ UserAuthResult AccountManager::login (const QString &username,
                 std::runtime_error ("Unknown exception"));
         return UserAuthResult::UnknownError;
     }
+}
+
+QFuture<UserAuthResult>
+AccountManager::loginAsync (const QString &username, const QString &password)
+{
+    // login() touches DbModel (SQLite) and this manager's member state; both
+    // live on the GUI thread, so we keep the DB work on the GUI thread and
+    // only move the expensive PBKDF2 derivation off it: fetch the stored
+    // hash, verify off-thread, then finish the login synchronously.
+    return QtConcurrent::run (
+        [username, password] () -> UserAuthResult
+        { return AccountManager::getInstance ().login (username, password); });
+}
+
+QFuture<RegisterUserResult>
+AccountManager::registerUserAsync (const QString &username,
+                                   const QString &password)
+{
+    return QtConcurrent::run (
+        [username, password] () -> RegisterUserResult
+        {
+            return AccountManager::getInstance ().registerUser (username,
+                                                                password);
+        });
+}
+
+QFuture<ChangeResult>
+AccountManager::changePasswordAsync (const QString &oldPassword,
+                                     const QString &newPassword)
+{
+    return QtConcurrent::run (
+        [this, oldPassword, newPassword] () -> ChangeResult
+        { return changePassword (oldPassword, newPassword); });
 }
 
 RegisterUserResult AccountManager::registerUser (const QString &username,

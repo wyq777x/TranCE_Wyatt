@@ -5,6 +5,7 @@
 #include <ElaLineEdit.h>
 #include <ElaPushButton.h>
 #include <QFont>
+#include <QFutureWatcher>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
@@ -138,76 +139,106 @@ void RegisterPage::initConnections ()
                 return;
             }
 
-            auto result = AccountManager::getInstance ().registerUser (
-                username, password);
+            // PBKDF2 hashing is deliberately slow; run it off the GUI
+            // thread and disable the buttons while it is in flight.
+            registerButton->setEnabled (false);
+            cancelButton->setEnabled (false);
 
-            if (result != RegisterUserResult::Success)
-            {
-                QString errorMsg = QString::fromStdString (
-                    getErrorMessage (result, RegisterUserResultMessage));
-                showDialog (tr ("Register Error"), errorMsg);
-                return;
-            }
-            else
-            {
-                bool needRollback = false;
-                QString rollbackReason;
+            auto *watcher = new QFutureWatcher<RegisterUserResult> (this);
 
-                try
-                {
-                    // invoke UserModel to create user profile and settings
-                    auto userDataResult =
-                        AccountManager::getInstance ().createUserData (
-                            username);
+            connect (watcher, &QFutureWatcherBase::finished, this,
+                     [this, watcher, username] ()
+                     {
+                         watcher->deleteLater ();
+                         registerButton->setEnabled (true);
+                         cancelButton->setEnabled (true);
 
-                    if (userDataResult != UserDataResult::Success)
-                    {
-                        needRollback = true;
+                         const auto result = watcher->result ();
 
-                        rollbackReason =
-                            QString::fromStdString (getErrorMessage (
-                                userDataResult, UserDataResultMessage));
-                    }
-                }
-                catch (const std::exception &e)
-                {
-                    needRollback = true;
-                    rollbackReason = "Unexpected error: " +
+                         if (result != RegisterUserResult::Success)
+                         {
+                             QString errorMsg = QString::fromStdString (
+                                 getErrorMessage (result,
+                                                  RegisterUserResultMessage));
+                             showDialog (tr ("Register Error"), errorMsg);
+                             return;
+                         }
+                         else
+                         {
+                             bool needRollback = false;
+                             QString rollbackReason;
+
+                             try
+                             {
+                                 // invoke UserModel to create user profile
+                                 // and settings
+                                 auto userDataResult =
+                                     AccountManager::getInstance ()
+                                         .createUserData (username);
+
+                                 if (userDataResult != UserDataResult::Success)
+                                 {
+                                     needRollback = true;
+
+                                     rollbackReason =
+                                         QString::fromStdString (
+                                             getErrorMessage (
+                                                 userDataResult,
+                                                 UserDataResultMessage));
+                                 }
+                             }
+                             catch (const std::exception &e)
+                             {
+                                 needRollback = true;
+                                 rollbackReason =
+                                     "Unexpected error: " +
                                      QString::fromStdString (e.what ());
-                }
-                catch (...)
-                {
-                    needRollback = true;
-                    rollbackReason = "Unknown unexpected error occurred";
-                }
+                             }
+                             catch (...)
+                             {
+                                 needRollback = true;
+                                 rollbackReason =
+                                     "Unknown unexpected error occurred";
+                             }
 
-                if (needRollback)
-                {
+                             if (needRollback)
+                             {
 
-                    try
-                    {
-                        DbManager::getInstance ().deleteUser (username);
-                    }
-                    catch (...)
-                    {
-                        rollbackReason +=
-                            "\n" +
-                            tr ("Failed to roll back user registration.");
-                    }
+                                 try
+                                 {
+                                     DbManager::getInstance ().deleteUser (
+                                         username);
+                                 }
+                                 catch (...)
+                                 {
+                                     rollbackReason +=
+                                         "\n" +
+                                         tr ("Failed to roll back user "
+                                             "registration.");
+                                 }
 
-                    showDialog (
-                        tr ("Register Error"),
-                        tr ("Registration failed during profile creation:") +
-                            "\n" + rollbackReason + "\n\n" +
-                            tr ("Registration has been rolled back."));
-                    return;
-                }
+                                 showDialog (
+                                     tr ("Register Error"),
+                                     tr ("Registration failed during profile "
+                                         "creation:") +
+                                         "\n" + rollbackReason + "\n\n" +
+                                         tr ("Registration has been rolled "
+                                             "back."));
+                                 return;
+                             }
 
-                showDialog (tr ("Register Success"),
-                            tr ("User registered successfully.\n\nYou can now "
-                                "log in with your username and password."),
-                            true);
-            }
+                             showDialog (
+                                 tr ("Register Success"),
+                                 tr ("User registered successfully.\n\nYou "
+                                     "can now log in with your username and "
+                                     "password."),
+                                 true);
+                         }
+                     });
+
+            watcher->setFuture (
+                AccountManager::getInstance ().registerUserAsync (username,
+                                                                  password));
         });
 
     connect (cancelButton, &ElaPushButton::clicked, [=, this] () { close (); });
