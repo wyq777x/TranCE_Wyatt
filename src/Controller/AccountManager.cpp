@@ -7,9 +7,10 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QPromise>
 #include <QRegularExpression>
 #include <QStandardPaths>
-#include <QtConcurrent/QtConcurrent>
+#include <memory>
 
 void AccountManager::logout ()
 {
@@ -79,36 +80,62 @@ UserAuthResult AccountManager::login (const QString &username,
     }
 }
 
+namespace
+{
+// Runs `work` on the thread `context` lives on (the GUI thread) and completes
+// a QFuture with its result. The invocation is queued, so the caller gets one
+// event-loop turn to repaint its "busy" UI (e.g. the disabled buttons) before
+// the work runs.
+//
+// These operations used to run inside QtConcurrent::run, i.e. on a worker
+// thread, while touching the SQLite layer and AccountManager's member state -
+// both of which the GUI thread also reads/writes. That was a data race (and
+// the previous comment claiming only the PBKDF2 step was offloaded did not
+// match the code). Keeping the work on a single thread removes the race; the
+// PBKDF2 + SQLite work is short enough that the GUI thread absorbs it.
+template <typename ResultT, typename WorkT>
+QFuture<ResultT> runOnGuiThreadDeferred (QObject *context, WorkT work)
+{
+    auto promise = std::make_shared<QPromise<ResultT>> ();
+    QFuture<ResultT> future = promise->future ();
+    promise->start ();
+
+    QMetaObject::invokeMethod (
+        context,
+        [promise, work = std::move (work)] () mutable
+        {
+            promise->addResult (work ());
+            promise->finish ();
+        },
+        Qt::QueuedConnection);
+
+    return future;
+}
+} // namespace
+
 QFuture<UserAuthResult>
 AccountManager::loginAsync (const QString &username, const QString &password)
 {
-    // login() touches DbModel (SQLite) and this manager's member state; both
-    // live on the GUI thread, so we keep the DB work on the GUI thread and
-    // only move the expensive PBKDF2 derivation off it: fetch the stored
-    // hash, verify off-thread, then finish the login synchronously.
-    return QtConcurrent::run (
-        [username, password] () -> UserAuthResult
-        { return AccountManager::getInstance ().login (username, password); });
+    return runOnGuiThreadDeferred<UserAuthResult> (
+        this, [this, username, password] ()
+        { return login (username, password); });
 }
 
 QFuture<RegisterUserResult>
 AccountManager::registerUserAsync (const QString &username,
                                    const QString &password)
 {
-    return QtConcurrent::run (
-        [username, password] () -> RegisterUserResult
-        {
-            return AccountManager::getInstance ().registerUser (username,
-                                                                password);
-        });
+    return runOnGuiThreadDeferred<RegisterUserResult> (
+        this, [this, username, password] ()
+        { return registerUser (username, password); });
 }
 
 QFuture<ChangeResult>
 AccountManager::changePasswordAsync (const QString &oldPassword,
                                      const QString &newPassword)
 {
-    return QtConcurrent::run (
-        [this, oldPassword, newPassword] () -> ChangeResult
+    return runOnGuiThreadDeferred<ChangeResult> (
+        this, [this, oldPassword, newPassword] ()
         { return changePassword (oldPassword, newPassword); });
 }
 

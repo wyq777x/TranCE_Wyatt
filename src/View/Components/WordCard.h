@@ -18,7 +18,12 @@ class WordCard : public TempPage
 public:
     static WordCard *getInstance (QWidget *parent = nullptr)
     {
-        static WordCard instance (parent);
+        // Process-wide singleton: it must never be owned by a transient
+        // parent, or the first caller's widget destruction would delete it
+        // and leave this static pointer dangling. The parameter is kept for
+        // call-site compatibility but deliberately ignored.
+        Q_UNUSED (parent);
+        static WordCard instance (nullptr);
         return &instance;
     }
 

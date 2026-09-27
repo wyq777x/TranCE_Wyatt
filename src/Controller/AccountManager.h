@@ -48,9 +48,12 @@ public:
     }
     UserAuthResult login (const QString &username, const QString &password);
 
-    // Off-thread variants: password hashing (PBKDF2) is deliberately slow,
-    // so these run the same logic on a worker thread and deliver the result
-    // through the returned future, keeping the GUI thread responsive.
+    // Future-returning variants for the UI (consumed through
+    // QFutureWatcher). The work runs on the GUI thread - the SQLite layer
+    // below and this manager's member state are not thread-safe, so it must
+    // not be executed on a worker thread - but it is deferred by one
+    // event-loop turn so callers can repaint a "busy" state first. See
+    // runOnGuiThreadDeferred() in the .cpp.
     QFuture<UserAuthResult> loginAsync (const QString &username,
                                         const QString &password);
     QFuture<RegisterUserResult> registerUserAsync (const QString &username,
