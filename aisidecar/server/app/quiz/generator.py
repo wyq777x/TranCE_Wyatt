@@ -175,11 +175,12 @@ def sanitize_cloze(raw: dict, words: list[str]) -> dict:
             str(o).strip() for o in item.get("options", []) if str(o).strip()
         ]
 
-        # exactly 4 options containing the answer, answer not always first
-        if word not in [o.lower() for o in options]:
-            options.append(word)
+        # exactly 4 options containing the answer, answer not always first:
+        # truncate first, then substitute, so appending can never be sliced off
+        options = list(dict.fromkeys(options))[:4]
 
-        options = options[:4]
+        if options and word not in [o.lower() for o in options]:
+            options[-1] = word
 
         if len(options) < 4:
             continue
