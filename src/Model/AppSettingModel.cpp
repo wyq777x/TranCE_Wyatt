@@ -5,8 +5,7 @@ ChangeResult AppSettingModel::setLanguage (const QString &lang)
     // Building...
     if (lang.isEmpty ())
     {
-        logErr ("Language cannot be empty",
-                std::runtime_error ("Invalid language"));
+        qCWarning (lcSettings) << "Language cannot be empty";
 
         return ChangeResult::NullValue;
     }
@@ -14,15 +13,14 @@ ChangeResult AppSettingModel::setLanguage (const QString &lang)
     if (lang != "en_US" && lang != "en_GB" && lang != "zh_CN" &&
         lang != "zh_TW" && lang != "zh_HK")
     {
-        logErr ("Unsupported/Invalid language code: " + lang.toStdString (),
-                std::runtime_error ("Invalid language code"));
+        qCWarning (lcSettings) << "Unsupported/Invalid language code:" << lang;
         return ChangeResult::InvalidInput;
     }
     language = lang;
 
     emit languageChanged (lang);
 
-    qDebug () << "Language set to" << language;
+    qCDebug (lcSettings) << "Language set to" << language;
     return ChangeResult::Success;
 }
 
@@ -33,7 +31,7 @@ ChangeResult AppSettingModel::setHistorySearchListEnabled (bool enabled)
 
     emit historySearchListEnabledChanged (enabled);
 
-    qDebug () << "History search list enabled set to" << enabled;
+    qCDebug (lcSettings) << "History search list enabled set to" << enabled;
     return ChangeResult::Success;
 }
 
@@ -43,6 +41,6 @@ ChangeResult AppSettingModel::setAiModeEnabled (bool enabled)
 
     emit aiModeEnabledChanged (enabled);
 
-    qDebug () << "AI mode enabled set to" << enabled;
+    qCDebug (lcSettings) << "AI mode enabled set to" << enabled;
     return ChangeResult::Success;
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "Utility/IUserProfileContextProvider.h"
+#include "Utility/Logging.h"
 #include "Utility/Result.h"
 #include <QDebug>
 #include <QFuture>
@@ -36,13 +37,14 @@ public:
         }
         catch (const std::exception &e)
         {
-            logErr ("Error setting UserModel", e);
+            trance::log::logException (lcAccount, "Error setting UserModel",
+                                       e);
             throw;
         }
         catch (...)
         {
-            logErr ("Unknown error setting UserModel",
-                    std::runtime_error ("Unknown exception"));
+            trance::log::logExceptionUnknown (lcAccount,
+                                              "Error setting UserModel");
             throw;
         }
     }
@@ -105,16 +107,6 @@ signals:
 
 private:
     AccountManager () = default;
-
-    mutable std::string m_lastError;
-
-    template <typename ExceptionT>
-    void logErr (const std::string &errMsg, const ExceptionT &e) const
-    {
-        qCritical () << "[AccountManager]" << QString::fromStdString (errMsg)
-                     << "Exception:" << e.what ();
-        m_lastError = errMsg + " Exception:" + std::string (e.what ());
-    }
 
     UserModel *userModel = nullptr;
     QString username{};

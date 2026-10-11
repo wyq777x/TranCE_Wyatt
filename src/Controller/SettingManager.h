@@ -45,13 +45,4 @@ private:
     SettingManager &operator= (const SettingManager &) = delete;
     SettingManager (SettingManager &&) = delete;
     SettingManager &operator= (SettingManager &&) = delete;
-
-    mutable std::string m_lastError;
-
-    template <typename ExceptionT>
-    void logErr (const std::string &errMsg, const ExceptionT &e) const
-    {
-        qCritical () << "[SettingManager]" << QString::fromStdString (errMsg)
-                     << "Exception:" << e.what ();
-    }
 };

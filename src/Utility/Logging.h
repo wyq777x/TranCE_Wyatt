@@ -15,6 +15,7 @@ Q_DECLARE_LOGGING_CATEGORY (lcAccount)   // AccountManager (auth flows)
 Q_DECLARE_LOGGING_CATEGORY (lcDbMgr)     // DbManager facade
 Q_DECLARE_LOGGING_CATEGORY (lcProvider)  // AiProviderManager
 Q_DECLARE_LOGGING_CATEGORY (lcSidecar)   // AiSidecarManager (subprocess)
+Q_DECLARE_LOGGING_CATEGORY (lcSecretStore) // SecretStore (API key storage)
 Q_DECLARE_LOGGING_CATEGORY (lcView)      // View layer
 
 namespace trance::log

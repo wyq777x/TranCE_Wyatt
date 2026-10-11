@@ -1,4 +1,5 @@
 #include "Utility/SecretStore.h"
+#include "Utility/Logging.h"
 
 #include <QCryptographicHash>
 #include <QDir>
@@ -19,7 +20,6 @@ const QString FALLBACK_DIR_NAME = QStringLiteral ("secrets");
 
 // wincred generic credentials are shared across logins sessions of the same
 // Windows account; the fallback store is only protected by file permissions.
-void logWarning (const QString &msg) { qWarning () << "[SecretStore]" << msg; }
 } // namespace
 
 bool SecretStore::isUsingSystemBackend ()
@@ -49,7 +49,8 @@ bool SecretStore::storeSecret (const QString &key, const QString &value)
         return true;
     }
 
-    logWarning ("wincred store failed, falling back to file store");
+    qCWarning (lcSecretStore)
+        << "wincred store failed, falling back to file store";
 #endif
     return storeSecretFile (key, value);
 }
@@ -110,8 +111,9 @@ bool SecretStore::storeSecretWincred (const QString &name,
 
     if (!CredWriteW (&credential, 0))
     {
-        logWarning (QString ("CredWriteW failed: %1")
-                        .arg (static_cast<long> (GetLastError ())));
+        qCWarning (lcSecretStore)
+            << QString ("CredWriteW failed: %1")
+                   .arg (static_cast<long> (GetLastError ()));
         return false;
     }
 
@@ -179,7 +181,8 @@ bool SecretStore::storeSecretFile (const QString &key, const QString &value)
 
     if (!dir.mkpath ("."))
     {
-        logWarning ("cannot create fallback secret directory: " + path);
+        qCWarning (lcSecretStore)
+            << "cannot create fallback secret directory:" << path;
         return false;
     }
 
@@ -187,7 +190,8 @@ bool SecretStore::storeSecretFile (const QString &key, const QString &value)
 
     if (!file.open (QIODevice::WriteOnly))
     {
-        logWarning ("cannot open fallback secret file: " + path);
+        qCWarning (lcSecretStore)
+            << "cannot open fallback secret file:" << path;
         return false;
     }
 
@@ -195,7 +199,8 @@ bool SecretStore::storeSecretFile (const QString &key, const QString &value)
 
     if (!file.commit ())
     {
-        logWarning ("cannot commit fallback secret file: " + path);
+        qCWarning (lcSecretStore)
+            << "cannot commit fallback secret file:" << path;
         return false;
     }
 

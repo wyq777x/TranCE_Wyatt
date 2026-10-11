@@ -2,9 +2,12 @@
 #include "Controller/SettingManager.h"
 #include "Model/AppSettingModel.h"
 #include "Model/DbModel.h"
+#include "Utility/AspectGuard.h"
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
 #include <type_traits>
+
+using trance::aspect::guarded;
 
 UserAuthResult UserModel::login (const QString &username,
                                  const QString &password)
@@ -158,24 +161,22 @@ ValidationResult UserModel::validateUserData (const QJsonObject &userData)
 
 UserDataResult UserModel::loadUserData (const QString &userProfile)
 {
-    try
+    return guarded (lcUser, "Error loading user data",
+                    UserDataResult::UnknownError,
+                    [&]() -> UserDataResult
     {
         // Building...
         if (userProfile.isEmpty ())
         {
-            getInstance ().logErr (
-                "User profile path not set",
-                std::runtime_error ("User profile path is not set or empty"));
+            qCWarning (lcUser) << "User profile path is not set or empty";
             return UserDataResult::EmptyPath;
         }
 
         QDir userProfileDir = QDir (getInstance ().getUserProfileDir ());
         if (!userProfileDir.exists ())
         {
-            getInstance ().logErr (
-                "User profile directory not found",
-                std::runtime_error ("User profile directory does not exist: " +
-                                    userProfileDir.path ().toStdString ()));
+            qCWarning (lcUser) << "User profile directory does not exist:"
+                               << userProfileDir.path ();
             return UserDataResult::DirectoryNotFound;
         }
 
@@ -184,19 +185,15 @@ UserDataResult UserModel::loadUserData (const QString &userProfile)
         QFile userProfileFile (userProfilePath);
         if (!userProfileFile.exists ())
         {
-            getInstance ().logErr (
-                "User profile file not found",
-                std::runtime_error ("User profile file does not exist: " +
-                                    userProfilePath.toStdString ()));
+            qCWarning (lcUser) << "User profile file does not exist:"
+                               << userProfilePath;
             return UserDataResult::FileNotFound;
         }
 
         if (!userProfileFile.open (QIODevice::ReadOnly))
         {
-            getInstance ().logErr (
-                "User profile file open error",
-                std::runtime_error ("Failed to open user profile file: " +
-                                    userProfile.toStdString ()));
+            qCWarning (lcUser) << "Failed to open user profile file:"
+                               << userProfile;
             return UserDataResult::FileOpenError;
         }
 
@@ -205,22 +202,18 @@ UserDataResult UserModel::loadUserData (const QString &userProfile)
 
         if (fileData.isEmpty ())
         {
-            getInstance ().logErr (
-                "User profile file read error",
-                std::runtime_error (
-                    "Failed to read user profile file or file is empty: " +
-                    userProfile.toStdString ()));
+            qCWarning (lcUser) << "Failed to read user profile file or file "
+                                  "is empty:"
+                               << userProfile;
             return UserDataResult::FileReadError;
         }
 
         QJsonDocument userDataDoc = QJsonDocument::fromJson (fileData);
         if (userDataDoc.isNull () || !userDataDoc.isObject ())
         {
-            getInstance ().logErr (
-                "User profile file parse error",
-                std::runtime_error (
-                    "Failed to parse JSON from user profile file: " +
-                    userProfile.toStdString ()));
+            qCWarning (lcUser) << "Failed to parse JSON from user profile "
+                                  "file:"
+                               << userProfile;
             return UserDataResult::InvalidData;
         }
 
@@ -229,11 +222,9 @@ UserDataResult UserModel::loadUserData (const QString &userProfile)
         auto validationResult = validateUserData (userData);
         if (!validationResult.isValid)
         {
-            std::string errorMsg =
-                "User data is invalid: " +
-                validationResult.ErrMessages.join (", ").toStdString ();
-            getInstance ().logErr ("User data validation failed",
-                                   std::runtime_error (errorMsg));
+            qCWarning (lcUser)
+                << "User data is invalid:"
+                << validationResult.ErrMessages.join (", ");
             return UserDataResult::InvalidData;
         }
 
@@ -245,10 +236,8 @@ UserDataResult UserModel::loadUserData (const QString &userProfile)
 
         if (language.isEmpty ())
         {
-            getInstance ().logErr (
-                "App settings data is incomplete",
-                std::runtime_error (
-                    "Language setting is missing in app settings data"));
+            qCWarning (lcUser)
+                << "Language setting is missing in app settings data";
             return UserDataResult::InvalidData;
         }
 
@@ -263,54 +252,39 @@ UserDataResult UserModel::loadUserData (const QString &userProfile)
         if (setHistoryResult != ChangeResult::Success ||
             setLangResult != ChangeResult::Success)
         {
-            getInstance ().logErr (
-                "Failed to set app settings",
-                std::runtime_error (
-                    "Failed to set app settings from user profile data"));
+            qCWarning (lcUser)
+                << "Failed to set app settings from user profile data";
             return UserDataResult::SettingError;
         }
 
         // update UI
         return UserDataResult::Success;
-    }
-    catch (const std::exception &e)
-    {
-        getInstance ().logErr ("Error loading user data", e);
-        return UserDataResult::UnknownError;
-    }
-    catch (...)
-    {
-        getInstance ().logErr ("Unknown error occurred while loading user data",
-                               std::runtime_error ("Unknown exception"));
-        return UserDataResult::UnknownError;
-    }
+    });
 }
 
 UserDataResult UserModel::createUserData (
     const QString &username,
     const IUserProfileContextProvider &profileContextProvider)
 {
-    try
+    return guarded (lcUser, "Error creating user data",
+                    UserDataResult::UnknownError,
+                    [&]() -> UserDataResult
     {
         QJsonObject userData;
 
         const QString userUuid = profileContextProvider.getUserUuid (username);
         if (userUuid.isEmpty ())
         {
-            getInstance ().logErr (
-                "User UUID is empty",
-                std::runtime_error (
-                    "Cannot create user data because user UUID is empty"));
+            qCWarning (lcUser) << "Cannot create user data because user UUID "
+                                  "is empty";
             return UserDataResult::InvalidData;
         }
 
         const QString language = profileContextProvider.getLanguage ();
         if (language.isEmpty ())
         {
-            getInstance ().logErr (
-                "Language is empty",
-                std::runtime_error (
-                    "Cannot create user data because language is empty"));
+            qCWarning (lcUser)
+                << "Cannot create user data because language is empty";
             return UserDataResult::InvalidData;
         }
 
@@ -330,9 +304,7 @@ UserDataResult UserModel::createUserData (
 
         if (m_userProfileDir.isEmpty ())
         {
-            getInstance ().logErr (
-                "User profile directory not set",
-                std::runtime_error ("User profile directory is not set"));
+            qCWarning (lcUser) << "User profile directory is not set";
             return UserDataResult::EmptyPath;
         }
 
@@ -341,11 +313,9 @@ UserDataResult UserModel::createUserData (
         {
             if (!dir.mkpath ("."))
             {
-                getInstance ().logErr (
-                    "Directory creation failed",
-                    std::runtime_error (
-                        "Failed to create user profile directory: " +
-                        m_userProfileDir.toStdString ()));
+                qCWarning (lcUser)
+                    << "Failed to create user profile directory:"
+                    << m_userProfileDir;
                 return UserDataResult::DirectoryCreateError;
             }
         }
@@ -354,10 +324,8 @@ UserDataResult UserModel::createUserData (
 
         if (!file.open (QIODevice::WriteOnly))
         {
-            getInstance ().logErr (
-                "File open error",
-                std::runtime_error ("Failed to open file for writing: " +
-                                    filename.toStdString ()));
+            qCWarning (lcUser) << "Failed to open file for writing:"
+                               << filename;
             return UserDataResult::FileOpenError;
         }
 
@@ -365,28 +333,13 @@ UserDataResult UserModel::createUserData (
         if (file.write (doc.toJson ()) == -1)
         {
             file.close ();
-            getInstance ().logErr (
-                "File write error",
-                std::runtime_error ("Failed to write data to file: " +
-                                    filename.toStdString ()));
+            qCWarning (lcUser) << "Failed to write data to file:" << filename;
             return UserDataResult::FileWriteError;
         }
         file.close ();
-        qDebug () << "User data saved to" << filename;
+        qCDebug (lcUser) << "User data saved to" << filename;
         return UserDataResult::Success;
-    }
-    catch (const std::exception &e)
-    {
-        getInstance ().logErr ("Error creating user data", e);
-        return UserDataResult::UnknownError;
-    }
-    catch (...)
-    {
-        getInstance ().logErr (
-            "Unknown error occurred while creating user data",
-            std::runtime_error ("Unknown exception"));
-        return UserDataResult::UnknownError;
-    }
+    });
 }
 
 template <typename FieldT>
@@ -398,18 +351,15 @@ ChangeResult UserModel::changeUserProfileField (const QString &field,
     {
         if (userProfile.isEmpty ())
         {
-            logErr ("User profile file path is empty",
-                    std::runtime_error ("User profile file path is empty"));
+            qCWarning (lcUser) << "User profile file path is empty";
             return ChangeResult::NullValue;
         }
 
         QDir userProfileDir = QDir (getUserProfileDir ());
         if (!userProfileDir.exists ())
         {
-            logErr ("User profile directory does not exist",
-                    std::runtime_error ("User profile directory does not "
-                                        "exist: " +
-                                        userProfileDir.path ().toStdString ()));
+            qCWarning (lcUser) << "User profile directory does not exist:"
+                               << userProfileDir.path ();
             return ChangeResult::DirectoryNotFound;
         }
 
@@ -418,17 +368,15 @@ ChangeResult UserModel::changeUserProfileField (const QString &field,
         QFile userProfileFile (userProfilePath);
         if (!userProfileFile.exists ())
         {
-            logErr ("User profile file does not exist",
-                    std::runtime_error ("User profile file does not exist: " +
-                                        userProfilePath.toStdString ()));
+            qCWarning (lcUser) << "User profile file does not exist:"
+                               << userProfilePath;
             return ChangeResult::FileNotFound;
         }
 
         if (!userProfileFile.open (QIODevice::ReadOnly))
         {
-            logErr ("User profile file open error",
-                    std::runtime_error ("Failed to open user profile file: " +
-                                        userProfilePath.toStdString ()));
+            qCWarning (lcUser) << "Failed to open user profile file:"
+                               << userProfilePath;
             return ChangeResult::FileOpenError;
         }
 
@@ -437,22 +385,18 @@ ChangeResult UserModel::changeUserProfileField (const QString &field,
 
         if (fileData.isEmpty ())
         {
-            getInstance ().logErr (
-                "User profile file read error",
-                std::runtime_error (
-                    "Failed to read user profile file or file is empty: " +
-                    userProfile.toStdString ()));
+            qCWarning (lcUser) << "Failed to read user profile file or file "
+                                  "is empty:"
+                               << userProfile;
             return ChangeResult::NullValue;
         }
 
         QJsonDocument userDataDoc = QJsonDocument::fromJson (fileData);
         if (userDataDoc.isNull () || !userDataDoc.isObject ())
         {
-            logErr (
-                "User profile file parse error",
-                std::runtime_error ("Failed to parse JSON from user profile "
-                                    "file: " +
-                                    userProfilePath.toStdString ()));
+            qCWarning (lcUser) << "Failed to parse JSON from user profile "
+                                  "file:"
+                               << userProfilePath;
             return ChangeResult::InvalidInput;
         }
 
@@ -479,20 +423,18 @@ ChangeResult UserModel::changeUserProfileField (const QString &field,
         QJsonDocument updatedDoc (userData);
         if (!userProfileFile.open (QIODevice::WriteOnly | QIODevice::Truncate))
         {
-            logErr ("User profile file write error",
-                    std::runtime_error ("Failed to open user profile file for "
-                                        "writing: " +
-                                        userProfilePath.toStdString ()));
+            qCWarning (lcUser)
+                << "Failed to open user profile file for writing:"
+                << userProfilePath;
             return ChangeResult::FileOpenError;
         }
 
         if (userProfileFile.write (updatedDoc.toJson ()) == -1)
         {
             userProfileFile.close ();
-            logErr ("User profile file write error",
-                    std::runtime_error (
-                        "Failed to write data to user profile file: " +
-                        userProfilePath.toStdString ()));
+            qCWarning (lcUser)
+                << "Failed to write data to user profile file:"
+                << userProfilePath;
             return ChangeResult::FileWriteError;
         }
 
@@ -501,15 +443,14 @@ ChangeResult UserModel::changeUserProfileField (const QString &field,
     }
     catch (const std::exception &e)
     {
-        logErr ("Error changing user profile field: " + field.toStdString (),
-                e);
+        qCCritical (lcUser) << "Error changing user profile field:" << field
+                            << "Exception:" << e.what ();
         return ChangeResult::UnknownError;
     }
     catch (...)
     {
-        logErr ("Unknown error occurred while changing user profile field: " +
-                    field.toStdString (),
-                std::runtime_error ("Unknown exception"));
+        qCCritical (lcUser) << "Error changing user profile field:" << field
+                            << "Exception: Unknown exception";
         return ChangeResult::UnknownError;
     }
 }

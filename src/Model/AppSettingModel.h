@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Utility/Logging.h"
 #include "Utility/Result.h"
 #include <QCoreApplication>
 #include <QObject>
@@ -45,14 +46,4 @@ private:
     QString language = "en_US";
     // en_US : English
     // zh_CN : Chinese
-
-    mutable std::string m_lastError;
-
-    template <typename ExceptionT>
-    void logErr (const std::string &errMsg, const ExceptionT &e) const
-    {
-        qCritical () << "[AppSettingModel]" << QString::fromStdString (errMsg)
-                     << "Exception:" << e.what ();
-        m_lastError = errMsg + " Exception:" + std::string (e.what ());
-    }
 };

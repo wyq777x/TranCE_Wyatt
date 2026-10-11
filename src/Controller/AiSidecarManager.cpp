@@ -7,6 +7,7 @@
 #include "Controller/SettingManager.h"
 #include "Model/DbModel.h"
 #include "Utility/Constants.h"
+#include "Utility/Logging.h"
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QDir>
@@ -572,8 +573,8 @@ void AiSidecarManager::scheduleRestart (const QString &reason)
         return;
     }
 
-    qWarning () << "[AiSidecarManager]" << reason << "- restart attempt"
-                << (m_restartAttempts + 1);
+    qCWarning (lcSidecar) << reason << "- restart attempt"
+                          << (m_restartAttempts + 1);
 
     setState (State::NotRunning);
     ++m_restartAttempts;

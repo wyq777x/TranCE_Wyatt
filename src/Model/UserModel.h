@@ -2,6 +2,7 @@
 
 #include "Utility/Constants.h"
 #include "Utility/IUserProfileContextProvider.h"
+#include "Utility/Logging.h"
 #include "Utility/Result.h"
 #include <QCoreApplication>
 #include <QDebug>
@@ -89,14 +90,4 @@ private:
 
     bool loggedIn = false;
     bool loginExpired = true;
-
-    mutable std::string m_lastError;
-
-    template <typename ExceptionT>
-    void logErr (const std::string &errMsg, const ExceptionT &e)
-    {
-        qCritical () << "[UserModel]" << QString::fromStdString (errMsg)
-                     << "Exception:" << e.what ();
-        m_lastError = errMsg + " Exception:" + std::string (e.what ());
-    }
 };

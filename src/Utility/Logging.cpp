@@ -20,6 +20,7 @@ Q_LOGGING_CATEGORY (lcAccount, "trance.account")
 Q_LOGGING_CATEGORY (lcDbMgr, "trance.dbmgr")
 Q_LOGGING_CATEGORY (lcProvider, "trance.provider")
 Q_LOGGING_CATEGORY (lcSidecar, "trance.sidecar")
+Q_LOGGING_CATEGORY (lcSecretStore, "trance.secretstore")
 Q_LOGGING_CATEGORY (lcView, "trance.view")
 
 namespace trance::log

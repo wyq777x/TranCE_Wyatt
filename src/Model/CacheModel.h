@@ -205,15 +205,4 @@ private:
 
     mutable std::size_t hitCount = 0;
     mutable std::size_t missCount = 0;
-
-    mutable std::string m_lastError;
-
-    template <typename ExceptionT>
-    void logErr (const std::string &errMsg, const ExceptionT &e) const
-    {
-        qCritical () << "[CacheModel]"
-                     << QString::fromStdString (errMsg).toUtf8 ().constData ()
-                     << "Exception:" << e.what ();
-        m_lastError = errMsg + " Exception:" + std::string (e.what ());
-    }
 };

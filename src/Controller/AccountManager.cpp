@@ -2,6 +2,8 @@
 #include "Controller/DbManager.h"
 #include "Model/AppSettingModel.h"
 #include "Model/UserModel.h"
+#include "Utility/AspectGuard.h"
+#include "Utility/Logging.h"
 #include "Utility/PasswordHasher.h"
 #include "Utility/Result.h"
 #include <QDir>
@@ -10,6 +12,8 @@
 #include <QRegularExpression>
 #include <QStandardPaths>
 #include <QtConcurrent/QtConcurrent>
+
+using trance::aspect::guarded;
 
 void AccountManager::logout ()
 {
@@ -26,7 +30,9 @@ void AccountManager::logout ()
 UserAuthResult AccountManager::login (const QString &username,
                                       const QString &password)
 {
-    try
+    return guarded (lcAccount, "Error during login process",
+                    UserAuthResult::UnknownError,
+                    [&]() -> UserAuthResult
     {
         if (userModel)
         {
@@ -48,11 +54,10 @@ UserAuthResult AccountManager::login (const QString &username,
                     ".json");
                 if (loadUserDataResult != UserDataResult::Success)
                 {
-                    logErr ("Failed to load user data after login",
-                            std::runtime_error (
-                                "Failed to load user data after login: " +
-                                getErrorMessage (loadUserDataResult,
-                                                 UserDataResultMessage)));
+                    qCWarning (lcAccount)
+                        << "Failed to load user data after login:"
+                        << QString::fromStdString (getErrorMessage (
+                               loadUserDataResult, UserDataResultMessage));
                 }
             }
 
@@ -60,23 +65,10 @@ UserAuthResult AccountManager::login (const QString &username,
         }
         else
         {
-            auto exception =
-                std::runtime_error ("UserModel is not set in AccountManager");
-            logErr ("UserModel not set", exception);
+            qCWarning (lcAccount) << "UserModel not set";
             return UserAuthResult::UnknownError;
         }
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Error during login process", e);
-        return UserAuthResult::UnknownError;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error during login process",
-                std::runtime_error ("Unknown exception"));
-        return UserAuthResult::UnknownError;
-    }
+    });
 }
 
 QFuture<UserAuthResult>
@@ -115,7 +107,9 @@ AccountManager::changePasswordAsync (const QString &oldPassword,
 RegisterUserResult AccountManager::registerUser (const QString &username,
                                                  const QString &password)
 {
-    try
+    return guarded (lcAccount, "Error registering user",
+                    RegisterUserResult::UnknownError,
+                    [&]() -> RegisterUserResult
     {
         password_Hash = hashPassword (password);
         auto result =
@@ -123,28 +117,14 @@ RegisterUserResult AccountManager::registerUser (const QString &username,
 
         if (result != RegisterUserResult::Success)
         {
-
-            std::string errorMsg =
-                "User registration failed: " +
-                getErrorMessage (result, RegisterUserResultMessage);
-
-            auto exception = std::runtime_error (errorMsg);
-            logErr ("User registration failed", exception);
+            qCWarning (lcAccount)
+                << "User registration failed:"
+                << QString::fromStdString (
+                       getErrorMessage (result, RegisterUserResultMessage));
         }
 
         return result;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Error registering user", e);
-        return RegisterUserResult::UnknownError;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error registering user",
-                std::runtime_error ("Unknown exception"));
-        return RegisterUserResult::UnknownError;
-    }
+    });
 }
 
 QString AccountManager::hashPassword (const QString &password)
@@ -162,9 +142,7 @@ UserDataResult AccountManager::createUserData (const QString &username)
 {
     if (userModel == nullptr)
     {
-        auto exception =
-            std::runtime_error ("UserModel is not set in AccountManager");
-        logErr ("UserModel not set", exception);
+        qCWarning (lcAccount) << "UserModel not set";
         return UserDataResult::UnknownError;
     }
 
@@ -203,13 +181,12 @@ ChangeResult AccountManager::changeUsername (const QString &newUsername)
     }
     catch (const std::exception &e)
     {
-        logErr ("Error changing username", e);
+        trance::log::logException (lcAccount, "Error changing username", e);
         return ChangeResult::DatabaseError;
     }
     catch (...)
     {
-        logErr ("Unknown error changing username",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcAccount, "Error changing username");
         return ChangeResult::UnknownError;
     }
 }
@@ -232,13 +209,12 @@ ChangeResult AccountManager::changePassword (const QString &oldPassword,
     }
     catch (const std::exception &e)
     {
-        logErr ("Error changing password", e);
+        trance::log::logException (lcAccount, "Error changing password", e);
         return ChangeResult::DatabaseError;
     }
     catch (...)
     {
-        logErr ("Unknown error changing password",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcAccount, "Error changing password");
         return ChangeResult::UnknownError;
     }
 }
@@ -259,13 +235,12 @@ ChangeResult AccountManager::changeEmail (const QString &newEmail)
     }
     catch (const std::exception &e)
     {
-        logErr ("Error changing email", e);
+        trance::log::logException (lcAccount, "Error changing email", e);
         return ChangeResult::DatabaseError;
     }
     catch (...)
     {
-        logErr ("Unknown error changing email",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcAccount, "Error changing email");
         return ChangeResult::UnknownError;
     }
 }
@@ -279,19 +254,17 @@ ChangeResult AccountManager::changeAvatar ()
 
     if (filePath.isEmpty ())
     {
-        qDebug () << "No file selected.";
+        qCDebug (lcAccount) << "No file selected.";
         return ChangeResult::NullValue;
     }
     else
     {
-        qDebug () << "Selected file:" << filePath;
+        qCDebug (lcAccount) << "Selected file:" << filePath;
     }
 
     if (!QFile::exists (filePath))
     {
-        auto exception = std::runtime_error ("Avatar file does not exist: " +
-                                             filePath.toStdString ());
-        logErr ("Avatar file not found", exception);
+        qCWarning (lcAccount) << "Avatar file not found:" << filePath;
         return ChangeResult::FileNotFound;
     }
 
@@ -302,10 +275,8 @@ ChangeResult AccountManager::changeAvatar ()
     {
         if (!dir.mkpath (avatarDir))
         {
-            auto exception =
-                std::runtime_error ("Failed to create avatar directory: " +
-                                    avatarDir.toStdString ());
-            logErr ("Failed to create avatar directory", exception);
+            qCWarning (lcAccount) << "Failed to create avatar directory:"
+                                  << avatarDir;
             return ChangeResult::DatabaseError;
         }
     }
@@ -348,10 +319,8 @@ ChangeResult AccountManager::changeAvatar ()
 
     if (!QFile::copy (filePath, newAvatarPath))
     {
-        auto exception = std::runtime_error (
-            "Failed to copy avatar file from " + filePath.toStdString () +
-            " to " + newAvatarPath.toStdString ());
-        logErr ("Failed to copy avatar file", exception);
+        qCWarning (lcAccount) << "Failed to copy avatar file from" << filePath
+                              << "to" << newAvatarPath;
         return ChangeResult::DatabaseError;
     }
 
@@ -362,7 +331,8 @@ ChangeResult AccountManager::changeAvatar ()
     {
         this->avatarPath = newAvatarPath;
         emit changeAvatarSuccessful (newAvatarPath);
-        qDebug () << "Avatar changed successfully to" << newAvatarPath;
+        qCDebug (lcAccount) << "Avatar changed successfully to"
+                            << newAvatarPath;
     }
 
     return result;
@@ -405,9 +375,8 @@ QString AccountManager::getUserUuid (const QString &username) const
 
     if (!UUID.has_value ())
     {
-        auto exception = std::runtime_error (
-            "User UUID not found for username: " + username.toStdString ());
-        logErr ("User UUID not found", exception);
+        qCWarning (lcAccount) << "User UUID not found for username:"
+                              << username;
         return QString ();
     }
 
