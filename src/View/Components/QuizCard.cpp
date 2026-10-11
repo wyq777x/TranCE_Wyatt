@@ -3,6 +3,7 @@
 #include "Controller/DbManager.h"
 #include "Controller/UIController.h"
 #include "Utility/Constants.h"
+#include "Utility/Logging.h"
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -84,7 +85,7 @@ void QuizCard::setReciteOptions (const std::vector<QString> &options)
 {
     if (options.size () < 4)
     {
-        qWarning () << "Not enough options to set in QuizCard";
+        qCWarning (lcView) << "Not enough options to set in QuizCard";
         return;
     }
 
@@ -255,8 +256,6 @@ void QuizCard::initConnections ()
                  bool isCorrect = validateAnswer (0);
                  showAnswerFeedback (0, isCorrect);
                  emit optionSelected (0, isCorrect);
-                 qDebug () << "Option A clicked - "
-                           << (isCorrect ? "Correct" : "Wrong");
              });
 
     connect (optionBButton, &QPushButton::clicked, this,
@@ -265,8 +264,6 @@ void QuizCard::initConnections ()
                  bool isCorrect = validateAnswer (1);
                  showAnswerFeedback (1, isCorrect);
                  emit optionSelected (1, isCorrect);
-                 qDebug () << "Option B clicked - "
-                           << (isCorrect ? "Correct" : "Wrong");
              });
 
     connect (optionCButton, &QPushButton::clicked, this,
@@ -275,8 +272,6 @@ void QuizCard::initConnections ()
                  bool isCorrect = validateAnswer (2);
                  showAnswerFeedback (2, isCorrect);
                  emit optionSelected (2, isCorrect);
-                 qDebug () << "Option C clicked - "
-                           << (isCorrect ? "Correct" : "Wrong");
              });
 
     connect (optionDButton, &QPushButton::clicked, this,
@@ -285,8 +280,6 @@ void QuizCard::initConnections ()
                  bool isCorrect = validateAnswer (3);
                  showAnswerFeedback (3, isCorrect);
                  emit optionSelected (3, isCorrect);
-                 qDebug () << "Option D clicked - "
-                           << (isCorrect ? "Correct" : "Wrong");
              });
 }
 
@@ -339,7 +332,7 @@ void QuizCard::onAdd2FavoritesClicked ()
 {
     if (!AccountManager::getInstance ().isLoggedIn ())
     {
-        qDebug () << "User not logged in, cannot modify favorites";
+        qCDebug (lcView) << "User not logged in, cannot modify favorites";
         return;
     }
 
@@ -348,19 +341,19 @@ void QuizCard::onAdd2FavoritesClicked ()
 
     if (userId.isEmpty () || currentWordEntry.word.isEmpty ())
     {
-        qDebug () << "Invalid user ID or word, cannot modify favorites";
+        qCDebug (lcView) << "Invalid user ID or word, cannot modify favorites";
         return;
     }
 
     if (isFavorite ())
     {
         removeFromUserFavorites (userId, currentWordEntry.word);
-        qDebug () << "Removed word from favorites:" << currentWordEntry.word;
+        qCDebug (lcView) << "Removed word from favorites:" << currentWordEntry.word;
     }
     else
     {
         addToUserFavorites (userId, currentWordEntry.word);
-        qDebug () << "Added word to favorites:" << currentWordEntry.word;
+        qCDebug (lcView) << "Added word to favorites:" << currentWordEntry.word;
     }
 
     // Update button state and tooltip
@@ -371,7 +364,7 @@ void QuizCard::onMasterButtonClicked ()
 {
     // showNextQuizCard by RecitePage
     emit masterButtonClicked ();
-    qDebug () << "Master button clicked";
+    
 
     // Add to recite history
     if (AccountManager::getInstance ().isLoggedIn ())
@@ -380,7 +373,7 @@ void QuizCard::onMasterButtonClicked ()
             AccountManager::getInstance ().getUserUuid (
                 AccountManager::getInstance ().getUsername ()),
             currentWordEntry.word);
-        qDebug () << "Added to recite history:" << currentWordEntry.word;
+        qCDebug (lcView) << "Added to recite history:" << currentWordEntry.word;
 
         // Notify that recite history has been updated
         UIController::getInstance ().notifyReciteHistoryUpdated ();
@@ -392,13 +385,13 @@ void QuizCard::onMasterButtonClicked ()
             currentWordEntry.word, 1);
         if (result != ChangeResult::Success)
         {
-            qWarning () << "Failed to update word status in database:"
+            qCWarning (lcView) << "Failed to update word status in database:"
                         << QString::fromStdString (
                             getErrorMessage (result, ChangeResultMessage));
             return;
         }
 
-        qDebug () << currentWordEntry.word << " mastered.";
+        qCDebug (lcView) << currentWordEntry.word << "mastered.";
     }
 }
 

@@ -7,6 +7,7 @@
 #include "Utility/Constants.h"
 #include "Utility/Result.h"
 #include "View/Components/AiProviderDialog.h"
+#include "Utility/Logging.h"
 #include <ElaComboBox.h>
 #include <ElaPushButton.h>
 #include <ElaToggleSwitch.h>
@@ -240,7 +241,7 @@ void SettingPage::onHistorySearchListEnabledToggled (bool enabled)
         }
         else
         {
-            qDebug ()
+            qCDebug (lcView)
                 << "History search list enabled JSON changed successfully to"
                 << enabled;
         }
@@ -351,7 +352,7 @@ void SettingPage::onLanguageChanged (int index)
         }
         else
         {
-            qDebug () << "Language changed successfully to" << selectedLanguage;
+            qCDebug (lcView) << "Language changed successfully to" << selectedLanguage;
         }
     }
 }

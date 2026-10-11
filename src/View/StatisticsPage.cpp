@@ -2,6 +2,7 @@
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
 #include "Utility/Constants.h"
+#include "Utility/Logging.h"
 #include <ElaIconButton.h>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -112,7 +113,7 @@ void StatisticsPage::refreshStatistics ()
     masteredWordsLabel->setText (tr ("Mastered Words: %1").arg (masteredCount));
     learningWordsLabel->setText (tr ("Learning Words: %1").arg (learningCount));
 
-    qDebug () << "Statistics refreshed. ";
+    qCDebug (lcView) << "Statistics refreshed.";
 }
 
 void StatisticsPage::onRefreshButtonClicked () { refreshStatistics (); }

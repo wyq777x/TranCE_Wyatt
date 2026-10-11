@@ -8,6 +8,7 @@
 #include "Utility/Result.h"
 #include "View/Components/QuizCard.h"
 #include "View/Components/WordList.h"
+#include "Utility/Logging.h"
 #include <ElaPushButton.h>
 #include <QFont>
 #include <QGraphicsBlurEffect>
@@ -98,7 +99,6 @@ void RecitePage::onReciteButtonClicked ()
 
     showNextQuizCard ();
 
-    qDebug () << "Recite button clicked";
 }
 
 void RecitePage::updateProgressUI (int current, int total)
@@ -114,7 +114,6 @@ void RecitePage::onMasterButtonClicked ()
 {
     handleQuizCardOptionSelected (-1, true);
 
-    qDebug () << "Master button clicked";
 }
 
 void RecitePage::initUI ()
@@ -292,15 +291,15 @@ void RecitePage::initConnections ()
 
                     if (result != ChangeResult::Success)
                     {
-                        qWarning ()
+                        qCWarning (lcView)
                             << "Failed to update progress in database:"
                             << QString::fromStdString (getErrorMessage (result, ChangeResultMessage));
 
                         return;
                     }
 
-                    qDebug () << "Progress updated in database:" << current
-                              << "/" << total;
+                    qCDebug (lcView) << "Progress updated in database:"
+                                     << current << "/" << total;
                 }
             }
         });
@@ -403,9 +402,9 @@ void RecitePage::handleQuizCardOptionSelected (int optionIndex, bool isCorrect)
 
     if (optionIndex >= 0) // -1 indicates master button was clicked
     {
-        qDebug () << "Answer selected for word:" << currentWordEntry.word
-                  << "Option:" << optionIndex
-                  << "Correct:" << (isCorrect ? "Yes" : "No");
+        qCDebug (lcView) << "Answer selected for word:" << currentWordEntry.word
+                         << "Option:" << optionIndex
+                         << "Correct:" << (isCorrect ? "Yes" : "No");
 
         // Learner-model signal for the AI subsystem (no-op when AI is off).
         AiEventTap::notifyQuizAnswered (currentWordEntry.word, isCorrect);
@@ -423,14 +422,14 @@ void RecitePage::handleQuizCardOptionSelected (int optionIndex, bool isCorrect)
 
                 if (result == ChangeResult::Success)
                 {
-                    qDebug ()
-                        << "Word status updated in database:"
-                        << currentWordEntry.word
-                        << "Status:" << (isCorrect ? "mastered" : "learning");
+                    qCDebug (lcView) << "Word status updated in database:"
+                                     << currentWordEntry.word
+                                     << "Status:"
+                                     << (isCorrect ? "mastered" : "learning");
                 }
                 else
                 {
-                    qWarning ()
+                    qCWarning (lcView)
                         << "Failed to update word status in database:"
                         << QString::fromStdString (getErrorMessage (result, ChangeResultMessage));
                 }
@@ -439,17 +438,17 @@ void RecitePage::handleQuizCardOptionSelected (int optionIndex, bool isCorrect)
 
         if (isCorrect)
         {
-            qDebug () << "Correct answer! Well done!";
+            qCDebug (lcView) << "Correct answer! Well done!";
         }
         else
         {
-            qDebug () << "Wrong answer. The correct answer was:"
-                      << currentWordEntry.translation;
+            qCDebug (lcView) << "Wrong answer. The correct answer was:"
+                             << currentWordEntry.translation;
         }
     }
     else
     {
-        qDebug () << "Word marked as mastered:" << currentWordEntry.word;
+        qCDebug (lcView) << "Word marked as mastered:" << currentWordEntry.word;
     }
 
     currentCardIndex++;
@@ -557,7 +556,6 @@ void RecitePage::onFavoritesWidgetClicked ()
 
     wordList->show ();
 
-    qDebug () << "Favorites widget clicked.";
 }
 
 void RecitePage::onMasteredWidgetClicked ()
@@ -584,5 +582,4 @@ void RecitePage::onMasteredWidgetClicked ()
 
     wordList->show ();
 
-    qDebug () << "Mastered widget clicked.";
 }

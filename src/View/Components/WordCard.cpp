@@ -2,6 +2,7 @@
 #include "Controller/AccountManager.h"
 #include "Controller/DbManager.h"
 #include "Utility/Constants.h"
+#include "Utility/Logging.h"
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -206,7 +207,7 @@ void WordCard::onAdd2FavoritesClicked ()
 {
     if (!AccountManager::getInstance ().isLoggedIn ())
     {
-        qDebug () << "User not logged in, cannot modify favorites";
+        qCDebug (lcView) << "User not logged in, cannot modify favorites";
         return;
     }
 
@@ -215,19 +216,19 @@ void WordCard::onAdd2FavoritesClicked ()
 
     if (userId.isEmpty () || currentWordEntry.word.isEmpty ())
     {
-        qDebug () << "Invalid user ID or word, cannot modify favorites";
+        qCDebug (lcView) << "Invalid user ID or word, cannot modify favorites";
         return;
     }
 
     if (isFavorite ())
     {
         removeFromUserFavorites (userId, currentWordEntry.word);
-        qDebug () << "Removed word from favorites:" << currentWordEntry.word;
+        qCDebug (lcView) << "Removed word from favorites:" << currentWordEntry.word;
     }
     else
     {
         addToUserFavorites (userId, currentWordEntry.word);
-        qDebug () << "Added word to favorites:" << currentWordEntry.word;
+        qCDebug (lcView) << "Added word to favorites:" << currentWordEntry.word;
     }
 
     // Update button state and tooltip

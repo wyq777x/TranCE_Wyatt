@@ -1,5 +1,6 @@
 #include "TempPage.h"
 #include "Utility/Constants.h"
+#include "Utility/Logging.h"
 #include <ElaLineEdit.h>
 #include <ElaPushButton.h>
 #include <QDebug>
@@ -171,11 +172,11 @@ void TempPage::showDialog (const QString &title, const QString &message,
 
     if (confirmDialog->exec () == QDialog::Accepted)
     {
-        qDebug () << "User confirmed action.";
+        qCDebug (lcView) << "User confirmed action.";
     }
     else
     {
-        qDebug () << "User canceled action.";
+        qCDebug (lcView) << "User canceled action.";
     }
 }
 
