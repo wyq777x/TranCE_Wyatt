@@ -63,11 +63,17 @@ public:
 
     // Async GET {baseUrl}/models with Bearer auth. On success, models
     // contains the reported model ids (chat-capable ones are not filtered
-    // here; callers pick). Runs callback on this object's thread.
+    // here; callers pick).
+    //
+    // `context` owns the pending request and is used as the connection's
+    // receiver: destroying it (e.g. a dialog closing while the request is
+    // still in flight) removes the connection instead of invoking `callback`
+    // with a dangling capture. Pick the object whose thread the callback
+    // should run on; it must outlive the request.
     using TestCallback = std::function<void (
         bool ok, const QString &errorMessage, const QStringList &models)>;
     void testConnection (const QString &baseUrl, const QString &apiKey,
-                         TestCallback callback);
+                         TestCallback callback, QObject *context);
 
 private:
     explicit AiProviderManager () = default;

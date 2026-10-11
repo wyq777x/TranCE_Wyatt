@@ -112,7 +112,12 @@ public:
     importWordEntriesAsync (const std::vector<WordEntry> &wordEntries);
 
     // import multiple WordEntry from file
-
+    //
+    // The import runs on a detached background thread that may outlive the
+    // caller (and even start shutting down the app). `progressCallback` is
+    // invoked from that thread, so it must not capture UI objects or
+    // `this` of a widget: only capture values / shared state that is safe
+    // to touch off the GUI thread.
     AsyncTask<void> importFromFileAsync (
         const QString &filePath,
         std::function<void (int, int)> progressCallback = nullptr);

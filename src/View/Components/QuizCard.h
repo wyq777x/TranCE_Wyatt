@@ -20,7 +20,12 @@ class QuizCard : public TempPage
 public:
     static QuizCard *getInstance (QWidget *parent = nullptr)
     {
-        static QuizCard instance (parent);
+        // Process-wide singleton: it must never be owned by a transient
+        // parent, or the first caller's widget destruction would delete it
+        // and leave this static pointer dangling. The parameter is kept for
+        // call-site compatibility but deliberately ignored.
+        Q_UNUSED (parent);
+        static QuizCard instance (nullptr);
         return &instance;
     }
 

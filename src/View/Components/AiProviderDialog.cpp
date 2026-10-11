@@ -38,7 +38,9 @@ void AiProviderDialog::initUI ()
     const QFont labelFont (Constants::Settings::DEFAULT_FONT_FAMILY,
                            Constants::Settings::DEFAULT_FONT_SIZE);
 
-    auto makeLabel = [this, &labelFont] (const QString &text)
+    // Capture the font by value: a reference capture would dangle if this
+    // helper were ever stored or used past the end of initUI().
+    auto makeLabel = [this, labelFont] (const QString &text)
     {
         QLabel *label = new QLabel (text, this);
         label->setFont (labelFont);
@@ -156,7 +158,11 @@ void AiProviderDialog::onTestConnectionClicked ()
                     m_embeddingModelCombo->addItem (model);
                 }
             }
-        });
+        },
+        // `this` owns the in-flight request: if the dialog is closed before
+        // the reply arrives, the connection is dropped and the callback is
+        // never invoked on a destroyed dialog.
+        this);
 }
 
 AiProviderConfig AiProviderDialog::config () const

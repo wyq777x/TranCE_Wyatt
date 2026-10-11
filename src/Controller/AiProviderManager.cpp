@@ -116,7 +116,8 @@ AiProviderManager::resolveActiveProvider (const QString &userId) const
 
 void AiProviderManager::testConnection (const QString &baseUrl,
                                         const QString &apiKey,
-                                        TestCallback callback)
+                                        TestCallback callback,
+                                        QObject *context)
 {
     QString normalized = baseUrl;
 
@@ -137,11 +138,18 @@ void AiProviderManager::testConnection (const QString &baseUrl,
 
     QNetworkReply *reply = m_nam.get (request);
 
-    connect (reply, &QNetworkReply::finished, this,
+    // Always release the reply once it is done, even if `context` was
+    // destroyed first (in which case the callback below is never invoked).
+    // Queued deletion, so the callback still sees a live reply.
+    connect (reply, &QNetworkReply::finished, reply,
+             &QNetworkReply::deleteLater);
+
+    // The callback connection is owned by `context`, not by this singleton,
+    // so it is dropped as soon as the caller's object (e.g. the dialog that
+    // issued the test) is destroyed.
+    connect (reply, &QNetworkReply::finished, context,
              [reply, callback] ()
              {
-                 reply->deleteLater ();
-
                  if (reply->error () != QNetworkReply::NoError)
                  {
                      callback (false, reply->errorString (), {});
