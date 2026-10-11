@@ -1,4 +1,5 @@
 #include "SettingManager.h"
+#include "Utility/Logging.h"
 
 void SettingManager::initConnections ()
 {
@@ -32,5 +33,5 @@ void SettingManager::onLanguageChanged (const QString &lang)
 {
     // Building...
 
-    qDebug () << "Language Pack" << lang << "loaded";
+    qCDebug (lcSettings) << "Language Pack" << lang << "loaded";
 }

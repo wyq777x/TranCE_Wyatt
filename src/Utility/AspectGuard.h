@@ -10,6 +10,9 @@ namespace trance::aspect
 {
 using trance::log::CategoryFn;
 
+// Minimum duration (ms) for the timing advice to log a successful call.
+constexpr qint64 kTimingThresholdMs = 10;
+
 // ---------------------------------------------------------------------------
 // Around-advice primitives: weave exception logging + fallback conversion +
 // optional timing around a callable, replacing the hand-written
@@ -33,6 +36,8 @@ template <typename R, typename F>
 R
 guarded (CategoryFn cat, const char *op, R fallback, F &&fn)
 {
+  // Timing advice: emit only for non-trivial durations so hot short queries
+  // do not flood the debug log when trance.*.debug is enabled.
   const bool wantTiming = cat ().isDebugEnabled ();
   QElapsedTimer timer;
   if (wantTiming)
@@ -40,7 +45,7 @@ guarded (CategoryFn cat, const char *op, R fallback, F &&fn)
   try
     {
       R result = fn ();
-      if (wantTiming)
+      if (wantTiming && timer.elapsed () >= kTimingThresholdMs)
         qCDebug (cat) << op << "took" << timer.elapsed () << "ms";
       return result;
     }
@@ -60,6 +65,8 @@ template <typename F>
 void
 guarded (CategoryFn cat, const char *op, F &&fn)
 {
+  // Timing advice: emit only for non-trivial durations so hot short queries
+  // do not flood the debug log when trance.*.debug is enabled.
   const bool wantTiming = cat ().isDebugEnabled ();
   QElapsedTimer timer;
   if (wantTiming)
@@ -67,7 +74,7 @@ guarded (CategoryFn cat, const char *op, F &&fn)
   try
     {
       fn ();
-      if (wantTiming)
+      if (wantTiming && timer.elapsed () >= kTimingThresholdMs)
         qCDebug (cat) << op << "took" << timer.elapsed () << "ms";
     }
   catch (const std::exception &e)
@@ -87,6 +94,8 @@ template <typename F>
 void
 guardedRethrow (CategoryFn cat, const char *op, F &&fn)
 {
+  // Timing advice: emit only for non-trivial durations so hot short queries
+  // do not flood the debug log when trance.*.debug is enabled.
   const bool wantTiming = cat ().isDebugEnabled ();
   QElapsedTimer timer;
   if (wantTiming)
@@ -94,7 +103,7 @@ guardedRethrow (CategoryFn cat, const char *op, F &&fn)
   try
     {
       fn ();
-      if (wantTiming)
+      if (wantTiming && timer.elapsed () >= kTimingThresholdMs)
         qCDebug (cat) << op << "took" << timer.elapsed () << "ms";
     }
   catch (...)

@@ -118,7 +118,7 @@ void DbModel::initDBs ()
 
 void DbModel::initUserTable ()
 {
-    guarded (lcDb, "Error creating user table", [&]
+    guarded (lcDb, "creating user table", [&]
     {
         d->user_db->exec ("PRAGMA journal_mode = WAL");
         d->user_db->exec ("PRAGMA synchronous = NORMAL");
@@ -229,7 +229,7 @@ void DbModel::initUserTable ()
 
 void DbModel::initDictTable ()
 {
-    guarded (lcDb, "Error creating dictionary table", [&]
+    guarded (lcDb, "creating dictionary table", [&]
     {
         d->dict_db->exec ("PRAGMA journal_mode = WAL");
         d->dict_db->exec ("PRAGMA synchronous = NORMAL");
@@ -531,7 +531,7 @@ bool DbModel::userExists (const QString &username) const
         return false;
     }
 
-    return guarded (lcDb, "Error checking if user exists", false, [&]
+    return guarded (lcDb, "checking if user exists", false, [&]
     {
         SQLite::Statement query (
             *d->user_db, "SELECT COUNT(*) FROM users WHERE username = ?");
@@ -549,7 +549,7 @@ bool DbModel::userIdExists (const QString &userId) const
         return false;
     }
 
-    return guarded (lcDb, "Error checking if user exists", false, [&]
+    return guarded (lcDb, "checking if user exists", false, [&]
     {
         SQLite::Statement query (
             *d->user_db, "SELECT COUNT(*) FROM users WHERE user_id = ?");
@@ -692,7 +692,7 @@ void DbModel::deleteUser (const QString &username)
         return;
     }
 
-    guarded (lcDb, "Error deleting user from database", [&]
+    guarded (lcDb, "deleting user from database", [&]
     {
         SQLite::Statement query (*d->user_db,
                                  "DELETE FROM users WHERE username = ?");
@@ -1011,7 +1011,7 @@ std::optional<QString> DbModel::getUserId (const QString &username) const
         return std::nullopt;
     }
 
-    return guarded (lcDb, "Error getting user ID from database",
+    return guarded (lcDb, "getting user ID from database",
                     std::optional<QString>{},
                     [&]() -> std::optional<QString>
     {
@@ -1042,7 +1042,7 @@ std::optional<QString> DbModel::getUserName (const QString &userId) const
         return std::nullopt;
     }
 
-    return guarded (lcDb, "Error getting username from database",
+    return guarded (lcDb, "getting username from database",
                     std::optional<QString>{},
                     [&]() -> std::optional<QString>
     {
@@ -1073,7 +1073,7 @@ QString DbModel::getUserPasswordHash (const QString &username) const
         return QString ();
     }
 
-    return guarded (lcDb, "Error getting user password hash from database",
+    return guarded (lcDb, "getting user password hash from database",
                     QString{}, [&]() -> QString
     {
         SQLite::Statement query (
@@ -1103,7 +1103,7 @@ QString DbModel::getUserEmail (const QString &username) const
         return QString ();
     }
 
-    return guarded (lcDb, "Error getting user email from database",
+    return guarded (lcDb, "getting user email from database",
                     QString{}, [&]() -> QString
     {
         SQLite::Statement query (*d->user_db,
@@ -1141,7 +1141,7 @@ QString DbModel::getUserAvatarPath (const QString &username) const
         return fallbackAvatar;
     }
 
-    return guarded (lcDb, "Error getting user avatar path from database",
+    return guarded (lcDb, "getting user avatar path from database",
                     fallbackAvatar, [&]() -> QString
     {
         SQLite::Statement query (
@@ -1171,7 +1171,7 @@ DbModel::getAiProviders (const QString &userId)
         return {};
     }
 
-    return guarded (lcDb, "Error getting AI providers",
+    return guarded (lcDb, "getting AI providers",
                     std::vector<AiProviderConfig>{},
                     [&]() -> std::vector<AiProviderConfig>
     {
@@ -1237,7 +1237,7 @@ ChangeResult DbModel::upsertAiProvider (const QString &userId,
         return ChangeResult::InvalidInput;
     }
 
-    return guarded (lcDb, "Error upserting AI provider",
+    return guarded (lcDb, "upserting AI provider",
                     ChangeResult::DatabaseError, [&]() -> ChangeResult
     {
         SQLite::Transaction transaction (*d->user_db);
@@ -1309,7 +1309,7 @@ ChangeResult DbModel::deleteAiProvider (const QString &userId,
         return ChangeResult::DatabaseError;
     }
 
-    return guarded (lcDb, "Error deleting AI provider",
+    return guarded (lcDb, "deleting AI provider",
                     ChangeResult::DatabaseError, [&]() -> ChangeResult
     {
         SQLite::Statement query (*d->user_db,
@@ -1331,7 +1331,7 @@ ChangeResult DbModel::setActiveAiProvider (const QString &userId,
         return ChangeResult::DatabaseError;
     }
 
-    return guarded (lcDb, "Error activating AI provider",
+    return guarded (lcDb, "activating AI provider",
                     ChangeResult::DatabaseError, [&]() -> ChangeResult
     {
         SQLite::Transaction transaction (*d->user_db);
@@ -1549,7 +1549,7 @@ void DbModel::importFromFileSync (
         return;
     }
 
-    guarded (lcDb, "Error importing from file", [&]
+    guarded (lcDb, "importing from file", [&]
     {
         importFromFileSyncInternal (*d->dict_db, filePath, progressCallback);
         clearWordLookupCache ();
@@ -1569,7 +1569,7 @@ void DbModel::insertWordBatchSync (const std::vector<WordEntry> &batch)
         return;
     }
 
-    guardedRethrow (lcDb, "Error in batch insert", [&]
+    guardedRethrow (lcDb, "batch insert", [&]
     {
         insertWordBatchSyncInternal (*d->dict_db, batch);
         clearWordLookupCache ();
@@ -1584,7 +1584,7 @@ AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
         co_return;
     }
 
-    guardedRethrow (lcDb, "Error in batch insert", [&]
+    guardedRethrow (lcDb, "batch insert", [&]
     {
         SQLite::Statement wordsStmt (
             *d->dict_db,
@@ -1650,7 +1650,7 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
         return std::nullopt; // Unsupported language
     }
 
-    return guarded (lcDb, "Error looking up word in database",
+    return guarded (lcDb, "looking up word in database",
                     std::optional<WordEntry>{},
                     [&]() -> std::optional<WordEntry>
     {
@@ -1789,7 +1789,7 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
         return std::vector<WordEntry> (); // Invalid limit
     }
 
-    return guarded (lcDb, "Error searching words in database",
+    return guarded (lcDb, "searching words in database",
                     std::vector<WordEntry>{},
                     [&]() -> std::vector<WordEntry>
     {
@@ -1923,7 +1923,7 @@ void DbModel::addToUserFavorites (const QString &userId, const QString &word)
         return;
     }
 
-    guarded (lcDb, "Error adding word to favorites", [&]
+    guarded (lcDb, "adding word to favorites", [&]
     {
         SQLite::Statement query (
             *d->user_db,
@@ -1949,7 +1949,7 @@ void DbModel::removeFromUserFavorites (const QString &userId,
         return;
     }
 
-    guarded (lcDb, "Error removing word from favorites", [&]
+    guarded (lcDb, "removing word from favorites", [&]
     {
         SQLite::Statement query (
             *d->user_db,
@@ -1973,7 +1973,7 @@ bool DbModel::isWordFavorited (const QString &userId, const QString &word) const
         return false;
     }
 
-    return guarded (lcDb, "Error checking if word is favorited", false, [&]
+    return guarded (lcDb, "checking if word is favorited", false, [&]
     {
         SQLite::Statement query (*d->user_db,
                                  "SELECT COUNT(*) FROM user_favorites WHERE "
@@ -1994,7 +1994,7 @@ bool DbModel::existsInMastered (const QString &userId,
         return false;
     }
 
-    return guarded (lcDb, "Error checking if word is mastered", false, [&]
+    return guarded (lcDb, "checking if word is mastered", false, [&]
     {
         SQLite::Statement query (*d->user_db,
                                  "SELECT COUNT(*) FROM user_vocabulary WHERE "
@@ -2093,7 +2093,7 @@ std::vector<QString> DbModel::getUserVocabulary (const QString &userId,
         return std::vector<QString> (); // Invalid status
     }
 
-    return guarded (lcDb, "Error getting user vocabulary from database",
+    return guarded (lcDb, "getting user vocabulary from database",
                     std::vector<QString>{}, [&]() -> std::vector<QString>
     {
         std::vector<QString> vocabularies;
@@ -2152,7 +2152,7 @@ std::vector<QString> DbModel::getUserFavorites (const QString &userId)
         return std::vector<QString> (); // Invalid input
     }
 
-    return guarded (lcDb, "Error getting user favorites from database",
+    return guarded (lcDb, "getting user favorites from database",
                     std::vector<QString>{}, [&]() -> std::vector<QString>
     {
         std::vector<QString> favorites;
@@ -2178,7 +2178,7 @@ std::optional<WordEntry> DbModel::getRandomWord ()
         return std::nullopt;
     }
 
-    return guarded (lcDb, "Error getting random word from database",
+    return guarded (lcDb, "getting random word from database",
                     std::optional<WordEntry>{},
                     [&]() -> std::optional<WordEntry>
     {
@@ -2409,7 +2409,7 @@ void DbModel::addToSearchHistory (const QString &userId, const QString &word)
         return;
     }
 
-    guarded (lcDb, "Error adding to search history", [&]
+    guarded (lcDb, "adding to search history", [&]
     {
         SQLite::Statement query (*d->user_db,
                                  "INSERT INTO user_search_history (user_id, "
@@ -2431,7 +2431,7 @@ void DbModel::removeFromSearchHistory (const QString &userId,
         return;
     }
 
-    guarded (lcDb, "Error removing from search history", [&]
+    guarded (lcDb, "removing from search history", [&]
     {
         SQLite::Statement query (
             *d->user_db, "DELETE FROM user_search_history WHERE user_id = ? "
@@ -2450,7 +2450,7 @@ void DbModel::addToReciteHistory (const QString &userId, const QString &word)
         return;
     }
 
-    guarded (lcDb, "Error adding to recite history", [&]
+    guarded (lcDb, "adding to recite history", [&]
     {
         SQLite::Statement query (
             *d->user_db,
@@ -2473,7 +2473,7 @@ void DbModel::removeFromReciteHistory (const QString &userId,
         return;
     }
 
-    guarded (lcDb, "Error removing from recite history", [&]
+    guarded (lcDb, "removing from recite history", [&]
     {
         SQLite::Statement query (
             *d->user_db, "DELETE FROM user_recite_history WHERE user_id = ? "
@@ -2627,7 +2627,7 @@ DbModel::getRandomWrongTranslations (const QString &correctTranslation,
         return std::vector<QString> ();
     }
 
-    return guarded (lcDb, "Error preparing query for wrong translations",
+    return guarded (lcDb, "preparing query for wrong translations",
                     std::vector<QString>{}, [&]() -> std::vector<QString>
     {
         SQLite::Statement countQuery (

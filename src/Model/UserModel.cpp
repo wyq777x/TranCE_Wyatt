@@ -161,7 +161,7 @@ ValidationResult UserModel::validateUserData (const QJsonObject &userData)
 
 UserDataResult UserModel::loadUserData (const QString &userProfile)
 {
-    return guarded (lcUser, "Error loading user data",
+    return guarded (lcUser, "loading user data",
                     UserDataResult::UnknownError,
                     [&]() -> UserDataResult
     {
@@ -266,7 +266,7 @@ UserDataResult UserModel::createUserData (
     const QString &username,
     const IUserProfileContextProvider &profileContextProvider)
 {
-    return guarded (lcUser, "Error creating user data",
+    return guarded (lcUser, "creating user data",
                     UserDataResult::UnknownError,
                     [&]() -> UserDataResult
     {

@@ -30,7 +30,7 @@ void AccountManager::logout ()
 UserAuthResult AccountManager::login (const QString &username,
                                       const QString &password)
 {
-    return guarded (lcAccount, "Error during login process",
+    return guarded (lcAccount, "during login process",
                     UserAuthResult::UnknownError,
                     [&]() -> UserAuthResult
     {
@@ -107,7 +107,7 @@ AccountManager::changePasswordAsync (const QString &oldPassword,
 RegisterUserResult AccountManager::registerUser (const QString &username,
                                                  const QString &password)
 {
-    return guarded (lcAccount, "Error registering user",
+    return guarded (lcAccount, "registering user",
                     RegisterUserResult::UnknownError,
                     [&]() -> RegisterUserResult
     {
