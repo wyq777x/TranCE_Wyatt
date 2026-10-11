@@ -33,7 +33,7 @@ template <typename R, typename F>
 R
 guarded (CategoryFn cat, const char *op, R fallback, F &&fn)
 {
-  const bool wantTiming = cat ()->isDebugEnabled ();
+  const bool wantTiming = cat ().isDebugEnabled ();
   QElapsedTimer timer;
   if (wantTiming)
     timer.start ();
@@ -60,7 +60,7 @@ template <typename F>
 void
 guarded (CategoryFn cat, const char *op, F &&fn)
 {
-  const bool wantTiming = cat ()->isDebugEnabled ();
+  const bool wantTiming = cat ().isDebugEnabled ();
   QElapsedTimer timer;
   if (wantTiming)
     timer.start ();
@@ -87,7 +87,7 @@ template <typename F>
 void
 guardedRethrow (CategoryFn cat, const char *op, F &&fn)
 {
-  const bool wantTiming = cat ()->isDebugEnabled ();
+  const bool wantTiming = cat ().isDebugEnabled ();
   QElapsedTimer timer;
   if (wantTiming)
     timer.start ();

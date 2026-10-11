@@ -149,8 +149,6 @@ public:
 
     std::vector<QString> getUserFavorites (const QString &userId);
 
-    std::string getLastError () const;
-
     std::optional<WordEntry> getRandomWord ();
 
     void addToSearchHistory (const QString &userId, const QString &word);
@@ -187,8 +185,6 @@ private:
 
     void initUserTable ();
     void initDictTable ();
-
-    void logErr (const std::string &errMsg, const std::exception &e) const;
 
     static QString resolveResourcePath (const QString &relativePath);
 

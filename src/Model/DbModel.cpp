@@ -6,7 +6,9 @@
 #include "SQLiteCpp/SQLiteCpp.h"
 #include "SQLiteCpp/Statement.h"
 #include "SQLiteCpp/Transaction.h"
+#include "Utility/AspectGuard.h"
 #include "Utility/Constants.h"
+#include "Utility/Logging.h"
 #include "Utility/PasswordHasher.h"
 #include "Utility/Result.h"
 #include <QCoreApplication>
@@ -22,6 +24,9 @@
 #include <thread>
 #include <unordered_set>
 
+using trance::aspect::guarded;
+using trance::aspect::guardedRethrow;
+
 struct DbModel::Impl
 {
     struct DictionaryImportState
@@ -33,7 +38,6 @@ struct DbModel::Impl
     std::unique_ptr<SQLite::Database> user_db;
     std::unique_ptr<SQLite::Database> dict_db;
     CacheModel<WordEntry> m_wordLookupCache;
-    mutable std::string m_lastError;
     bool m_needsDictImport = false;
     std::shared_ptr<DictionaryImportState> m_dictImportState;
 
@@ -114,7 +118,7 @@ void DbModel::initDBs ()
 
 void DbModel::initUserTable ()
 {
-    try
+    guarded (lcDb, "Error creating user table", [&]
     {
         d->user_db->exec ("PRAGMA journal_mode = WAL");
         d->user_db->exec ("PRAGMA synchronous = NORMAL");
@@ -220,25 +224,12 @@ void DbModel::initUserTable ()
                 "ON user_vocabulary(user_id, status);");
             migration.commit ();
         }
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error creating user table", e);
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error creating user table", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error creating user table",
-                std::runtime_error ("Unknown exception"));
-    }
+    });
 }
 
 void DbModel::initDictTable ()
 {
-    try
+    guarded (lcDb, "Error creating dictionary table", [&]
     {
         d->dict_db->exec ("PRAGMA journal_mode = WAL");
         d->dict_db->exec ("PRAGMA synchronous = NORMAL");
@@ -296,29 +287,7 @@ void DbModel::initDictTable ()
             d->dict_db->exec ("CREATE INDEX IF NOT EXISTS idx_examples_word ON "
                               "examples(word);");
         }
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error creating dictionary table", e);
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error creating dictionary table", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error creating dictionary table",
-                std::runtime_error ("Unknown exception"));
-    }
-}
-
-std::string DbModel::getLastError () const { return d->m_lastError; }
-
-void DbModel::logErr (const std::string &errMsg, const std::exception &e) const
-{
-    qCritical () << "[DbModel]" << QString::fromStdString (errMsg)
-                 << "Exception:" << e.what ();
-    d->m_lastError = errMsg + " Exception:" + std::string (e.what ());
+    });
 }
 
 bool DbModel::isUserDbOpen () const
@@ -391,18 +360,10 @@ void DbModel::refreshDictImportRequirement ()
             d->m_dictImportState->ready.store (!d->m_needsDictImport);
         }
     }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error refreshing dictionary import state", e);
-        d->m_needsDictImport = true;
-        if (d->m_dictImportState != nullptr)
-        {
-            d->m_dictImportState->ready.store (false);
-        }
-    }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error refreshing dictionary import state", e);
+        trance::log::logException (
+            lcDb, "Error refreshing dictionary import state", e);
         d->m_needsDictImport = true;
         if (d->m_dictImportState != nullptr)
         {
@@ -411,8 +372,8 @@ void DbModel::refreshDictImportRequirement ()
     }
     catch (...)
     {
-        logErr ("Unknown error refreshing dictionary import state",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (
+            lcDb, "Error refreshing dictionary import state");
         d->m_needsDictImport = true;
         if (d->m_dictImportState != nullptr)
         {
@@ -566,70 +527,36 @@ bool DbModel::userExists (const QString &username) const
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return false;
     }
 
-    try
+    return guarded (lcDb, "Error checking if user exists", false, [&]
     {
         SQLite::Statement query (
             *d->user_db, "SELECT COUNT(*) FROM users WHERE username = ?");
         query.bind (1, username.toStdString ());
         query.executeStep ();
         return query.getColumn (0).getInt () > 0;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error checking if user exists", e);
-        return false;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error checking if user exists", e);
-        return false;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error checking if user exists",
-                std::runtime_error ("Unknown exception"));
-        return false;
-    }
+    });
 }
 
 bool DbModel::userIdExists (const QString &userId) const
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return false;
     }
 
-    try
+    return guarded (lcDb, "Error checking if user exists", false, [&]
     {
         SQLite::Statement query (
             *d->user_db, "SELECT COUNT(*) FROM users WHERE user_id = ?");
         query.bind (1, userId.toStdString ());
         query.executeStep ();
         return query.getColumn (0).getInt () > 0;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error checking if user exists", e);
-        return false;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error checking if user exists", e);
-        return false;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error checking if user exists",
-                std::runtime_error ("Unknown exception"));
-        return false;
-    }
+    });
 }
 
 RegisterUserResult DbModel::registerUser (const QString &username,
@@ -667,18 +594,20 @@ RegisterUserResult DbModel::registerUser (const QString &username,
     }
     catch (const SQLite::Exception &e)
     {
-        instance.logErr ("Error inserting user into database", e);
+        trance::log::logException (lcDb, "Error inserting user into database",
+                                   e);
         return RegisterUserResult::DatabaseError;
     }
     catch (const std::exception &e)
     {
-        instance.logErr ("Unknown error inserting user into database", e);
+        trance::log::logException (lcDb, "Error inserting user into database",
+                                   e);
         return RegisterUserResult::UnknownError;
     }
     catch (...)
     {
-        instance.logErr ("Unknown error inserting user into database",
-                         std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcDb,
+                                          "Error inserting user into database");
         return RegisterUserResult::UnknownError;
     }
 }
@@ -717,9 +646,10 @@ UserAuthResult DbModel::verifyUser (const QString &username,
                         updateQuery.bind (2, username.toStdString ());
                         updateQuery.exec ();
                     }
-                    catch (const SQLite::Exception &e)
+                    catch (const std::exception &e)
                     {
-                        logErr ("Failed to upgrade legacy password hash", e);
+                        trance::log::logException (
+                            lcDb, "Failed to upgrade legacy password hash", e);
                     }
                 }
                 return UserAuthResult::Success;
@@ -736,18 +666,20 @@ UserAuthResult DbModel::verifyUser (const QString &username,
     }
     catch (const SQLite::Exception &e)
     {
-        logErr ("Error verifying user in database", e);
+        trance::log::logException (lcDb, "Error verifying user in database",
+                                   e);
         return UserAuthResult::StorageError;
     }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error verifying user in database", e);
+        trance::log::logException (lcDb, "Error verifying user in database",
+                                   e);
         return UserAuthResult::UnknownError;
     }
     catch (...)
     {
-        logErr ("Unknown error verifying user in database",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcDb,
+                                          "Error verifying user in database");
         return UserAuthResult::UnknownError;
     }
 }
@@ -756,31 +688,17 @@ void DbModel::deleteUser (const QString &username)
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return;
     }
 
-    try
+    guarded (lcDb, "Error deleting user from database", [&]
     {
         SQLite::Statement query (*d->user_db,
                                  "DELETE FROM users WHERE username = ?");
         query.bind (1, username.toStdString ());
         query.exec ();
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error deleting user from database", e);
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error deleting user from database", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error deleting user from database",
-                std::runtime_error ("Unknown exception"));
-    }
+    });
 }
 
 ChangeResult DbModel::updateUserPassword (const QString &username,
@@ -832,18 +750,20 @@ ChangeResult DbModel::updateUserPassword (const QString &username,
     }
     catch (const SQLite::Exception &e)
     {
-        logErr ("Error updating user password in database", e);
+        trance::log::logException (
+            lcDb, "Error updating user password in database", e);
         return ChangeResult::DatabaseError;
     }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error updating user password in database", e);
+        trance::log::logException (
+            lcDb, "Error updating user password in database", e);
         return ChangeResult::UnknownError;
     }
     catch (...)
     {
-        logErr ("Unknown error updating user password in database",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (
+            lcDb, "Error updating user password in database");
         return ChangeResult::UnknownError;
     }
 }
@@ -889,18 +809,20 @@ ChangeResult DbModel::changeUsername (const QString &oldUsername,
     }
     catch (const SQLite::Exception &e)
     {
-        logErr ("Error changing username in database", e);
+        trance::log::logException (lcDb, "Error changing username in database",
+                                   e);
         return ChangeResult::DatabaseError;
     }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error changing username in database", e);
+        trance::log::logException (lcDb, "Error changing username in database",
+                                   e);
         return ChangeResult::UnknownError;
     }
     catch (...)
     {
-        logErr ("Unknown error changing username in database",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcDb,
+                                          "Error changing username in database");
         return ChangeResult::UnknownError;
     }
 }
@@ -941,18 +863,18 @@ ChangeResult DbModel::changeEmail (const QString &username,
     }
     catch (const SQLite::Exception &e)
     {
-        logErr ("Error changing username in database", e);
+        trance::log::logException (lcDb, "Error changing email in database", e);
         return ChangeResult::DatabaseError;
     }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error changing username in database", e);
+        trance::log::logException (lcDb, "Error changing email in database", e);
         return ChangeResult::UnknownError;
     }
     catch (...)
     {
-        logErr ("Unknown error changing username in database",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcDb,
+                                          "Error changing email in database");
         return ChangeResult::UnknownError;
     }
 }
@@ -978,8 +900,7 @@ ChangeResult DbModel::changeAvatar (const QString &username,
     {
         if (!avatarDir.mkpath ("."))
         {
-            logErr ("Failed to create avatar directory",
-                    std::runtime_error ("Directory creation failed"));
+            qCWarning (lcDb) << "Failed to create avatar directory";
             return ChangeResult::DatabaseError;
         }
     }
@@ -1001,18 +922,18 @@ ChangeResult DbModel::changeAvatar (const QString &username,
     }
     catch (const SQLite::Exception &e)
     {
-        logErr ("Error changing user avatar in database", e);
+        trance::log::logException (lcDb, "Error changing user avatar in database", e);
         return ChangeResult::DatabaseError;
     }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error changing user avatar in database", e);
+        trance::log::logException (lcDb, "Error changing user avatar in database", e);
         return ChangeResult::UnknownError;
     }
     catch (...)
     {
-        logErr ("Unknown error changing user avatar in database",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (
+            lcDb, "Error changing user avatar in database");
         return ChangeResult::UnknownError;
     }
 }
@@ -1027,14 +948,13 @@ ChangeResult DbModel::updateReciteProgress (int current, int total,
 
     if (current < 0 || total <= 0 || current > total)
     {
-        logErr ("Invalid progress values",
-                std::runtime_error ("Current or total progress is invalid"));
+        qCWarning (lcDb) << "Invalid progress values";
         return ChangeResult::InvalidInput;
     }
 
     if (userId.isEmpty ())
     {
-        logErr ("User ID is empty", std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "User ID is empty";
         return ChangeResult::NullValue;
     }
 
@@ -1051,8 +971,7 @@ ChangeResult DbModel::updateReciteProgress (int current, int total,
 
         if (query.getChanges () == 0 && !userIdExists (userId))
         {
-            logErr ("No changes made to user progress",
-                    std::runtime_error ("User ID not found or no changes"));
+            qCWarning (lcDb) << "No changes made to user progress";
             return ChangeResult::DatabaseError;
         }
 
@@ -1060,18 +979,20 @@ ChangeResult DbModel::updateReciteProgress (int current, int total,
     }
     catch (const SQLite::Exception &e)
     {
-        logErr ("Error updating recite progress in database", e);
+        trance::log::logException (
+            lcDb, "Error updating recite progress in database", e);
         return ChangeResult::DatabaseError;
     }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error updating recite progress in database", e);
+        trance::log::logException (
+            lcDb, "Error updating recite progress in database", e);
         return ChangeResult::UnknownError;
     }
     catch (...)
     {
-        logErr ("Unknown error updating recite progress in database",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (
+            lcDb, "Error updating recite progress in database");
         return ChangeResult::UnknownError;
     }
 }
@@ -1080,18 +1001,19 @@ std::optional<QString> DbModel::getUserId (const QString &username) const
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return std::nullopt;
     }
 
     if (username.isEmpty ())
     {
-        logErr ("Username is empty", std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "Username is empty";
         return std::nullopt;
     }
 
-    try
+    return guarded (lcDb, "Error getting user ID from database",
+                    std::optional<QString>{},
+                    [&]() -> std::optional<QString>
     {
         SQLite::Statement query (
             *d->user_db, "SELECT user_id FROM users WHERE username = ?");
@@ -1103,41 +1025,26 @@ std::optional<QString> DbModel::getUserId (const QString &username) const
         }
 
         return std::nullopt;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error getting user ID from database", e);
-        return std::nullopt;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error getting user ID from database", e);
-        return std::nullopt;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error getting user ID from database",
-                std::runtime_error ("Unknown exception"));
-        return std::nullopt;
-    }
+    });
 }
 
 std::optional<QString> DbModel::getUserName (const QString &userId) const
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return std::nullopt;
     }
 
     if (userId.isEmpty ())
     {
-        logErr ("User ID is empty", std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "User ID is empty";
         return std::nullopt;
     }
 
-    try
+    return guarded (lcDb, "Error getting username from database",
+                    std::optional<QString>{},
+                    [&]() -> std::optional<QString>
     {
         SQLite::Statement query (
             *d->user_db, "SELECT username FROM users WHERE user_id = ?");
@@ -1149,41 +1056,25 @@ std::optional<QString> DbModel::getUserName (const QString &userId) const
         }
 
         return std::nullopt;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error getting username from database", e);
-        return std::nullopt;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error getting username from database", e);
-        return std::nullopt;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error getting username from database",
-                std::runtime_error ("Unknown exception"));
-        return std::nullopt;
-    }
+    });
 }
 
 QString DbModel::getUserPasswordHash (const QString &username) const
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return QString ();
     }
 
     if (username.isEmpty ())
     {
-        logErr ("Username is empty", std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "Username is empty";
         return QString ();
     }
 
-    try
+    return guarded (lcDb, "Error getting user password hash from database",
+                    QString{}, [&]() -> QString
     {
         SQLite::Statement query (
             *d->user_db, "SELECT password_hash FROM users WHERE username = ?");
@@ -1195,41 +1086,25 @@ QString DbModel::getUserPasswordHash (const QString &username) const
         }
 
         return QString ();
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error getting user password hash from database", e);
-        return QString ();
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error getting user password hash from database", e);
-        return QString ();
-    }
-    catch (...)
-    {
-        logErr ("Unknown error getting user password hash from database",
-                std::runtime_error ("Unknown exception"));
-        return QString ();
-    }
+    });
 }
 
 QString DbModel::getUserEmail (const QString &username) const
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return QString ();
     }
 
     if (username.isEmpty ())
     {
-        logErr ("Username is empty", std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "Username is empty";
         return QString ();
     }
 
-    try
+    return guarded (lcDb, "Error getting user email from database",
+                    QString{}, [&]() -> QString
     {
         SQLite::Statement query (*d->user_db,
                                  "SELECT email FROM users WHERE username = ?");
@@ -1247,41 +1122,27 @@ QString DbModel::getUserEmail (const QString &username) const
 
         return QString (); // Return empty string if no email found or email is
                            // NULL
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error getting user email from database", e);
-        return QString ();
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error getting user email from database", e);
-        return QString ();
-    }
-    catch (...)
-    {
-        logErr ("Unknown error getting user email from database",
-                std::runtime_error ("Unknown exception"));
-        return QString ();
-    }
+    });
 }
 
 QString DbModel::getUserAvatarPath (const QString &username) const
 {
+    const QString fallbackAvatar = QStringLiteral (":/image/DefaultUser.png");
+
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
-        return QString (":/image/DefaultUser.png");
+        qCWarning (lcDb) << "User database is not open";
+        return fallbackAvatar;
     }
 
     if (username.isEmpty ())
     {
-        logErr ("Username is empty", std::runtime_error ("Invalid input"));
-        return QString (":/image/DefaultUser.png");
+        qCWarning (lcDb) << "Username is empty";
+        return fallbackAvatar;
     }
 
-    try
+    return guarded (lcDb, "Error getting user avatar path from database",
+                    fallbackAvatar, [&]() -> QString
     {
         SQLite::Statement query (
             *d->user_db, "SELECT avatar_path FROM users WHERE username = ?");
@@ -1297,24 +1158,8 @@ QString DbModel::getUserAvatarPath (const QString &username) const
             }
         }
 
-        return QString (":/image/DefaultUser.png");
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error getting user avatar path from database", e);
-        return QString (":/image/DefaultUser.png");
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error getting user avatar path from database", e);
-        return QString (":/image/DefaultUser.png");
-    }
-    catch (...)
-    {
-        logErr ("Unknown error getting user avatar path from database",
-                std::runtime_error ("Unknown exception"));
-        return QString (":/image/DefaultUser.png");
-    }
+        return fallbackAvatar;
+    });
 }
 
 std::vector<AiProviderConfig>
@@ -1322,12 +1167,13 @@ DbModel::getAiProviders (const QString &userId)
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return {};
     }
 
-    try
+    return guarded (lcDb, "Error getting AI providers",
+                    std::vector<AiProviderConfig>{},
+                    [&]() -> std::vector<AiProviderConfig>
     {
         SQLite::Statement query (
             *d->user_db,
@@ -1357,23 +1203,7 @@ DbModel::getAiProviders (const QString &userId)
         }
 
         return providers;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error getting AI providers", e);
-        return {};
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error getting AI providers", e);
-        return {};
-    }
-    catch (...)
-    {
-        logErr ("Unknown error getting AI providers",
-                std::runtime_error ("Unknown exception"));
-        return {};
-    }
+    });
 }
 
 std::optional<AiProviderConfig>
@@ -1397,19 +1227,18 @@ ChangeResult DbModel::upsertAiProvider (const QString &userId,
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return ChangeResult::DatabaseError;
     }
 
     if (userId.isEmpty () || !provider.isValid ())
     {
-        logErr ("Invalid AI provider configuration",
-                std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "Invalid AI provider configuration";
         return ChangeResult::InvalidInput;
     }
 
-    try
+    return guarded (lcDb, "Error upserting AI provider",
+                    ChangeResult::DatabaseError, [&]() -> ChangeResult
     {
         SQLite::Transaction transaction (*d->user_db);
 
@@ -1449,8 +1278,7 @@ ChangeResult DbModel::upsertAiProvider (const QString &userId,
 
             if (query.getChanges () == 0)
             {
-                logErr ("AI provider not found for this user",
-                        std::runtime_error ("No matching row"));
+                qCWarning (lcDb) << "AI provider not found for this user";
                 return ChangeResult::InvalidInput;
             }
         }
@@ -1469,23 +1297,7 @@ ChangeResult DbModel::upsertAiProvider (const QString &userId,
 
         transaction.commit ();
         return ChangeResult::Success;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error upserting AI provider", e);
-        return ChangeResult::DatabaseError;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error upserting AI provider", e);
-        return ChangeResult::DatabaseError;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error upserting AI provider",
-                std::runtime_error ("Unknown exception"));
-        return ChangeResult::DatabaseError;
-    }
+    });
 }
 
 ChangeResult DbModel::deleteAiProvider (const QString &userId,
@@ -1493,12 +1305,12 @@ ChangeResult DbModel::deleteAiProvider (const QString &userId,
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return ChangeResult::DatabaseError;
     }
 
-    try
+    return guarded (lcDb, "Error deleting AI provider",
+                    ChangeResult::DatabaseError, [&]() -> ChangeResult
     {
         SQLite::Statement query (*d->user_db,
                                  "DELETE FROM ai_providers WHERE provider_id "
@@ -1507,23 +1319,7 @@ ChangeResult DbModel::deleteAiProvider (const QString &userId,
         query.bind (2, userId.toStdString ());
         query.exec ();
         return ChangeResult::Success;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error deleting AI provider", e);
-        return ChangeResult::DatabaseError;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error deleting AI provider", e);
-        return ChangeResult::DatabaseError;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error deleting AI provider",
-                std::runtime_error ("Unknown exception"));
-        return ChangeResult::DatabaseError;
-    }
+    });
 }
 
 ChangeResult DbModel::setActiveAiProvider (const QString &userId,
@@ -1531,12 +1327,12 @@ ChangeResult DbModel::setActiveAiProvider (const QString &userId,
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return ChangeResult::DatabaseError;
     }
 
-    try
+    return guarded (lcDb, "Error activating AI provider",
+                    ChangeResult::DatabaseError, [&]() -> ChangeResult
     {
         SQLite::Transaction transaction (*d->user_db);
 
@@ -1555,38 +1351,20 @@ ChangeResult DbModel::setActiveAiProvider (const QString &userId,
 
         if (query.getChanges () == 0)
         {
-            logErr ("AI provider not found for this user",
-                    std::runtime_error ("No matching row"));
+            qCWarning (lcDb) << "AI provider not found for this user";
             return ChangeResult::InvalidInput;
         }
 
         transaction.commit ();
         return ChangeResult::Success;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error activating AI provider", e);
-        return ChangeResult::DatabaseError;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error activating AI provider", e);
-        return ChangeResult::DatabaseError;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error activating AI provider",
-                std::runtime_error ("Unknown exception"));
-        return ChangeResult::DatabaseError;
-    }
+    });
 }
 
 AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
 {
     if (!isDictDbOpen ())
     {
-        logErr ("Dictionary database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "Dictionary database is not open";
         co_return;
     }
 
@@ -1643,18 +1421,13 @@ AsyncTask<void> DbModel::importWordEntry (const WordEntry &wordEntry)
         clearWordLookupCache ();
         co_return;
     }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error importing word entry", e);
-    }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error importing word entry", e);
+        trance::log::logException (lcDb, "Error importing word entry", e);
     }
     catch (...)
     {
-        logErr ("Unknown error importing word entry",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcDb, "Error importing word entry");
     }
 }
 
@@ -1663,8 +1436,8 @@ DbModel::importWordEntriesAsync (const std::vector<WordEntry> &wordEntries)
 {
     if (!isDictDbOpen () || wordEntries.empty ())
     {
-        logErr ("Dictionary database is not open or no word entries provided",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "Dictionary database is not open or no word "
+                            "entries provided";
         co_return;
     }
 
@@ -1690,18 +1463,13 @@ DbModel::importWordEntriesAsync (const std::vector<WordEntry> &wordEntries)
 
         transaction.commit ();
     }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error importing word entries", e);
-    }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error importing word entries", e);
+        trance::log::logException (lcDb, "Error importing word entries", e);
     }
     catch (...)
     {
-        logErr ("Unknown error importing word entries",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcDb, "Error importing word entries");
     }
 }
 
@@ -1711,22 +1479,20 @@ DbModel::importFromFileAsync (const QString &filePath,
 {
     if (filePath.isEmpty ())
     {
-        logErr ("Dictionary file path is empty",
-                std::runtime_error ("Invalid file path"));
+        qCWarning (lcDb) << "Dictionary file path is empty";
         co_return;
     }
 
     const auto importState = d->m_dictImportState;
     if (importState == nullptr)
     {
-        logErr ("Dictionary import state is not initialized",
-                std::runtime_error ("Invalid import state"));
+        qCWarning (lcDb) << "Dictionary import state is not initialized";
         co_return;
     }
 
     if (importState->inProgress.exchange (true))
     {
-        qDebug () << "Dictionary import is already running";
+        qCDebug (lcDb) << "Dictionary import is already running";
         co_return;
     }
 
@@ -1744,35 +1510,26 @@ DbModel::importFromFileAsync (const QString &filePath,
                                                SQLite::OPEN_READWRITE);
                 configureDictDatabasePragmas (backgroundDb);
 
-                qDebug () << "Background dictionary import started from:"
-                          << filePath;
+                qCDebug (lcDb) << "Background dictionary import started from:"
+                               << filePath;
 
                 importFromFileSyncInternal (backgroundDb, filePath,
                                             std::move (progressCallback));
 
                 importState->ready.store (countDictionaryWords (backgroundDb) >
                                           0);
-                qDebug () << "Dictionary import completed!";
-            }
-            catch (const SQLite::Exception &e)
-            {
-                qCritical () << "[DbModel] Error importing from file in "
-                                "background. Exception:"
-                             << e.what ();
-                importState->ready.store (false);
+                qCDebug (lcDb) << "Dictionary import completed!";
             }
             catch (const std::exception &e)
             {
-                qCritical () << "[DbModel] Unknown error importing from file "
-                                "in background. Exception:"
-                             << e.what ();
+                trance::log::logException (
+                    lcDb, "Error importing from file in background", e);
                 importState->ready.store (false);
             }
             catch (...)
             {
-                qCritical () << "[DbModel] Unknown error importing from file "
-                                "in background. Exception: Unknown "
-                                "exception";
+                trance::log::logExceptionUnknown (
+                    lcDb, "Error importing from file in background");
                 importState->ready.store (false);
             }
 
@@ -1788,12 +1545,11 @@ void DbModel::importFromFileSync (
 {
     if (!isDictDbOpen ())
     {
-        logErr ("Dictionary database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "Dictionary database is not open";
         return;
     }
 
-    try
+    guarded (lcDb, "Error importing from file", [&]
     {
         importFromFileSyncInternal (*d->dict_db, filePath, progressCallback);
         clearWordLookupCache ();
@@ -1802,64 +1558,34 @@ void DbModel::importFromFileSync (
             d->m_dictImportState->ready.store (
                 countDictionaryWords (*d->dict_db) > 0);
         }
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error importing from file", e);
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error importing from file", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error importing from file",
-                std::runtime_error ("Unknown exception"));
-    }
+    });
 }
 
 void DbModel::insertWordBatchSync (const std::vector<WordEntry> &batch)
 {
     if (batch.empty ())
     {
-        logErr ("Batch is empty", std::runtime_error ("No words to insert"));
+        qCWarning (lcDb) << "Batch is empty";
         return;
     }
 
-    try
+    guardedRethrow (lcDb, "Error in batch insert", [&]
     {
         insertWordBatchSyncInternal (*d->dict_db, batch);
         clearWordLookupCache ();
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error in batch insert", e);
-        throw;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error in batch insert", e);
-        throw;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error in batch insert",
-                std::runtime_error ("Unknown exception"));
-        throw;
-    }
+    });
 }
 
 AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
 {
     if (batch.empty ())
     {
-        logErr ("Batch is empty", std::runtime_error ("No words to insert"));
+        qCWarning (lcDb) << "Batch is empty";
         co_return;
     }
 
-    try
+    guardedRethrow (lcDb, "Error in batch insert", [&]
     {
-
         SQLite::Statement wordsStmt (
             *d->dict_db,
             "INSERT OR IGNORE INTO words "
@@ -1896,23 +1622,7 @@ AsyncTask<void> DbModel::insertWordBatch (const std::vector<WordEntry> &batch)
         }
 
         clearWordLookupCache ();
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error in batch insert", e);
-        throw;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error in batch insert", e);
-        throw;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error in batch insert",
-                std::runtime_error ("Unknown exception"));
-        throw;
-    }
+    });
 
     co_return;
 }
@@ -1922,8 +1632,7 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
 {
     if (!isDictDbOpen ())
     {
-        logErr ("Dictionary database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "Dictionary database is not open";
         return std::nullopt;
     }
 
@@ -1932,28 +1641,30 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
 
     if (normalizedWord.isEmpty () || normalizedSrcLang.isEmpty ())
     {
-        logErr ("Word or source language is empty",
-                std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "Word or source language is empty";
         return std::nullopt; // Invalid input
     }
     if (normalizedSrcLang != "en" && normalizedSrcLang != "zh")
     {
-        logErr ("Unsupported source language", std::runtime_error ("Invalid "
-                                                                   "source "
-                                                                   "language"));
+        qCWarning (lcDb) << "Unsupported source language";
         return std::nullopt; // Unsupported language
     }
-    try
+
+    return guarded (lcDb, "Error looking up word in database",
+                    std::optional<WordEntry>{},
+                    [&]() -> std::optional<WordEntry>
     {
         const auto cacheKey =
             buildWordLookupCacheKey (normalizedWord, normalizedSrcLang);
         if (auto cachedEntry = d->m_wordLookupCache.get (cacheKey);
             cachedEntry.has_value ())
         {
-            qDebug () << "Cache get:" << QString::fromStdString (cacheKey) << "HIT";
+            qCDebug (lcDb) << "Cache get:" << QString::fromStdString (cacheKey)
+                           << "HIT";
             return cachedEntry;
         }
-        qDebug () << "Cache get:" << QString::fromStdString (cacheKey) << "MISS";
+        qCDebug (lcDb) << "Cache get:" << QString::fromStdString (cacheKey)
+                       << "MISS";
 
         WordEntry entry;
         bool found = false;
@@ -2032,28 +1743,11 @@ std::optional<WordEntry> DbModel::lookupWord (const QString &word,
             std::chrono::minutes (
                 Constants::Settings::Cache::WORD_LOOKUP_TTL_MINUTES));
 
-        qDebug () << "Cache size after put:" << d->m_wordLookupCache.sizeBytes () 
-                 << "bytes";
+        qCDebug (lcDb) << "Cache size after put:"
+                       << d->m_wordLookupCache.sizeBytes () << "bytes";
 
         return entry;
-    }
-    catch (SQLite::Exception &e)
-    {
-        logErr ("Error looking up word in database", e);
-        return std::nullopt;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error looking up word in database", e);
-        return std::nullopt;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error looking up word in database",
-                std::runtime_error ("Unknown exception"));
-        return std::nullopt;
-    }
-    return std::nullopt;
+    });
 }
 
 void DbModel::clearWordLookupCache () { d->m_wordLookupCache.clear (); }
@@ -2074,33 +1768,30 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
 {
     if (!isDictDbOpen ())
     {
-        logErr ("Dictionary database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "Dictionary database is not open";
         return std::vector<WordEntry> ();
     }
     if (pattern.isEmpty () || srcLang.isEmpty ())
     {
-        logErr ("Pattern or source language is empty",
-                std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "Pattern or source language is empty";
         return std::vector<WordEntry> (); // Invalid input
     }
 
     if (srcLang != "en" && srcLang != "zh")
     {
-        logErr ("Unsupported source language", std::runtime_error ("Invalid "
-                                                                   "source "
-                                                                   "language"));
+        qCWarning (lcDb) << "Unsupported source language";
         return std::vector<WordEntry> (); // Unsupported language
     }
 
     if (limit <= 0)
     {
-        logErr ("Limit must be greater than 0",
-                std::runtime_error ("Invalid limit value"));
+        qCWarning (lcDb) << "Limit must be greater than 0";
         return std::vector<WordEntry> (); // Invalid limit
     }
 
-    try
+    return guarded (lcDb, "Error searching words in database",
+                    std::vector<WordEntry>{},
+                    [&]() -> std::vector<WordEntry>
     {
 
         std::vector<WordEntry> results;
@@ -2221,36 +1912,18 @@ std::vector<WordEntry> DbModel::searchWords (const QString &pattern,
         }
 
         return results;
-    }
-    catch (SQLite::Exception &e)
-    {
-        logErr ("Error searching words in database", e);
-        return std::vector<WordEntry> ();
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error searching words in database", e);
-        return std::vector<WordEntry> ();
-    }
-    catch (...)
-    {
-        logErr ("Unknown error searching words in database",
-                std::runtime_error ("Unknown exception"));
-        return std::vector<WordEntry> ();
-    }
-    return std::vector<WordEntry> ();
+    });
 }
 
 void DbModel::addToUserFavorites (const QString &userId, const QString &word)
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return;
     }
 
-    try
+    guarded (lcDb, "Error adding word to favorites", [&]
     {
         SQLite::Statement query (
             *d->user_db,
@@ -2264,20 +1937,7 @@ void DbModel::addToUserFavorites (const QString &userId, const QString &word)
         {
             AiEventTap::notifyFavoriteChanged (word, true);
         }
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error adding word to favorites", e);
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error adding word to favorites", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error adding word to favorites",
-                std::runtime_error ("Unknown exception"));
-    }
+    });
 }
 
 void DbModel::removeFromUserFavorites (const QString &userId,
@@ -2285,12 +1945,11 @@ void DbModel::removeFromUserFavorites (const QString &userId,
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return;
     }
 
-    try
+    guarded (lcDb, "Error removing word from favorites", [&]
     {
         SQLite::Statement query (
             *d->user_db,
@@ -2303,32 +1962,18 @@ void DbModel::removeFromUserFavorites (const QString &userId,
         {
             AiEventTap::notifyFavoriteChanged (word, false);
         }
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error removing word from favorites", e);
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error removing word from favorites", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error removing word from favorites",
-                std::runtime_error ("Unknown exception"));
-    }
+    });
 }
 
 bool DbModel::isWordFavorited (const QString &userId, const QString &word) const
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return false;
     }
 
-    try
+    return guarded (lcDb, "Error checking if word is favorited", false, [&]
     {
         SQLite::Statement query (*d->user_db,
                                  "SELECT COUNT(*) FROM user_favorites WHERE "
@@ -2337,23 +1982,7 @@ bool DbModel::isWordFavorited (const QString &userId, const QString &word) const
         query.bind (2, word.toStdString ());
         query.executeStep ();
         return query.getColumn (0).getInt () > 0;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error checking if word is favorited", e);
-        return false;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error checking if word is favorited", e);
-        return false;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error checking if word is favorited",
-                std::runtime_error ("Unknown exception"));
-        return false;
-    }
+    });
 }
 
 bool DbModel::existsInMastered (const QString &userId,
@@ -2361,12 +1990,11 @@ bool DbModel::existsInMastered (const QString &userId,
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return false;
     }
 
-    try
+    return guarded (lcDb, "Error checking if word is mastered", false, [&]
     {
         SQLite::Statement query (*d->user_db,
                                  "SELECT COUNT(*) FROM user_vocabulary WHERE "
@@ -2375,23 +2003,7 @@ bool DbModel::existsInMastered (const QString &userId,
         query.bind (2, word.toStdString ());
         query.executeStep ();
         return query.getColumn (0).getInt () > 0;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error checking if word is mastered", e);
-        return false;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error checking if word is mastered", e);
-        return false;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error checking if word is mastered",
-                std::runtime_error ("Unknown exception"));
-        return false;
-    }
+    });
 }
 
 ChangeResult DbModel::updateWordStatus (const QString &userId,
@@ -2401,24 +2013,22 @@ ChangeResult DbModel::updateWordStatus (const QString &userId,
 
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return ChangeResult::DatabaseError;
     }
 
     if (userId.isEmpty () || word.isEmpty ())
     {
-        logErr ("User ID or word is empty",
-                std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "User ID or word is empty";
         return ChangeResult::InvalidInput;
     }
 
     if (status < 0 || status > 1)
     {
-        logErr ("Invalid status value",
-                std::runtime_error ("Status must be 0 or 1"));
+        qCWarning (lcDb) << "Invalid status value";
         return ChangeResult::InvalidInput;
     }
+
     try
     {
         SQLite::Statement query (
@@ -2432,8 +2042,7 @@ ChangeResult DbModel::updateWordStatus (const QString &userId,
 
         if (query.getChanges () == 0)
         {
-            logErr ("No changes made to user vocabulary",
-                    std::runtime_error ("Word already has the same status"));
+            qCWarning (lcDb) << "No changes made to user vocabulary";
             return ChangeResult::StillSame;
         }
 
@@ -2444,18 +2053,20 @@ ChangeResult DbModel::updateWordStatus (const QString &userId,
     catch (const SQLite::Exception &e)
     {
 
-        logErr ("Error updating word status in database", e);
+        trance::log::logException (
+            lcDb, "Error updating word status in database", e);
         return ChangeResult::DatabaseError;
     }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error updating word status in database", e);
+        trance::log::logException (
+            lcDb, "Error updating word status in database", e);
         return ChangeResult::UnknownError;
     }
     catch (...)
     {
-        logErr ("Unknown error updating word status in database",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (
+            lcDb, "Error updating word status in database");
         return ChangeResult::UnknownError;
     }
 }
@@ -2466,25 +2077,24 @@ std::vector<QString> DbModel::getUserVocabulary (const QString &userId,
 
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return std::vector<QString> ();
     }
 
     if (userId.isEmpty ())
     {
-        logErr ("User ID is empty", std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "User ID is empty";
         return std::vector<QString> (); // Invalid input
     }
 
     if (status < -1 || status > 1)
     {
-        logErr ("Invalid status value",
-                std::runtime_error ("Status must be -1, 0 or 1"));
+        qCWarning (lcDb) << "Invalid status value";
         return std::vector<QString> (); // Invalid status
     }
 
-    try
+    return guarded (lcDb, "Error getting user vocabulary from database",
+                    std::vector<QString>{}, [&]() -> std::vector<QString>
     {
         std::vector<QString> vocabularies;
 
@@ -2525,41 +2135,25 @@ std::vector<QString> DbModel::getUserVocabulary (const QString &userId,
             }
             return vocabularies;
         }
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error getting user vocabulary from database", e);
-        return std::vector<QString> ();
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error getting user vocabulary from database", e);
-        return std::vector<QString> ();
-    }
-    catch (...)
-    {
-        logErr ("Unknown error getting user vocabulary from database",
-                std::runtime_error ("Unknown exception"));
-        return std::vector<QString> ();
-    }
+    });
 }
 
 std::vector<QString> DbModel::getUserFavorites (const QString &userId)
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return std::vector<QString> ();
     }
 
     if (userId.isEmpty ())
     {
-        logErr ("User ID is empty", std::runtime_error ("Invalid input"));
+        qCWarning (lcDb) << "User ID is empty";
         return std::vector<QString> (); // Invalid input
     }
 
-    try
+    return guarded (lcDb, "Error getting user favorites from database",
+                    std::vector<QString>{}, [&]() -> std::vector<QString>
     {
         std::vector<QString> favorites;
         SQLite::Statement query (
@@ -2573,35 +2167,20 @@ std::vector<QString> DbModel::getUserFavorites (const QString &userId)
             favorites.emplace_back (word);
         }
         return favorites;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error getting user favorites from database", e);
-        return std::vector<QString> ();
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error getting user favorites from database", e);
-        return std::vector<QString> ();
-    }
-    catch (...)
-    {
-        logErr ("Unknown error getting user favorites from database",
-                std::runtime_error ("Unknown exception"));
-        return std::vector<QString> ();
-    }
+    });
 }
 
 std::optional<WordEntry> DbModel::getRandomWord ()
 {
     if (!isDictDbOpen ())
     {
-        logErr ("Dictionary database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "Dictionary database is not open";
         return std::nullopt;
     }
 
-    try
+    return guarded (lcDb, "Error getting random word from database",
+                    std::optional<WordEntry>{},
+                    [&]() -> std::optional<WordEntry>
     {
         WordEntry randomWordEntry;
 
@@ -2655,23 +2234,7 @@ std::optional<WordEntry> DbModel::getRandomWord ()
         }
 
         return randomWordEntry;
-    }
-    catch (SQLite::Exception &e)
-    {
-        logErr ("Error getting random word from database", e);
-        return std::nullopt;
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error getting random word from database", e);
-        return std::nullopt;
-    }
-    catch (...)
-    {
-        logErr ("Unknown error getting random word from database",
-                std::runtime_error ("Unknown exception"));
-        return std::nullopt;
-    }
+    });
 }
 
 QString DbModel::resolveResourcePath (const QString &relativePath)
@@ -2794,8 +2357,9 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
 
         if (wordCount == 0 && QFile::exists (dictFilePath))
         {
-            qDebug () << "Dictionary is empty, starting background import from:"
-                      << dictFilePath;
+            qCDebug (lcDb)
+                << "Dictionary is empty, starting background import from:"
+                << dictFilePath;
 
             importFromFileAsync (
                 dictFilePath,
@@ -2803,8 +2367,8 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
                 {
                     if (total > 0 && (current % 5000 == 0 || current == total))
                     {
-                        qDebug () << "Dictionary import progress:"
-                                  << (current * 100 / total) << "%";
+                        qCDebug (lcDb) << "Dictionary import progress:"
+                                       << (current * 100 / total) << "%";
                     }
                 });
         }
@@ -2814,27 +2378,24 @@ AsyncTask<void> DbModel::initializeAsync (const QString &dictPath)
             {
                 d->m_dictImportState->ready.store (true);
             }
-            qDebug () << "Dictionary already contains" << wordCount << "words";
+            qCDebug (lcDb) << "Dictionary already contains" << wordCount
+                           << "words";
         }
         else if (!QFile::exists (dictFilePath))
         {
-            auto exception = std::runtime_error (
-                "Dictionary file not found at: " + dictFilePath.toStdString ());
-            logErr ("Dictionary file not found", exception);
+            qCWarning (lcDb) << "Dictionary file not found at:"
+                             << dictFilePath;
         }
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error checking/importing dictionary", e);
     }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error checking/importing dictionary", e);
+        trance::log::logException (lcDb, "Error checking/importing dictionary",
+                                   e);
     }
     catch (...)
     {
-        logErr ("Unknown error checking/importing dictionary",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcDb,
+                                          "Error checking/importing dictionary");
     }
 
     co_return;
@@ -2844,12 +2405,11 @@ void DbModel::addToSearchHistory (const QString &userId, const QString &word)
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return;
     }
 
-    try
+    guarded (lcDb, "Error adding to search history", [&]
     {
         SQLite::Statement query (*d->user_db,
                                  "INSERT INTO user_search_history (user_id, "
@@ -2859,20 +2419,7 @@ void DbModel::addToSearchHistory (const QString &userId, const QString &word)
         query.exec ();
 
         AiEventTap::notifyWordLookedUp (word);
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error adding to search history", e);
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error adding to search history", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error adding to search history",
-                std::runtime_error ("Unknown exception"));
-    }
+    });
 }
 
 void DbModel::removeFromSearchHistory (const QString &userId,
@@ -2880,12 +2427,11 @@ void DbModel::removeFromSearchHistory (const QString &userId,
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return;
     }
 
-    try
+    guarded (lcDb, "Error removing from search history", [&]
     {
         SQLite::Statement query (
             *d->user_db, "DELETE FROM user_search_history WHERE user_id = ? "
@@ -2893,32 +2439,18 @@ void DbModel::removeFromSearchHistory (const QString &userId,
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
         query.exec ();
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error removing from search history", e);
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error removing from search history", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error removing from search history",
-                std::runtime_error ("Unknown exception"));
-    }
+    });
 }
 
 void DbModel::addToReciteHistory (const QString &userId, const QString &word)
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return;
     }
 
-    try
+    guarded (lcDb, "Error adding to recite history", [&]
     {
         SQLite::Statement query (
             *d->user_db,
@@ -2929,20 +2461,7 @@ void DbModel::addToReciteHistory (const QString &userId, const QString &word)
         query.exec ();
 
         AiEventTap::notifyWordRecited (word);
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error adding to recite history", e);
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error adding to recite history", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error adding to recite history",
-                std::runtime_error ("Unknown exception"));
-    }
+    });
 }
 
 void DbModel::removeFromReciteHistory (const QString &userId,
@@ -2950,12 +2469,11 @@ void DbModel::removeFromReciteHistory (const QString &userId,
 {
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return;
     }
 
-    try
+    guarded (lcDb, "Error removing from recite history", [&]
     {
         SQLite::Statement query (
             *d->user_db, "DELETE FROM user_recite_history WHERE user_id = ? "
@@ -2963,20 +2481,7 @@ void DbModel::removeFromReciteHistory (const QString &userId,
         query.bind (1, userId.toStdString ());
         query.bind (2, word.toStdString ());
         query.exec ();
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error removing from recite history", e);
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error removing from recite history", e);
-    }
-    catch (...)
-    {
-        logErr ("Unknown error removing from recite history",
-                std::runtime_error ("Unknown exception"));
-    }
+    });
 }
 
 std::vector<QString> DbModel::getUserSearchHistory (const QString &userId)
@@ -2985,8 +2490,7 @@ std::vector<QString> DbModel::getUserSearchHistory (const QString &userId)
 
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return history;
     }
 
@@ -3007,18 +2511,15 @@ std::vector<QString> DbModel::getUserSearchHistory (const QString &userId)
             }
         }
     }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error getting user search history", e);
-    }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error getting user search history", e);
+        trance::log::logException (lcDb, "Error getting user search history",
+                                   e);
     }
     catch (...)
     {
-        logErr ("Unknown error getting user search history",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcDb,
+                                          "Error getting user search history");
     }
 
     return history;
@@ -3030,8 +2531,7 @@ std::vector<QString> DbModel::getUserReciteHistory (const QString &userId)
 
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return history;
     }
 
@@ -3052,18 +2552,15 @@ std::vector<QString> DbModel::getUserReciteHistory (const QString &userId)
             }
         }
     }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error getting user recite history", e);
-    }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error getting user recite history", e);
+        trance::log::logException (lcDb, "Error getting user recite history",
+                                   e);
     }
     catch (...)
     {
-        logErr ("Unknown error getting user recite history",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcDb,
+                                          "Error getting user recite history");
     }
 
     return history;
@@ -3077,8 +2574,7 @@ std::pair<int, int> DbModel::getProgress (const QString &userId) const
 
     if (!isUserDbOpen ())
     {
-        logErr ("User database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "User database is not open";
         return {0, 15};
     }
 
@@ -3101,21 +2597,15 @@ std::pair<int, int> DbModel::getProgress (const QString &userId) const
 
         return {currentProgress, totalWords};
     }
-    catch (const SQLite::Exception &e)
-    {
-
-        logErr ("Error getting user progress", e);
-        return {currentProgress, totalWords};
-    }
     catch (const std::exception &e)
     {
-        logErr ("Unknown error getting user progress", e);
+
+        trance::log::logException (lcDb, "Error getting user progress", e);
         return {currentProgress, totalWords};
     }
     catch (...)
     {
-        logErr ("Unknown error getting user progress",
-                std::runtime_error ("Unknown exception"));
+        trance::log::logExceptionUnknown (lcDb, "Error getting user progress");
         return {currentProgress, totalWords};
     }
 }
@@ -3127,19 +2617,18 @@ DbModel::getRandomWrongTranslations (const QString &correctTranslation,
     std::vector<QString> wrongTranslations;
     if (!isDictDbOpen ())
     {
-        logErr ("Dictionary database is not open",
-                std::runtime_error ("Database connection is not established"));
+        qCWarning (lcDb) << "Dictionary database is not open";
         return std::vector<QString> ();
     }
 
     if (correctTranslation.isEmpty () || limit <= 0)
     {
-        logErr ("Invalid input for getting wrong translations",
-                std::runtime_error ("Correct translation is empty or limit "
-                                    "is not positive"));
+        qCWarning (lcDb) << "Invalid input for getting wrong translations";
         return std::vector<QString> ();
     }
-    try
+
+    return guarded (lcDb, "Error preparing query for wrong translations",
+                    std::vector<QString>{}, [&]() -> std::vector<QString>
     {
         SQLite::Statement countQuery (
             *d->dict_db,
@@ -3152,8 +2641,7 @@ DbModel::getRandomWrongTranslations (const QString &correctTranslation,
 
         if (candidateCount <= 0)
         {
-            logErr ("No translations found in the database",
-                    std::runtime_error ("No translations available"));
+            qCWarning (lcDb) << "No translations found in the database";
             return std::vector<QString> ();
         }
 
@@ -3201,8 +2689,7 @@ DbModel::getRandomWrongTranslations (const QString &correctTranslation,
 
         if (wrongTranslations.empty ())
         {
-            logErr ("No wrong translations found",
-                    std::runtime_error ("No valid translations available"));
+            qCWarning (lcDb) << "No wrong translations found";
             return std::vector<QString> ();
         }
 
@@ -3213,21 +2700,5 @@ DbModel::getRandomWrongTranslations (const QString &correctTranslation,
         }
 
         return wrongTranslations;
-    }
-    catch (const SQLite::Exception &e)
-    {
-        logErr ("Error preparing query for wrong translations", e);
-        return std::vector<QString> ();
-    }
-    catch (const std::exception &e)
-    {
-        logErr ("Unknown error preparing query for wrong translations", e);
-        return std::vector<QString> ();
-    }
-    catch (...)
-    {
-        logErr ("Unknown error preparing query for wrong translations",
-                std::runtime_error ("Unknown exception"));
-        return std::vector<QString> ();
-    }
+    });
 }
